@@ -1,0 +1,397 @@
+该数据结构由五个栈和五个映射组成
+
+五个栈从上到下依次为（均以右端为栈顶）：
+1. 输入栈
+2. 变量上栈
+3. 变量中栈
+4. 变量下栈
+5. 输出栈
+其中的变量上栈预置了无穷多个互不相同的变量
+
+五个映射分别为：
+1. 环境映射Emap
+2. 量化映射Qmap
+3. 集合映射Smap
+4. 表达式映射Fmap
+5. 关联变量映射Amap
+所有映射的键值都是变量名
+
+符号约定：
+小写字母表示变量
+大写字母表示任意元素
+"A:S"表示A为集合词
+"A:R"表示A为关系词
+"A:Q"表示A为量化词
+"A:C"表示A为连接词
+"#"表示空表达式（#∧A=A，A∧#=A）
+"|"表示空栈
+"|| A"表示栈顶元素为A，其余栈内元素整体用"||"表示
+"[...,A]"表示List的栈顶元素为A
+
+运算约定：
+build A a b B C D:=A a∈{b∈B|C} D。例如：build ∃ n z Z (z>=0) (n*n=n):=∃n∈{z∈Z|z>=0}(n*n=n)
+如果Emap里不存在对应映射，则lookup返回空；如果Qmap里不存在对应映射，则lookup返回∃；如果Smap里不存在对应映射，则lookup返回全集；如果Fmap里不存在对应映射，则lookup返回#；如果Amap里不存在对应映射，则lookup报错
+
+执行流程：
+1. 输入
+2. 匹配一次起始规则（从上到下匹配）
+3. 循环匹配循环规则，直到匹配不了（从上到下匹配）
+4. 再次执行第二步
+
+<起始规则>
+
+1.
+|| []
+||
+||
+||
+||
+=>
+||
+||
+||
+||
+||
+操作：
+
+2.
+|| [...,A]
+||
+||
+||
+||
+=>
+|| [...]
+||
+||
+||
+|| A
+操作：
+
+3.
+|| A
+||
+||
+||
+||
+=>
+||
+||
+||
+||
+|| A
+操作：
+
+
+<循环规则>
+
+1.
+||
+|| a
+||
+||
+|| Get
+=>
+||
+||
+||
+||
+|| a #
+操作：
+
+2.
+||
+||
+|| a
+||
+|| Use
+=>
+||
+||
+||
+||
+|| a #
+操作：
+
+3.
+||
+|| a
+||
+||
+|| A:Q
+=>
+||
+|| a
+||
+||
+||
+操作：
+insert a A Qmap
+
+4.
+||
+|| b a
+||
+||
+|| A:S
+=>
+||
+||
+|| a
+|| a
+||
+操作：
+insert b A Smap
+insert b # Fmap
+insert a b Amap
+
+5.
+||
+||
+||
+||
+|| b C a B A:R
+=>
+||
+||
+||
+||
+|| b B∧C∧A(b,a)
+操作：
+
+6.
+||
+||
+||
+|| a
+|| A Apply
+=>
+||
+||
+||
+||
+|| (build (lookup a Qmap) a b (lookup b Smap) (lookup b Fmap) A)
+操作：
+let b=lookup a Amap
+
+7a.
+||
+||
+||
+|| a
+|| A End
+=>
+|| End
+||
+||
+|| a
+|| A Apply
+操作：
+
+7b.
+||
+||
+||
+|
+|| A End
+=>
+||
+||
+||
+|
+|| A
+操作：
+
+8.
+||
+|| a
+||
+||
+|| c C b B A:C
+=>
+||
+||
+||
+||
+|| a B∧C∧A_antecedent(a,c)∧A_consequent(a,b)
+操作：
+
+9a.
+||
+||
+||
+||
+|| C b B a A Modify
+=>
+||
+||
+||
+||
+|| B∧C[b:=a] a A Modify
+操作：
+
+9b.
+||
+||
+|| a
+||
+|| B b A Modify
+=>
+||
+||
+|| a
+||
+||
+操作：
+let c=lookup a Amap
+let C=lookup c Fmap
+insert c (C∧(apply (apply (apply A c) b) B)) Fmap
+
+9c.
+||
+|| a
+|| b
+||
+|| A Modify
+=>
+||
+||
+|| b
+||
+||
+操作：
+let c=lookup b Amap
+let B=lookup c Fmap
+insert c (B∧(apply (apply (apply A c) a) #)) Fmap
+
+10a.
+||
+|| a
+||
+||
+|| B b A Polish
+=>
+||
+||
+||
+||
+|| (apply (apply (apply A a) b) B) a
+操作：
+
+10b.
+||
+|| b a
+||
+||
+|| A Polish
+=>
+||
+||
+||
+||
+|| (apply (apply (apply A a) b) #) a
+操作：
+
+11.
+||
+||
+|| a
+||
+|| Upload b
+=>
+||
+||
+|| a
+||
+||
+操作：
+insert b a Emap
+
+12.
+||
+||
+||
+||
+|| Download a
+=>
+||
+||
+|| (lookup a Emap)
+||
+||
+操作：
+
+13.
+||
+||
+||
+||
+|| B b A a And
+=>
+||
+||
+||
+||
+|| A∧B[b:=a] a
+操作：
+
+<宏定义>
+
+二元谓词宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,谓词:S]
+
+（多元谓词同理）
+
+形容词宏:=[Modify,λx.λy.λz.形容词]
+（若形容词为"重的"，则"λx.λy.λz.重的"表示"∃a∈{y∈A|z}使得x的重量为a"，其中A为比较大的重量集合）
+
+副词宏:=[Polish,λx.λy.λz.副词]
+（跟形容词宏同理）
+
+空副词宏:=[z,#]
+（用来分隔副词，防止它们发生作用）
+
+<例句>
+
+1. "End 吃宏 Exist 猫:S All 鱼:S All"
+程序输出：v7 (All v1∈鱼 (All v3∈猫 (Exist v5∈吃 主语(v5,v3)∧宾语(v5,v1)∧谓语(v7,v5))))
+语义：猫吃鱼（在某种量化下）
+
+2. "高的宏 重的宏 人:S"
+程序输出：[("v2", "存在a∈比较大的重量使得v2的重量为a∧存在a∈比较大的高度使得v2的高度为a")]
+语义：又高又重的人
+
+3. "重的宏 非常的宏 人:S"
+程序输出：[("v2", "存在a∈{v3∈比较大的重量|存在a∈比较大的程度使得v3的程度为a}使得v2的重量为a")]
+语义：非常重的人
+
+4. "高的宏 重的宏 非常的宏 老的宏 非常的宏 非常的宏 人:S"
+程序输出： [("v2", "存在a∈{v5∈比较大的年龄|存在a∈{v3∈比较大的程度|存在a∈比较大的程度使得v3的程度为a}使得v5的程度为a}使得v2的年龄为a∧存在a∈{v6∈比较大的重量|存在a∈比较大的程度使得v6的程度为a}使得v2的重量为a∧存在a∈比较大的高度使得v2的高度为a")]
+语义：非常非常老的非常重的非常高的人
+
+5. "重的宏 C副词宏 And A副词宏 空副词宏 B副词宏 人:S"
+程序输出：[("v2", "存在a∈{v6∈比较大的重量|存在a∈{v5∈比较大的C|存在a∈比较大的A使得v5的A为a∧存在a∈比较大的B使得v5的B为a}使得v6的C为a}使得v2的重量为a")]
+语义：A且B地C地重的人
+
+6. "End 就:C 读宏 Exist Download child Download book 给宏 Exist 农夫:S All Upload child 小孩:S All Upload book 书:S All"
+程序输出：v13 (All v1∈书 (All v3∈小孩 (All v5∈农夫 (Exist v7∈给 (Exist v10∈读 主语(v10,v3)∧宾语(v10,v1)∧谓语(v12,v10)∧主语(v7,v5)∧宾语(v7,v3)∧传递物(v7,v1)∧谓语(v9,v7)∧就_antecedent(v13,v9)∧就_consequent(v13,v12))))))
+语义：农民给小孩书，小孩就会读它（在某种量化下）
+
+<宏定义示例>
+
+define 非常的宏:=[Polish,λx.λy.λz.存在a∈{y∈比较大的程度|z}使得x的程度为a]
+define 重的宏:=[Modify,λx.λy.λz.存在a∈{y∈比较大的重量|z}使得x的重量为a]
+define 高的宏:=[Modify,λx.λy.λz.存在a∈{y∈比较大的高度|z}使得x的高度为a]
+define 老的宏:=[Modify,λx.λy.λz.存在a∈{y∈比较大的年龄|z}使得x的年龄为a]
+define 空副词宏:=[z,#]
+define A副词宏:=[Polish,λx.λy.λz.存在a∈{y∈比较大的A|z}使得x的A为a]
+define B副词宏:=[Polish,λx.λy.λz.存在a∈{y∈比较大的B|z}使得x的B为a]
+define C副词宏:=[Polish,λx.λy.λz.存在a∈{y∈比较大的C|z}使得x的C为a]
+define 吃宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,吃:S]
+define 读宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,读:S]
+define 有宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,有:S]
+define 打宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,打:S]
+define 给宏 := [谓语:R,传递物:R,Use,宾语:R,Use,主语:R,Use,Use,Get,给:S]
+
+<待实现>
+
+1. 加入一些栈操作，来排列变量下栈的变量，从而改变量化顺序
