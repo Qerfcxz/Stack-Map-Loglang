@@ -1,0 +1,397 @@
+This data structure consists of five stacks and five mappings.
+
+The five stacks from top to bottom are as follows (all with the right end as the top of the stack):
+1. Input stack
+2. Variable upper stack
+3. Variable middle stack
+4. Variable lower stack
+5. Output stack
+Among them, the variable upper stack is pre-populated with infinitely many mutually distinct variables.
+
+The five mappings are:
+1. Environment mapping Emap
+2. Quantifier mapping Qmap
+3. Set mapping Smap
+4. Expression mapping Fmap
+5. Associated variable mapping Amap
+All mappings have variable names as their keys and values.
+
+Notational Conventions:
+Lowercase letters denote variables
+Uppercase letters denote arbitrary elements
+"A:S" indicates that A is a set word
+"A:R" indicates that A is a relation word
+"A:Q" indicates that A is a quantifier word
+"A:C" indicates that A is a connective word
+"#" denotes the empty expression (#∧A=A, A∧#=A)
+"|" denotes an empty stack
+"|| A" denotes that the top element of the stack is A, and the remaining stack elements are collectively denoted by "||"
+"[...,A]" denotes that the top element of the List is A
+
+Operational Conventions:
+build A a b B C D := A a∈{b∈B|C} D. For example: build ∃ n z Z (z>=0) (n*n=n) := ∃n∈{z∈Z|z>=0}(n*n=n)
+If the corresponding mapping does not exist in Emap, lookup returns empty; if not in Qmap, lookup returns ∃; if not in Smap, lookup returns the universal set; if not in Fmap, lookup returns #; if not in Amap, lookup throws an error.
+
+Execution Flow:
+1. Input
+2. Match a start rule once (top-down matching)
+3. Repeatedly match loop rules in a loop until no rule matches (top-down matching)
+4. Execute Step 2 again
+
+<Start Rules>
+
+1.
+|| []
+||
+||
+||
+||
+=>
+||
+||
+||
+||
+||
+Action:
+
+2.
+|| [...,A]
+||
+||
+||
+||
+=>
+|| [...]
+||
+||
+||
+|| A
+Action:
+
+3.
+|| A
+||
+||
+||
+||
+=>
+||
+||
+||
+||
+|| A
+Action:
+
+
+<Loop Rules>
+
+1.
+||
+|| a
+||
+||
+|| Get
+=>
+||
+||
+||
+||
+|| a #
+Action:
+
+2.
+||
+||
+|| a
+||
+|| Use
+=>
+||
+||
+||
+||
+|| a #
+Action:
+
+3.
+||
+|| a
+||
+||
+|| A:Q
+=>
+||
+|| a
+||
+||
+||
+Action:
+insert a A Qmap
+
+4.
+||
+|| b a
+||
+||
+|| A:S
+=>
+||
+||
+|| a
+|| a
+||
+Action:
+insert b A Smap
+insert b # Fmap
+insert a b Amap
+
+5.
+||
+||
+||
+||
+|| b C a B A:R
+=>
+||
+||
+||
+||
+|| b B∧C∧A(b,a)
+Action:
+
+6.
+||
+||
+||
+|| a
+|| A Apply
+=>
+||
+||
+||
+||
+|| (build (lookup a Qmap) a b (lookup b Smap) (lookup b Fmap) A)
+Action:
+let b=lookup a Amap
+
+7a.
+||
+||
+||
+|| a
+|| A End
+=>
+|| End
+||
+||
+|| a
+|| A Apply
+Action:
+
+7b.
+||
+||
+||
+|
+|| A End
+=>
+||
+||
+||
+|
+|| A
+Action:
+
+8.
+||
+|| a
+||
+||
+|| c C b B A:C
+=>
+||
+||
+||
+||
+|| a B∧C∧A_antecedent(a,c)∧A_consequent(a,b)
+Action:
+
+9a.
+||
+||
+||
+||
+|| C b B a A Modify
+=>
+||
+||
+||
+||
+|| B∧C[b:=a] a A Modify
+Action:
+
+9b.
+||
+||
+|| a
+||
+|| B b A Modify
+=>
+||
+||
+|| a
+||
+||
+Action:
+let c=lookup a Amap
+let C=lookup c Fmap
+insert c (C∧(apply (apply (apply A c) b) B)) Fmap
+
+9c.
+||
+|| a
+|| b
+||
+|| A Modify
+=>
+||
+||
+|| b
+||
+||
+Action:
+let c=lookup b Amap
+let B=lookup c Fmap
+insert c (B∧(apply (apply (apply A c) a) #)) Fmap
+
+10a.
+||
+|| a
+||
+||
+|| B b A Polish
+=>
+||
+||
+||
+||
+|| (apply (apply (apply A a) b) B) a
+Action:
+
+10b.
+||
+|| b a
+||
+||
+|| A Polish
+=>
+||
+||
+||
+||
+|| (apply (apply (apply A a) b) #) a
+Action:
+
+11.
+||
+||
+|| a
+||
+|| Upload b
+=>
+||
+||
+|| a
+||
+||
+Action:
+insert b a Emap
+
+12.
+||
+||
+||
+||
+|| Download a
+=>
+||
+||
+|| (lookup a Emap)
+||
+||
+Action:
+
+13.
+||
+||
+||
+||
+|| B b A a And
+=>
+||
+||
+||
+||
+|| A∧B[b:=a] a
+Action:
+
+<Macro Definitions>
+
+Binary Predicate Macro := [Predicate:R, Object:R, Use, Subject:R, Use, Use, Get, Predicate_Set:S]
+
+(Analogous for multi-place predicates)
+
+Adjective Macro := [Modify, λx.λy.λz.Adjective]
+(If the adjective is "heavy", then "λx.λy.λz.heavy" represents "∃a∈{y∈A|z} such that the weight of x is a", where A is the set of relatively large weights)
+
+Adverb Macro := [Polish, λx.λy.λz.Adverb]
+(Analogous to adjective macros)
+
+Empty Adverb Macro := [z, #]
+(Used to separate adverbs and prevent them from interacting with each other)
+
+<Example Sentences>
+
+1. "End Eat_Macro Exist Cat:S All Fish:S All"
+Program output: v7 (All v1∈Fish (All v3∈Cat (Exist v5∈Eat Subject(v5,v3)∧Object(v5,v1)∧Predicate(v7,v5))))
+Semantics: Cats eat fish (under a certain quantification)
+
+2. "Tall_Macro Heavy_Macro Person:S"
+Program output: [("v2", "∃a∈relatively large weights such that the weight of v2 is a ∧ ∃a∈relatively large heights such that the height of v2 is a")]
+Semantics: A tall and heavy person
+
+3. "Heavy_Macro Very_Macro Person:S"
+Program output: [("v2", "∃a∈{v3∈relatively large weights | ∃a∈relatively large degrees such that the degree of v3 is a} such that the weight of v2 is a")]
+Semantics: A very heavy person
+
+4. "Tall_Macro Heavy_Macro Very_Macro Old_Macro Very_Macro Very_Macro Person:S"
+Program output: [("v2", "∃a∈{v5∈relatively large ages | ∃a∈{v3∈relatively large degrees | ∃a∈relatively large degrees such that the degree of v3 is a} such that the degree of v5 is a} such that the age of v2 is a ∧ ∃a∈{v6∈relatively large weights | ∃a∈relatively large degrees such that the degree of v6 is a} such that the weight of v2 is a ∧ ∃a∈relatively large heights such that the height of v2 is a")]
+Semantics: A very, very old, very heavy, and tall person
+
+5. "Heavy_Macro C_Adverb_Macro And A_Adverb_Macro Empty_Adverb_Macro B_Adverb_Macro Person:S"
+Program output: [("v2", "∃a∈{v6∈relatively large weights | ∃a∈{v5∈relatively large C | ∃a∈relatively large A such that the A of v5 is a ∧ ∃a∈relatively large B such that the B of v5 is a} such that the C of v6 is a} such that the weight of v2 is a")]
+Semantics: An A-ly and B-ly C-ly heavy person
+
+6. "End Then:C Read_Macro Exist Download child Download book Give_Macro Exist Farmer:S All Upload child Child:S All Upload book Book:S All"
+Program output: v13 (All v1∈Book (All v3∈Child (All v5∈Farmer (Exist v7∈Give (Exist v10∈Read Subject(v10,v3)∧Object(v10,v1)∧Predicate(v12,v10)∧Subject(v7,v5)∧Object(v7,v3)∧Transferred_Object(v7,v1)∧Predicate(v9,v7)∧Then_antecedent(v13,v9)∧Then_consequent(v13,v12))))))
+Semantics: If a farmer gives a child a book, the child will read it (under a certain quantification)
+
+<Macro Definition Examples>
+
+define Very_Macro := [Polish, λx.λy.λz.∃a∈{y∈relatively large degrees | z} such that the degree of x is a]
+define Heavy_Macro := [Modify, λx.λy.λz.∃a∈{y∈relatively large weights | z} such that the weight of x is a]
+define Tall_Macro := [Modify, λx.λy.λz.∃a∈{y∈relatively large heights | z} such that the height of x is a]
+define Old_Macro := [Modify, λx.λy.λz.∃a∈{y∈relatively large ages | z} such that the age of x is a]
+define Empty_Adverb_Macro := [z, #]
+define A_Adverb_Macro := [Polish, λx.λy.λz.∃a∈{y∈relatively large A | z} such that the A of x is a]
+define B_Adverb_Macro := [Polish, λx.λy.λz.∃a∈{y∈relatively large B | z} such that the B of x is a]
+define C_Adverb_Macro := [Polish, λx.λy.λz.∃a∈{y∈relatively large C | z} such that the C of x is a]
+define Eat_Macro := [Predicate:R, Object:R, Use, Subject:R, Use, Use, Get, Eat:S]
+define Read_Macro := [Predicate:R, Object:R, Use, Subject:R, Use, Use, Get, Read:S]
+define Have_Macro := [Predicate:R, Object:R, Use, Subject:R, Use, Use, Get, Have:S]
+define Hit_Macro := [Predicate:R, Object:R, Use, Subject:R, Use, Use, Get, Hit:S]
+define Give_Macro := [Predicate:R, Transferred_Object:R, Use, Object:R, Use, Subject:R, Use, Use, Get, Give:S]
+
+<To Be Implemented>
+
+1. Add some stack operations to permute variables in the variable lower stack, thereby changing the quantification order.
