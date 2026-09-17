@@ -1,13 +1,14 @@
-该数据结构由六个栈和五个映射组成
+该数据结构由七个栈、五个映射和一个计数器组成
 
-六个栈从上到下依次为（均以右端为栈顶）：
+七个栈从上到下依次为（均以右端为栈顶）：
 1. 输入栈IP
 2. 变量上栈VU
 3. 变量中栈VM
 4. 变量下栈VL
 5. 输出栈OP
 6. 修饰栈MD
-其中的变量上栈预置了无穷多个互不相同的变量
+7. 关系栈RL
+其中的变量上栈预置了无穷多个互不相同的变量，关系栈预置一个Deter，计数器初始为0
 
 五个映射分别为：
 1. 环境映射Emap
@@ -49,6 +50,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -56,6 +58,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 
 2.
@@ -65,6 +68,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 =>
 IP: + [...]
 VU: +
@@ -72,6 +76,7 @@ VM: +
 VL: +
 OP: + A
 MD: +
+RL: +
 操作：
 
 3.
@@ -81,6 +86,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -88,6 +94,7 @@ VM: +
 VL: +
 OP: + A
 MD: +
+RL: +
 操作：
 
 <循环规则>
@@ -99,6 +106,7 @@ VM: +
 VL: +
 OP: + New
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -106,6 +114,7 @@ VM: +
 VL: +
 OP: + a
 MD: +
+RL: +
 操作：
 insert a # Fmap
 
@@ -116,6 +125,7 @@ VM: +
 VL: +
 OP: + Get
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -123,6 +133,7 @@ VM: +
 VL: +
 OP: + # a
 MD: +
+RL: +
 操作：
 
 3.
@@ -132,6 +143,7 @@ VM: + A a
 VL: +
 OP: + Use
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -139,6 +151,7 @@ VM: +
 VL: +
 OP: + A # a
 MD: +
+RL: +
 操作：
 
 4.
@@ -148,6 +161,7 @@ VM: +
 VL: +
 OP: + b Bubble
 MD: +
+RL: +
 =>
 IP: +
 VU: + b a
@@ -155,6 +169,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 
 5.
@@ -164,6 +179,7 @@ VM: + a
 VL: +
 OP: + Upload b
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -171,6 +187,7 @@ VM: + a
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 insert b a Emap
 
@@ -181,6 +198,7 @@ VM: +
 VL: +
 OP: + Not a Judge
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -188,6 +206,7 @@ VM: + False a
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 
 6b.
@@ -197,6 +216,7 @@ VM: +
 VL: +
 OP: + a Judge
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -204,6 +224,7 @@ VM: + True a
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 
 7.
@@ -213,13 +234,15 @@ VM: +
 VL: +
 OP: + Download a
 MD: +
+RL: +
 =>
-IP: + Judge (lookup a Emap)
+IP: + Deter Judge (lookup a Emap)
 VU: +
 VM: +
 VL: +
 OP: +
 MD: +
+RL: + [Use]
 操作：
 
 8.
@@ -229,6 +252,7 @@ VM: +
 VL: +
 OP: + A Drop
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -236,6 +260,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 
 9.
@@ -245,6 +270,7 @@ VM: +
 VL: +
 OP: + A a Formula
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -252,6 +278,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 insert a A Fmap
 
@@ -262,6 +289,7 @@ VM: +
 VL: +
 OP: + B λa.A Apply
 MD: +
+RL: +
 =>
 IP: + A[a:=B]
 VU: +
@@ -269,6 +297,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 
 11.
@@ -278,6 +307,7 @@ VM: +
 VL: +
 OP: + B A a Substitute
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -285,6 +315,7 @@ VM: +
 VL: +
 OP: + A[a:=B]
 MD: +
+RL: +
 操作：
 
 12.
@@ -294,6 +325,7 @@ VM: +
 VL: +
 OP: + B A ∧
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -301,6 +333,7 @@ VM: +
 VL: +
 OP: + A∧B
 MD: +
+RL: +
 操作：
 
 13.
@@ -310,6 +343,7 @@ VM: +
 VL: +
 OP: + A Negation
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -317,6 +351,7 @@ VM: +
 VL: +
 OP: + ¬A
 MD: +
+RL: +
 操作：
 
 14.
@@ -326,6 +361,7 @@ VM: +
 VL: +
 OP: + A:Q
 MD: +
+RL: +
 =>
 IP: +
 VU: + a
@@ -333,6 +369,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 insert a A Qmap
 
@@ -343,6 +380,7 @@ VM: +
 VL: +
 OP: + Stop
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -350,6 +388,7 @@ VM: +
 VL: +
 OP: +
 MD: + Stop
+RL: +
 操作：
 
 16a.
@@ -359,6 +398,7 @@ VM: +
 VL: +
 OP: + A:S
 MD: -
+RL: +
 =>
 IP: + Judge a
 VU: +
@@ -366,6 +406,7 @@ VM: +
 VL: + a
 OP: +
 MD: -
+RL: +
 操作：
 insert a b Amap
 insert b A Smap
@@ -378,6 +419,7 @@ VM: +
 VL: +
 OP: + A:S
 MD: + Stop
+RL: +
 =>
 IP: + Judge a
 VU: +
@@ -385,6 +427,7 @@ VM: +
 VL: + a
 OP: +
 MD: +
+RL: +
 操作：
 insert a b Amap
 insert b A Smap
@@ -397,6 +440,7 @@ VM: +
 VL: +
 OP: + A:S
 MD: + B c
+RL: +
 =>
 IP: + Formula b Drop (apply (apply (apply B b) c) (lookup c Fmap)) Judge a
 VU: +
@@ -404,6 +448,7 @@ VM: +
 VL: + a
 OP: +
 MD: +
+RL: +
 操作：
 insert a b Amap
 insert b A Smap
@@ -415,6 +460,7 @@ VM: +
 VL: +
 OP: + D b C B a A:R
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -422,6 +468,7 @@ VM: +
 VL: +
 OP: + B∧D∧E b
 MD: +
+RL: +
 操作：
 let E=if C then A(b,a) else ¬A(b,a)
 
@@ -432,6 +479,7 @@ VM: +
 VL: +
 OP: + C c B b A:C
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -439,6 +487,7 @@ VM: +
 VL: +
 OP: + A_consequent(a,b)∧A_antecedent(a,c)∧B∧C a
 MD: +
+RL: +
 操作：
 
 19.
@@ -448,6 +497,7 @@ VM: +
 VL: + an ... a3 a2 a1
 OP: + (in,...,i3,i2,i1)
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -455,6 +505,7 @@ VM: +
 VL: + ain ... ai3 ai2 ai1
 OP: +
 MD: +
+RL: +
 操作：
 
 20.
@@ -464,6 +515,7 @@ VM: +
 VL: + b a
 OP: + Swap
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -471,6 +523,7 @@ VM: +
 VL: + a b
 OP: +
 MD: +
+RL: +
 操作：
 
 21.
@@ -480,6 +533,7 @@ VM: +
 VL: + a
 OP: + Go
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -487,6 +541,7 @@ VM: +
 VL: +
 OP: + a
 MD: +
+RL: +
 操作：
 
 22.
@@ -496,6 +551,7 @@ VM: +
 VL: +
 OP: + a Back
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -503,6 +559,7 @@ VM: +
 VL: + a
 OP: +
 MD: +
+RL: +
 操作：
 
 23.
@@ -512,6 +569,7 @@ VM: +
 VL: + a
 OP: + A b Build
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -519,6 +577,7 @@ VM: +
 VL: +
 OP: + (build (lookup a Qmap) a c (lookup c Smap) (lookup c Fmap) A) b
 MD: +
+RL: +
 操作：
 let c=lookup a Amap
 
@@ -529,6 +588,7 @@ VM: +
 VL: +
 OP: + A a Event
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -536,6 +596,7 @@ VM: +
 VL: +
 OP: + Ω(a)∧A a
 MD: +
+RL: +
 操作：
 
 25a.
@@ -545,6 +606,7 @@ VM: +
 VL: -
 OP: + End
 MD: +
+RL: +
 =>
 IP: + Event
 VU: +
@@ -552,6 +614,7 @@ VM: +
 VL: -
 OP: +
 MD: +
+RL: +
 操作：
 
 25b.
@@ -561,6 +624,7 @@ VM: +
 VL: + a
 OP: + End
 MD: +
+RL: +
 =>
 IP: + End Build
 VU: +
@@ -568,6 +632,7 @@ VM: +
 VL: + a
 OP: +
 MD: +
+RL: +
 操作：
 
 26.
@@ -577,6 +642,7 @@ VM: +
 VL: +
 OP: + For
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -584,6 +650,7 @@ VM: +
 VL: +
 OP: +
 MD: + For
+RL: +
 操作：
 
 27.
@@ -593,6 +660,7 @@ VM: +
 VL: +
 OP: + Cancel
 MD: + For
+RL: +
 =>
 IP: +
 VU: +
@@ -600,6 +668,7 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
 操作：
 
 28.
@@ -609,6 +678,7 @@ VM: +
 VL: +
 OP: + B b A a Merge
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -616,6 +686,7 @@ VM: +
 VL: +
 OP: +
 MD: + B b
+RL: +
 操作：
 insert b (lookup b Fmap∧A) Fmap
 
@@ -626,6 +697,7 @@ VM: +
 VL: +
 OP: + A a Modify
 MD: + B b For
+RL: +
 =>
 IP: + Merge (apply (apply (apply B a) b) (lookup b Fmap))
 VU: +
@@ -633,6 +705,7 @@ VM: +
 VL: +
 OP: + A a
 MD: +
+RL: +
 操作：
 
 29b.
@@ -642,6 +715,7 @@ VM: +
 VL: +
 OP: + A a Modify
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -649,6 +723,7 @@ VM: +
 VL: +
 OP: +
 MD: + A a
+RL: +
 操作：
 
 30a.
@@ -658,6 +733,7 @@ VM: +
 VL: +
 OP: + Combine
 MD: + B c A b
+RL: +
 =>
 IP: +
 VU: +
@@ -665,6 +741,7 @@ VM: +
 VL: +
 OP: +
 MD: + λx.λy.λz.[And:C,Apply,Apply,Apply,B,x,c,∧,lookup c Fmap,Substitute,y,z,c,Apply,Apply,Apply,A,x,b,∧,lookup b Fmap,Substitute,y,z,b] a
+RL: +
 操作：
 insert a # Fmap
 
@@ -675,6 +752,7 @@ VM: +
 VL: +
 OP: + Combine
 MD: +
+RL: +
 =>
 IP: +
 VU: +
@@ -682,22 +760,121 @@ VM: +
 VL: +
 OP: +
 MD: +
+RL: +
+操作：
+
+31.
+IP: +
+VU: +
+VM: +
+VL: +
+OP: + Add
+MD: +
+RL: +
+=>
+IP: +
+VU: +
+VM: +
+VL: +
+OP: +
+MD: +
+RL: +
+操作：
+Count++
+
+32.
+IP: +
+VU: +
+VM: +
+VL: +
+OP: + Deter
+MD: +
+RL: +
+=>
+IP: +
+VU: +
+VM: +
+VL: +
+OP: +
+MD: +
+RL: + (if Count==0 then Deter)
+操作：
+if Count>0 then Count--
+
+33.
+IP: +
+VU: +
+VM: +
+VL: +
+OP: + A Join
+MD: +
+RL: +
+=>
+IP: +
+VU: +
+VM: +
+VL: +
+OP: +
+MD: +
+RL: + A
+操作：
+
+34a.
+IP: +
+VU: +
+VM: +
+VL: +
+OP: + Absorb
+MD: +
+RL: + Deter
+=>
+IP: +
+VU: +
+VM: +
+VL: +
+OP: +
+MD: +
+RL: +
+操作：
+
+34b.
+IP: +
+VU: +
+VM: +
+VL: +
+OP: + Absorb
+MD: +
+RL: + A
+=>
+IP: + Absorb A
+VU: +
+VM: +
+VL: +
+OP: +
+MD: +
+RL: +
 操作：
 
 <宏定义>
 
-二元谓词宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,谓词:S]
+二元谓词宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],谓词:S]
 （多元谓词同理）
+
+名词宏:=[Deter,Join,[Use],名词:S]
+
+关系宏:=[Add,Join,[关系:R]]
 
 形容词宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,形容词对应的谓词:S,Stop,Formula,y,z,形容词对应的集合:S,Stop,Bubble,y]]
 
 副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词对应的谓词:S,Stop,Formula,y,z,副词对应的集合:S,Stop,Bubble,y]]
 
+副词合并宏:=[For,Combine,Cancel]
+
 排列结语词:=[End,排列词]
 
 <例句>
 
-1. "End Swap 吃宏 Not Exist 快的宏 猫:S All 老的宏 鱼:S Not All 重的宏"
+1. "End Swap 吃宏 Not Exist 快的宏 猫宏 All 老的宏 鱼宏 Not All 重的宏"
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
@@ -706,6 +883,8 @@ Var Middle Stack (VM):
 Var Lower Stack (VL):
 Output Stack (OP):      Ω(v22)∧(All v2∈{v3∈鱼|Ω(v7)∧(Exist v4∈较大的重量 (Exist v5∈重量为 主语(v5,v3)∧宾语(v5,v4)∧谓语(v7,v5)))} (Exist v16∈{v17∈吃|Ω(v21)∧(Exist v18∈较大的速度 (Exist v19∈速度为 主语(v19,v17)∧宾语(v19,v18)∧谓语(v21,v19)))} (All v9∈{v10∈猫|Ω(v14)∧(Exist v11∈较大的年龄 (Exist v12∈年龄为 主语(v12,v10)∧宾语(v12,v11)∧谓语(v14,v12)))} 主语(v16,v9)∧Not 宾语(v16,v2)∧Not 谓语(v22,v16)))) v22
 Modifier Stack (MD):
+Relation Stack (RL):    Deter
+Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     [("v16", "Exist"), ("v2", "All"), ("v9", "All")]
@@ -724,6 +903,8 @@ Var Middle Stack (VM):  True v4
 Var Lower Stack (VL):   v4
 Output Stack (OP):
 Modifier Stack (MD):
+Relation Stack (RL):    Deter
+Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
@@ -742,6 +923,8 @@ Var Middle Stack (VM):  True v12
 Var Lower Stack (VL):   v12
 Output Stack (OP):
 Modifier Stack (MD):
+Relation Stack (RL):    Deter
+Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
@@ -760,6 +943,8 @@ Var Middle Stack (VM):  True v33
 Var Lower Stack (VL):   v33
 Output Stack (OP):
 Modifier Stack (MD):
+Relation Stack (RL):    Deter
+Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
@@ -769,7 +954,7 @@ Amap (Associations):    [("v10", "v2"), ("v11", "v12"), ("v16", "v5"), ("v17", "
 ========================================================
 语义：重的、A且B地C地高的、非常非常老的人
 
-5. "End 就:C 读宏 Exist Download child Download book 给宏 Exist 农夫:S All Upload child 小孩:S All Upload book 书:S All"
+5. "End 就:C 读宏 Exist Download child Download book 给宏 Exist 农夫宏 All Upload child 小孩宏 All Upload book 书宏 All"
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
@@ -778,6 +963,8 @@ Var Middle Stack (VM):
 Var Lower Stack (VL):
 Output Stack (OP):      Ω(v13)∧(All v1∈书 (All v3∈小孩 (All v5∈农夫 (Exist v7∈给 (Exist v10∈读 就_consequent(v13,v12)∧就_antecedent(v13,v9)∧主语(v10,v3)∧宾语(v10,v1)∧谓语(v12,v10)∧主语(v7,v5)∧宾语(v7,v3)∧传递物(v7,v1)∧谓语(v9,v7)))))) v13
 Modifier Stack (MD):
+Relation Stack (RL):    Deter
+Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     [("book", "v1"), ("child", "v3")]
 Qmap (Quantifiers):     [("v1", "All"), ("v10", "Exist"), ("v3", "All"), ("v5", "All"), ("v7", "Exist")]
@@ -786,6 +973,66 @@ Fmap (Filters):         [("v11", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("
 Amap (Associations):    [("v1", "v2"), ("v10", "v11"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8")]
 ========================================================
 语义：农民给小孩书，小孩就会读它（在某种量化下）
+
+6. "End 吃宏 A名词宏 A关系宏 B名词宏 B关系宏 猫宏 C名词宏 C关系宏 D名词宏 D关系宏 鱼宏 E名词宏 E关系宏 F名词宏 F关系宏"
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Var Upper Stack (VU):   ... v25 v24 v23 v22 v21 v20
+Var Middle Stack (VM):
+Var Lower Stack (VL):
+Output Stack (OP):      Ω(v19)∧(Exist v1∈F名词 (Exist v3∈E名词 (Exist v5∈鱼 (Exist v7∈D名词 (Exist v9∈C名词 (Exist v11∈猫 (Exist v13∈B名词 (Exist v15∈A名词 (Exist v17∈吃 E关系(v5,v3)∧F关系(v5,v1)∧C关系(v11,v9)∧D关系(v11,v7)∧A关系(v17,v15)∧B关系(v17,v13)∧主语(v17,v11)∧宾语(v17,v5)∧谓语(v19,v17)))))))))) v19
+Modifier Stack (MD):
+Relation Stack (RL):    Deter
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v10", "C名词"), ("v12", "猫"), ("v14", "B名词"), ("v16", "A名词"), ("v18", "吃"), ("v2", "F名词"), ("v4", "E名词"), ("v6", "鱼"), ("v8", "D名词")]
+Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v18", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
+Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v15", "v16"), ("v17", "v18"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
+========================================================
+语义：猫吃鱼（猫、吃、鱼都被修饰）
+
+7. "End 吃宏 A名词宏 B名词宏 A关系宏 C名词宏 D名词宏 B关系宏 C关系宏 D关系宏 猫宏 鱼宏"
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Var Upper Stack (VU):   ... v21 v20 v19 v18 v17 v16
+Var Middle Stack (VM):
+Var Lower Stack (VL):
+Output Stack (OP):      Ω(v15)∧(Exist v1∈鱼 (Exist v3∈猫 (Exist v5∈D名词 (Exist v7∈C名词 (Exist v9∈B名词 (Exist v11∈A名词 (Exist v13∈吃 B关系(v7,v5)∧A关系(v11,v9)∧C关系(v11,v7)∧D关系(v13,v11)∧主语(v13,v3)∧宾语(v13,v1)∧谓语(v15,v13)))))))) v15
+Modifier Stack (MD):
+Relation Stack (RL):    Deter
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v10", "B名词"), ("v12", "A名词"), ("v14", "吃"), ("v2", "鱼"), ("v4", "猫"), ("v6", "D名词"), ("v8", "C名词")]
+Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
+Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
+========================================================
+语义：猫吃鱼（吃被嵌套修饰）
+
+8. "End 攻击宏 红队宏 昨天宏 Not 在宏 西边宏 Not 在宏 蓝队宏 今天宏 Not 在宏 东边宏 Not 在宏"
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Var Upper Stack (VU):   ... v21 v20 v19 v18 v17 v16
+Var Middle Stack (VM):
+Var Lower Stack (VL):
+Output Stack (OP):      Ω(v15)∧(Exist v1∈东边 (Exist v3∈今天 (Exist v5∈蓝队 (Exist v7∈西边 (Exist v9∈昨天 (Exist v11∈红队 (Exist v13∈攻击 Not 在(v5,v3)∧Not 在(v5,v1)∧Not 在(v11,v9)∧Not 在(v11,v7)∧主语(v13,v11)∧宾语(v13,v5)∧谓语(v15,v13)))))))) v15
+Modifier Stack (MD):
+Relation Stack (RL):    Deter
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v10", "昨天"), ("v12", "红队"), ("v14", "攻击"), ("v2", "东边"), ("v4", "今天"), ("v6", "蓝队"), ("v8", "西边")]
+Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
+Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
+========================================================
+语义：在昨天的在西边的红队攻击在今天的在东边的蓝队
 
 <宏定义示例>
 
@@ -798,13 +1045,39 @@ define 副词合并宏:=[For,Combine,Cancel]
 define A副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词A对应的谓词:S,Stop,Formula,y,z,副词A对应的集合:S,Stop,Bubble,y]]
 define B副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词B对应的谓词:S,Stop,Formula,y,z,副词B对应的集合:S,Stop,Bubble,y]]
 define C副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词C对应的谓词:S,Stop,Formula,y,z,副词C对应的集合:S,Stop,Bubble,y]]
-define 吃宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,吃:S]
-define 读宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,读:S]
-define 有宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,有:S]
-define 打宏:=[谓语:R,宾语:R,Use,主语:R,Use,Use,Get,打:S]
-define 给宏:=[谓语:R,传递物:R,Use,宾语:R,Use,主语:R,Use,Use,Get,给:S]
+define 攻击宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],攻击:S]
+define 吃宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],吃:S]
+define 读宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],读:S]
+define 有宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],有:S]
+define 打宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],打:S]
+define 给宏:=[Deter,谓语:R,传递物:R,Absorb,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],给:S]
+define 猫宏:=[Deter,Join,[Use],猫:S]
+define 鱼宏:=[Deter,Join,[Use],鱼:S]
+define 书宏:=[Deter,Join,[Use],书:S]
+define 农夫宏:=[Deter,Join,[Use],农夫:S]
+define 小孩宏:=[Deter,Join,[Use],小孩:S]
+define 红队宏:=[Deter,Join,[Use],红队:S]
+define 蓝队宏:=[Deter,Join,[Use],蓝队:S]
+define 东边宏:=[Deter,Join,[Use],东边:S]
+define 西边宏:=[Deter,Join,[Use],西边:S]
+define 昨天宏:=[Deter,Join,[Use],昨天:S]
+define 今天宏:=[Deter,Join,[Use],今天:S]
+define A名词宏:=[Deter,Join,[Use],A名词:S]
+define B名词宏:=[Deter,Join,[Use],B名词:S]
+define C名词宏:=[Deter,Join,[Use],C名词:S]
+define D名词宏:=[Deter,Join,[Use],D名词:S]
+define E名词宏:=[Deter,Join,[Use],E名词:S]
+define F名词宏:=[Deter,Join,[Use],F名词:S]
+define A关系宏:=[Add,Join,[A关系:R]]
+define B关系宏:=[Add,Join,[B关系:R]]
+define C关系宏:=[Add,Join,[C关系:R]]
+define D关系宏:=[Add,Join,[D关系:R]]
+define E关系宏:=[Add,Join,[E关系:R]]
+define F关系宏:=[Add,Join,[F关系:R]]
+define 在宏:=[Add,Join,[在:R]]
 
 <代办>
+
 1. 实现"A->(B∧C)=(A->B∧A->C)"
 IP: +
 VU: +
