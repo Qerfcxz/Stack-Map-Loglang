@@ -1,14 +1,15 @@
-该数据结构由七个栈、五个映射和一个计数器组成
+该数据结构由八个栈、五个映射和一个计数器组成
 
-七个栈从上到下依次为（均以右端为栈顶）：
+八个栈从上到下依次为（均以右端为栈顶）：
 1. 输入栈IP
-2. 变量上栈VU
-3. 变量中栈VM
-4. 变量下栈VL
-5. 输出栈OP
-6. 修饰栈MD
-7. 关系栈RL
-其中的变量上栈预置了无穷多个互不相同的变量，关系栈预置一个Deter，计数器初始为0
+2. 变量栈VR
+3. 成分栈CM
+4. 量化栈QN
+5. 修饰栈MD
+6. 关系栈RL
+7. 从句栈CL
+8. 输出栈OP
+其中的变量栈预置了无穷多个互不相同的变量，量化栈预置一个None，修饰栈预置一个Stop，关系栈预置一个Deter，计数器初始为0
 
 五个映射分别为：
 1. 环境映射Emap
@@ -25,11 +26,11 @@
 "A:R"表示A为关系词
 "A:Q"表示A为量化词
 "A:C"表示A为连接词
-"Ω(a)"表示a为事件变量
+"A:F"表示A为变换词
+"Ω"表示事件集合
 "#"表示空表达式（#∧A=A，A∧#=A）
-"-"表示空栈
-"+ A"表示栈顶元素为A，其余栈内元素整体用"+"表示
-"[...,A]"表示List的栈顶元素为A
+"IP/VR/CM/QN/MD/RL/CL/OP: A"表示顶部元素为A，不关心其余元素
+"[...,A]"表示List的头部元素为A
 
 运算约定：
 build A a b B C D:=A a∈{b∈B|C} D。例如：build ∃ n z Z (z>=0) (n*n=n):=∃n∈{z∈Z|z>=0}(n*n=n)
@@ -44,847 +45,1092 @@ Emap查找失败时报错，Qmap查找失败时返回∃，Smap查找失败时�
 <起始规则>
 
 1.
-IP: + []
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP: []
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 
 2.
-IP: + [...,A]
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP: [...,A]
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 =>
-IP: + [...]
-VU: +
-VM: +
-VL: +
-OP: + A
-MD: +
-RL: +
+IP: [...]
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A
 操作：
 
 3.
-IP: + A
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP: A
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A
 操作：
 
 <循环规则>
 
 1.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + New
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Not
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + a
-MD: +
-RL: +
-操作：
-insert a # Fmap
-
-2.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + Get
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + # a
-MD: +
-RL: +
+IP:
+VR:
+CM: False
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 
-3.
-IP: +
-VU: +
-VM: + A a
-VL: +
-OP: + Use
-MD: +
-RL: +
+2a.
+IP:
+VR:
+CM: False
+QN:
+MD:
+RL:
+CL:
+OP: a Judge
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A # a
-MD: +
-RL: +
+IP:
+VR:
+CM: False a
+QN:
+MD:
+RL:
+CL:
+OP:
+操作：
+
+2b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a Judge
+=>
+IP:
+VR:
+CM: True a
+QN:
+MD:
+RL:
+CL:
+OP:
+操作：
+
+3a.
+IP:
+VR:
+CM: False
+QN:
+MD:
+RL:
+CL:
+OP: Pop
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: False
+操作：
+
+3b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Pop
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: True
 操作：
 
 4.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + b Bubble
-MD: +
-RL: +
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: New
 =>
-IP: +
-VU: + b a
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a
 操作：
+insert a # Fmap
 
-5a.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Not a Judge
-MD: +
-RL: +
+5.
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Get
 =>
-IP: +
-VU: +
-VM: + False a
-VL: +
-OP: +
-MD: +
-RL: +
-操作：
-
-5b.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + a Judge
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: + True a
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: # a
 操作：
 
 6.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A Drop
-MD: +
-RL: +
+IP:
+VR:
+CM: A a
+QN:
+MD:
+RL:
+CL:
+OP: Use
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A # a
 操作：
 
 7.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Formula
-MD: +
-RL: +
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: b Bubble
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR: b a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
+操作：
+
+8.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Formula
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 insert a A Fmap
 
-8.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B λa.A Apply
-MD: +
-RL: +
-=>
-IP: + A[a:=B]
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
-操作：
-
 9.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B A a Substitute
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Insert
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A[a:=B]
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
+insert a (lookup a Fmap∧A) Fmap
 
 10.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B A Conjunction
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B λa.A Apply
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A∧B
-MD: +
-RL: +
+IP: A[a:=B]
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 
 11.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Negation
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B A a Substitute
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + ¬A a
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A[a:=B]
 操作：
 
 12.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + A:Q
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B A Conjunction
 =>
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A∧B
+操作：
+
+13.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Negation
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: ¬A a
+操作：
+
+14.
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A:Q
+=>
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 insert a A Qmap
 
-13.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Stop
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + Stop
-RL: +
-操作：
-
-14a.
-IP: +
-VU: + b a
-VM: +
-VL: +
-OP: + A:S
-MD: -
-RL: +
-=>
-IP: + Judge a
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: -
-RL: +
-操作：
-insert a b Amap
-insert b A Smap
-insert b # Fmap
-
-14b.
-IP: +
-VU: + b a
-VM: +
-VL: +
-OP: + A:S
-MD: + Stop
-RL: +
-=>
-IP: + Judge a
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: +
-RL: +
-操作：
-insert a b Amap
-insert b A Smap
-insert b # Fmap
-
-14c.
-IP: +
-VU: + b a
-VM: +
-VL: +
-OP: + A:S
-MD: + B c
-RL: +
-=>
-IP: + Formula b Drop (apply (apply (apply B b) c) (lookup c Fmap)) Judge a
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: +
-RL: +
-操作：
-insert a b Amap
-insert b A Smap
-
 15.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + D b C B a A:R
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: D b C B a A:R
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B∧D∧E b
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B∧D∧E b
 操作：
 let E=if C then A(b,a) else ¬A(b,a)
 
 16.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + C c B b A:C
-MD: +
-RL: +
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: C c B b A:C
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A_consequent(a,b)∧A_antecedent(a,c)∧B∧C a
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A_consequent(a,b)∧A_antecedent(a,c)∧B∧C a
 操作：
 
 17.
-IP: +
-VU: +
-VM: +
-VL: + an ... a3 a2 a1
-OP: + (in,...,i3,i2,i1)
-MD: +
-RL: +
+IP:
+VR:
+CM: a
+QN:
+MD:
+RL:
+CL:
+OP: A:F
 =>
-IP: +
-VU: +
-VM: +
-VL: + ain ... ai3 ai2 ai1
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM: a
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
+let b=lookup a Amap
+let B=lookup b Smap
+insert b (A B) Smap
 
 18.
-IP: +
-VU: +
-VM: +
-VL: + b a
-OP: + Swap
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Add
 =>
-IP: +
-VU: +
-VM: +
-VL: + a b
-OP: +
-MD: +
-RL: +
-操作：
-
-19.
-IP: +
-VU: +
-VM: +
-VL: + a
-OP: + Go
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + a
-MD: +
-RL: +
-操作：
-
-20.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + a Back
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: +
-RL: +
-操作：
-
-21.
-IP: +
-VU: +
-VM: +
-VL: + a
-OP: + A b Build
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + (build (lookup a Qmap) a c (lookup c Smap) (lookup c Fmap) A) b
-MD: +
-RL: +
-操作：
-let c=lookup a Amap
-
-22.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Event
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Ω(a)∧A a
-MD: +
-RL: +
-操作：
-
-23a.
-IP: +
-VU: +
-VM: +
-VL: -
-OP: + End
-MD: +
-RL: +
-=>
-IP: + Event
-VU: +
-VM: +
-VL: -
-OP: +
-MD: +
-RL: +
-操作：
-
-23b.
-IP: +
-VU: +
-VM: +
-VL: + a
-OP: + End
-MD: +
-RL: +
-=>
-IP: + End Build
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: +
-RL: +
-操作：
-
-24.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + For
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + For
-RL: +
-操作：
-
-25.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Cancel
-MD: + For
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
-操作：
-
-26.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B b A a Merge
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + B b
-RL: +
-操作：
-insert b (lookup b Fmap∧A) Fmap
-
-27a.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Modify
-MD: + B b For
-RL: +
-=>
-IP: + Merge (apply (apply (apply B a) b) (lookup b Fmap))
-VU: +
-VM: +
-VL: +
-OP: + A a
-MD: +
-RL: +
-操作：
-
-27b.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Modify
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + A a
-RL: +
-操作：
-
-28.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Exchange
-MD: + B b A a For
-RL: +
-=>
-IP: + Modify
-VU: +
-VM: +
-VL: +
-OP: + B b
-MD: + A a For
-RL: +
-操作：
-
-29a.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + Combine
-MD: + B c A b
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + λx.λy.λz.[And:C,Apply,Apply,Apply,B,x,c,Conjunction,lookup c Fmap,Substitute,y,z,c,Apply,Apply,Apply,A,x,b,Conjunction,lookup b Fmap,Substitute,y,z,b] a
-RL: +
-操作：
-insert a # Fmap
-
-29b.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Combine
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
-操作：
-
-30.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Add
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 Count++
 
-31.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Deter
-MD: +
-RL: +
+19.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Deter
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: + (if Count==0 then Deter)
+IP:
+VR:
+CM:
+QN:
+MD:
+RL: (if Count==0 then Deter)
+CL:
+OP:
 操作：
 if Count>0 then Count--
 
-32.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A Join
-MD: +
-RL: +
+20.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A Join
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: + A
+IP:
+VR:
+CM:
+QN:
+MD:
+RL: A
+CL:
+OP:
 操作：
 
-33a.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Absorb
-MD: +
-RL: + Deter
+21a.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL: Deter
+CL:
+OP: Absorb
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 
-33b.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Absorb
-MD: +
-RL: + A
+21b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL: A
+CL:
+OP: Absorb
 =>
-IP: + Absorb A
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP: Absorb A
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 
-34.
-IP: +
-VU: +
-VM: + a
-VL: +
-OP: + Upload b
-MD: +
-RL: +
+22.
+IP:
+VR:
+CM: a
+QN:
+MD:
+RL:
+CL:
+OP: Upload b
 =>
-IP: +
-VU: +
-VM: + a
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM: a
+QN:
+MD:
+RL:
+CL:
+OP:
 操作：
 insert b a Emap
 
-35.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Download a
-MD: +
-RL: +
+23.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Download a
 =>
-IP: + Deter Judge (lookup a Emap)
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: + [Use]
+IP: Deter Judge (lookup a Emap)
+VR:
+CM:
+QN:
+MD:
+RL: [Use]
+CL:
+OP:
 操作：
+
+24.
+IP:
+VR:
+CM:
+QN: an ... a3 a2 a1
+MD:
+RL:
+CL:
+OP: (in,...,i3,i2,i1)
+=>
+IP:
+VR:
+CM:
+QN: ain ... ai3 ai2 ai1
+MD:
+RL:
+CL:
+OP:
+操作：
+
+25.
+IP:
+VR:
+CM:
+QN: b a
+MD:
+RL:
+CL:
+OP: Swap
+=>
+IP:
+VR:
+CM:
+QN: a b
+MD:
+RL:
+CL:
+OP:
+操作：
+
+26.
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP: Go
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a
+操作：
+
+27.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a Back
+=>
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP:
+操作：
+
+28.
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP: A b Build
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: (build (lookup a Qmap) a c (lookup c Smap) (lookup c Fmap) A) b
+操作：
+let c=lookup a Amap
+
+29.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Event
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a∈Ω∧A a
+操作：
+
+30a.
+IP:
+VR:
+CM:
+QN: None
+MD:
+RL:
+CL:
+OP: End
+=>
+IP: Event
+VR:
+CM:
+QN: None
+MD:
+RL:
+CL:
+OP:
+操作：
+
+30b.
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP: End
+=>
+IP: End Build
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP:
+操作：
+
+31.
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP: That
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL: a
+OP:
+操作：
+
+32.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL: a
+OP: A b Clause
+=>
+IP: Insert c Substitute a b∈Ω∧A c Judge a
+VR:
+CM:
+QN: a
+MD:
+RL: [Use] Deter
+CL:
+OP:
+操作：
+let c=lookup a Amap
+
+33a.
+IP:
+VR: b a
+CM:
+QN:
+MD: Stop
+RL:
+CL:
+OP: A:S
+=>
+IP: Judge a
+VR:
+CM:
+QN: a
+MD: Stop
+RL:
+CL:
+OP:
+操作：
+insert a b Amap
+insert b A Smap
+insert b # Fmap
+
+33b.
+IP:
+VR: b a
+CM:
+QN:
+MD: A c
+RL:
+CL:
+OP: B:S
+=>
+IP: Formula b Apply λz.[] (apply (apply (apply A b) c) (lookup c Fmap)) Judge a
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP:
+操作：
+insert a b Amap
+insert b B Smap
+
+34a.
+IP:
+VR: a
+CM:
+QN:
+MD: B c A b
+RL:
+CL:
+OP: Combine
+=>
+IP:
+VR:
+CM:
+QN:
+MD: λx.λy.λz.[And:C,Apply,Apply,Apply,B,x,c,Conjunction,lookup c Fmap,Substitute,y,z,c,Apply,Apply,Apply,A,x,b,Conjunction,lookup b Fmap,Substitute,y,z,b] a
+RL:
+CL:
+OP:
+操作：
+insert a # Fmap
+
+34b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Combine
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
+操作：
+
+35.
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Empty
+=>
+IP:
+VR:
+CM:
+QN:
+MD: λx.λy.λz.[a,#] a
+RL:
+CL:
+OP:
+操作：
+insert a # Fmap
+
+36.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: For
+=>
+IP:
+VR:
+CM:
+QN:
+MD: For
+RL:
+CL:
+OP:
+操作：
+
+37.
+IP:
+VR:
+CM:
+QN:
+MD: For
+RL:
+CL:
+OP: Cancel
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
+操作：
+
+38.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B b A a Merge
+=>
+IP:
+VR:
+CM:
+QN:
+MD: B b
+RL:
+CL:
+OP:
+操作：
+insert b (lookup b Fmap∧A) Fmap
+
+39a.
+IP:
+VR:
+CM:
+QN:
+MD: A a For
+RL:
+CL:
+OP: B b Modify
+=>
+IP: Merge (apply (apply (apply A b) a) (lookup a Fmap))
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B b
+操作：
+
+39b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Modify
+=>
+IP:
+VR:
+CM:
+QN:
+MD: A a
+RL:
+CL:
+OP:
+操作：
+
+40.
+IP:
+VR:
+CM:
+QN:
+MD: B b A a For
+RL:
+CL:
+OP: Exchange
+=>
+IP: Modify
+VR:
+CM:
+QN:
+MD: A a For
+RL:
+CL:
+OP: B b
+操作：
+
+41a.
+IP:
+VR: a
+CM:
+QN:
+MD: Stop
+RL:
+CL:
+OP: A b Noun
+=>
+IP: Judge b
+VR:
+CM:
+QN: b
+MD: Stop
+RL: [Use] Deter
+CL:
+OP:
+操作：
+insert b a Amap
+insert a Ω Smap
+insert a A[b:=a] Fmap
+
+41b.
+IP:
+VR: a
+CM:
+QN:
+MD: A b
+RL:
+CL:
+OP: B c Noun
+=>
+IP: Insert a Apply λz.[] (apply (apply (apply A a) b) (lookup b Fmap)) Judge c
+VR:
+CM:
+QN: c
+MD:
+RL: [Use] Deter
+CL:
+OP:
+操作：
+insert c a Amap
+insert a Ω Smap
+insert a B[c:=a] Fmap
 
 <宏定义>
 
+三元名词化结语宏:=[Noun,Build,Build,Build,(i3,i2,i1)]
+（多元名词化结语宏同理）
+
+二元从句结语宏:=[Clause,Build,Build,(i2,i1)]
+（多元从句结语宏同理）
+
 二元谓词宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],谓词:S]
-（多元谓词同理）
+（多元谓词宏同理）
 
 名词宏:=[Deter,Join,[Use],名词:S]
 
 关系宏:=[Add,Join,[关系:R]]
 
-形容词宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,形容词对应的谓词:S,Stop,Formula,y,z,形容词对应的集合:S,Stop,Bubble,y]]
+形容词宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,形容词对应的谓词:S,Empty,Formula,y,z,形容词对应的集合:S,Empty,Bubble,y]]
 
-副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词对应的谓词:S,Stop,Formula,y,z,副词对应的集合:S,Stop,Bubble,y]]
+副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词对应的谓词:S,Empty,Formula,y,z,副词对应的集合:S,Empty,Bubble,y]]
 
 副词合并宏:=[For,Combine,Cancel]
 
@@ -892,20 +1138,19 @@ RL: + [Use]
 
 副词交换宏:=[For,Exchange]
 
-排列结语词:=[End,排列词]
-
 <例句>
 
 1. "End Negation 吃宏 猫宏 鱼宏"
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v13 v12 v11 v10 v9 v8
-Var Middle Stack (VM):
-Var Lower Stack (VL):
-Output Stack (OP):      Ω(v7)∧(Exist v1∈鱼 (Exist v3∈猫 (Exist v5∈吃 Not(主语(v5,v3)∧宾语(v5,v1)∧谓语(v7,v5))))) v7
-Modifier Stack (MD):
+Var Stack (VR):         ... v13 v12 v11 v10 v9 v8
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v7∈Ω∧(Exist v1∈鱼 (Exist v3∈猫 (Exist v5∈吃 Not(主语(v5,v3)∧宾语(v5,v1)∧谓语(v7,v5))))) v7
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
@@ -914,45 +1159,47 @@ Smap (Sets):            [("v2", "鱼"), ("v4", "猫"), ("v6", "吃")]
 Fmap (Filters):         [("v2", "#"), ("v4", "#"), ("v6", "#")]
 Amap (Associations):    [("v1", "v2"), ("v3", "v4"), ("v5", "v6")]
 ========================================================
-语义：猫不吃鱼（在某种量化下）
+语义：猫不吃鱼（在默认量化下）
 
-2. "End (1,3,2) 吃宏 Not All 快的宏 猫宏 Not All 老的宏 鱼宏 Not All 重的宏"
+2. "End 吃宏 Not All 快的宏 猫宏 Not All 老的宏 鱼宏 Not All 重的宏"
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v28 v27 v26 v25 v24 v23
-Var Middle Stack (VM):
-Var Lower Stack (VL):
-Output Stack (OP):      Ω(v22)∧(All v9∈{v10∈猫|Ω(v14)∧(Exist v11∈较大的年龄 (Exist v12∈年龄为 主语(v12,v10)∧宾语(v12,v11)∧谓语(v14,v12)))} (All v2∈{v3∈鱼|Ω(v7)∧(Exist v4∈较大的重量 (Exist v5∈重量为 主语(v5,v3)∧宾语(v5,v4)∧谓语(v7,v5)))} (All v16∈{v17∈吃|Ω(v21)∧(Exist v18∈较大的速度 (Exist v19∈速度为 主语(v19,v17)∧宾语(v19,v18)∧谓语(v21,v19)))} Not主语(v16,v9)∧Not宾语(v16,v2)∧Not谓语(v22,v16)))) v22
-Modifier Stack (MD):
+Var Stack (VR):         ... v34 v33 v32 v31 v30 v29
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v28∈Ω∧(All v2∈{v3∈鱼|v9∈Ω∧(Exist v1∈较大的重量 (Exist v7∈重量为 主语(v7,v3)∧宾语(v7,v1)∧谓语(v9,v7)))} (All v11∈{v12∈猫|v18∈Ω∧(Exist v10∈较大的年龄 (Exist v16∈年龄为 主语(v16,v12)∧宾语(v16,v10)∧谓语(v18,v16)))} (All v20∈{v21∈吃|v27∈Ω∧(Exist v19∈较大的速度 (Exist v25∈速度为 主语(v25,v21)∧宾语(v25,v19)∧谓语(v27,v25)))} Not 主语(v20,v11)∧Not 宾语(v20,v2)∧Not 谓语(v28,v20)))) v28
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
-Qmap (Quantifiers):     [("v16", "All"), ("v2", "All"), ("v9", "All")]
-Smap (Sets):            [("v1", "较大的重量"), ("v10", "猫"), ("v13", "年龄为"), ("v15", "较大的速度"), ("v17", "吃"), ("v20", "速度为"), ("v3", "鱼"), ("v6", "重量为"), ("v8", "较大的年龄")]
-Fmap (Filters):         [("v1", "#"), ("v10", "Ω(v14)∧(Exist v11∈较大的年龄 (Exist v12∈年龄为 主语(v12,v10)∧宾语(v12,v11)∧谓语(v14,v12)))"), ("v13", "#"), ("v15", "#"), ("v17", "Ω(v21)∧(Exist v18∈较大的速度 (Exist v19∈速度为 主语(v19,v17)∧宾语(v19,v18)∧谓语(v21,v19)))"), ("v20", "#"), ("v3", "Ω(v7)∧(Exist v4∈较大的重量 (Exist v5∈重量为 主语(v5,v3)∧宾语(v5,v4)∧谓语(v7,v5)))"), ("v6", "#"), ("v8", "#")]
-Amap (Associations):    [("v11", "v8"), ("v12", "v13"), ("v16", "v17"), ("v18", "v15"), ("v19", "v20"), ("v2", "v3"), ("v4", "v1"), ("v5", "v6"), ("v9", "v10")]
+Qmap (Quantifiers):     [("v11", "All"), ("v2", "All"), ("v20", "All")]
+Smap (Sets):            [("v12", "猫"), ("v14", "较大的年龄"), ("v17", "年龄为"), ("v21", "吃"), ("v23", "较大的速度"), ("v26", "速度为"), ("v3", "鱼"), ("v5", "较大的重量"), ("v8", "重量为")]
+Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v12", "v18∈Ω∧(Exist v10∈较大的年龄 (Exist v16∈年龄为 主语(v16,v12)∧宾语(v16,v10)∧谓语(v18,v16)))"), ("v13", "#"), ("v14", "#"), ("v15", "#"), ("v17", "#"), ("v19", "#"), ("v21", "v27∈Ω∧(Exist v19∈较大的速度 (Exist v25∈速度为 主语(v25,v21)∧宾语(v25,v19)∧谓语(v27,v25)))"), ("v22", "#"), ("v23", "#"), ("v24", "#"), ("v26", "#"), ("v3", "v9∈Ω∧(Exist v1∈较大的重量 (Exist v7∈重量为 主语(v7,v3)∧宾语(v7,v1)∧谓语(v9,v7)))"), ("v4", "#"), ("v5", "#"), ("v6", "#"), ("v8", "#")]
+Amap (Associations):    [("v1", "v5"), ("v10", "v14"), ("v11", "v12"), ("v16", "v17"), ("v19", "v23"), ("v2", "v3"), ("v20", "v21"), ("v25", "v26"), ("v7", "v8")]
 ========================================================
-语义：有个事件，其中快吃不是谓语，老猫不是主语，重鱼不是宾语
+语义：存在事件，其中快吃不是谓语，老猫不是主语，重鱼不是宾语（在默认量化下）
 
 3. "人:S 高的宏 非常的宏 重的宏 老的宏 非常的宏 非常的宏"
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v42 v41 v40 v39 v38 v37
-Var Middle Stack (VM):  True v21
-Var Lower Stack (VL):   v21
-Output Stack (OP):
-Modifier Stack (MD):
+Var Stack (VR):         ... v54 v53 v52 v51 v50 v49
+Component Stack (CM):   True v27
+Quant Stack (QN):       None v27
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
-Smap (Sets):            [("v1", "较大的程度"), ("v10", "程度为"), ("v12", "较大的重量"), ("v14", "较大的程度"), ("v15", "较大的高度"), ("v18", "程度为"), ("v2", "较大的程度"), ("v22", "人"), ("v25", "高度为"), ("v29", "重量为"), ("v33", "年龄为"), ("v5", "程度为"), ("v7", "较大的年龄")]
-Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v12", "#"), ("v13", "#"), ("v14", "#"), ("v15", "Ω(v19)∧(Exist v16∈较大的程度 (Exist v17∈程度为 主语(v17,v15)∧宾语(v17,v16)∧谓语(v19,v17)))"), ("v18", "#"), ("v2", "Ω(v6)∧(Exist v3∈较大的程度 (Exist v4∈程度为 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))"), ("v20", "#"), ("v22", "And_consequent(v36,v35)∧And_antecedent(v36,v26)∧And_consequent(v35,v34)∧And_antecedent(v35,v30)∧Ω(v34)∧(Exist v31∈{v7∈较大的年龄|Ω(v11)∧(Exist v8∈{v2∈较大的程度|Ω(v6)∧(Exist v3∈较大的程度 (Exist v4∈程度为 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))} (Exist v9∈程度为 主语(v9,v7)∧宾语(v9,v8)∧谓语(v11,v9)))} (Exist v32∈年龄为 主语(v32,v22)∧宾语(v32,v31)∧谓语(v34,v32)))∧Ω(v30)∧(Exist v27∈较大的重量 (Exist v28∈重量为 主语(v28,v22)∧宾语(v28,v27)∧谓语(v30,v28)))∧Ω(v26)∧(Exist v23∈{v15∈较大的高度|Ω(v19)∧(Exist v16∈较大的程度 (Exist v17∈程度为 主语(v17,v15)∧宾语(v17,v16)∧谓语(v19,v17)))} (Exist v24∈高度为 主语(v24,v22)∧宾语(v24,v23)∧谓语(v26,v24)))"), ("v25", "#"), ("v29", "#"), ("v33", "#"), ("v5", "#"), ("v7", "Ω(v11)∧(Exist v8∈{v2∈较大的程度|Ω(v6)∧(Exist v3∈较大的程度 (Exist v4∈程度为 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))} (Exist v9∈程度为 主语(v9,v7)∧宾语(v9,v8)∧谓语(v11,v9)))")]
-Amap (Associations):    [("v16", "v14"), ("v17", "v18"), ("v21", "v22"), ("v23", "v15"), ("v24", "v25"), ("v27", "v12"), ("v28", "v29"), ("v3", "v1"), ("v31", "v7"), ("v32", "v33"), ("v4", "v5"), ("v8", "v2"), ("v9", "v10")]
+Smap (Sets):            [("v11", "较大的程度"), ("v14", "程度为"), ("v21", "较大的程度"), ("v24", "程度为"), ("v28", "人"), ("v30", "较大的高度"), ("v33", "高度为"), ("v36", "较大的重量"), ("v39", "重量为"), ("v4", "较大的程度"), ("v42", "较大的年龄"), ("v45", "年龄为"), ("v7", "程度为")]
+Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v17", "#"), ("v18", "#"), ("v19", "v25∈Ω∧(Exist v18∈较大的程度 (Exist v23∈程度为 主语(v23,v19)∧宾语(v23,v18)∧谓语(v25,v23)))"), ("v2", "v8∈Ω∧(Exist v1∈较大的程度 (Exist v6∈程度为 主语(v6,v2)∧宾语(v6,v1)∧谓语(v8,v6)))"), ("v20", "#"), ("v21", "#"), ("v22", "#"), ("v24", "#"), ("v26", "#"), ("v28", "And_consequent(v48,v47)∧And_antecedent(v48,v34)∧And_consequent(v47,v46)∧And_antecedent(v47,v40)∧v46∈Ω∧(Exist v9∈较大的年龄 (Exist v44∈年龄为 主语(v44,v28)∧宾语(v44,v9)∧谓语(v46,v44)))∧v40∈Ω∧(Exist v16∈较大的重量 (Exist v38∈重量为 主语(v38,v28)∧宾语(v38,v16)∧谓语(v40,v38)))∧v34∈Ω∧(Exist v19∈较大的高度 (Exist v32∈高度为 主语(v32,v28)∧宾语(v32,v19)∧谓语(v34,v32)))"), ("v29", "#"), ("v3", "#"), ("v30", "#"), ("v31", "#"), ("v33", "#"), ("v35", "#"), ("v36", "#"), ("v37", "#"), ("v39", "#"), ("v4", "#"), ("v41", "#"), ("v42", "#"), ("v43", "#"), ("v45", "#"), ("v5", "#"), ("v7", "#"), ("v9", "v15∈Ω∧(Exist v2∈较大的程度 (Exist v13∈程度为 主语(v13,v9)∧宾语(v13,v2)∧谓语(v15,v13)))")]
+Amap (Associations):    [("v1", "v4"), ("v13", "v14"), ("v16", "v36"), ("v18", "v21"), ("v19", "v30"), ("v2", "v11"), ("v23", "v24"), ("v27", "v28"), ("v32", "v33"), ("v38", "v39"), ("v44", "v45"), ("v6", "v7"), ("v9", "v42")]
 ========================================================
 语义：非常非常老的重的非常高的人
 
@@ -960,19 +1207,20 @@ Amap (Associations):    [("v16", "v14"), ("v17", "v18"), ("v21", "v22"), ("v23",
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v59 v58 v57 v56 v55 v54
-Var Middle Stack (VM):  True v38
-Var Lower Stack (VL):   v38
-Output Stack (OP):
-Modifier Stack (MD):
+Var Stack (VR):         ... v77 v76 v75 v74 v73 v72
+Component Stack (CM):   True v50
+Quant Stack (QN):       None v50
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
-Smap (Sets):            [("v1", "较大的程度"), ("v10", "程度为"), ("v12", "副词A对应的集合"), ("v13", "副词B对应的集合"), ("v15", "副词C对应的集合"), ("v18", "副词B对应的谓词"), ("v2", "较大的程度"), ("v22", "副词A对应的谓词"), ("v25", "较大的重量"), ("v28", "副词C对应的谓词"), ("v31", "较大的程度"), ("v32", "较大的高度"), ("v35", "程度为"), ("v39", "人"), ("v42", "高度为"), ("v46", "重量为"), ("v5", "程度为"), ("v50", "年龄为"), ("v7", "较大的年龄")]
-Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v12", "#"), ("v13", "#"), ("v14", "#"), ("v15", "And_consequent(v24,v23)∧And_antecedent(v24,v19)∧Ω(v23)∧(Exist v20∈副词A对应的集合 (Exist v21∈副词A对应的谓词 主语(v21,v15)∧宾语(v21,v20)∧谓语(v23,v21)))∧Ω(v19)∧(Exist v16∈副词B对应的集合 (Exist v17∈副词B对应的谓词 主语(v17,v15)∧宾语(v17,v16)∧谓语(v19,v17)))"), ("v18", "#"), ("v2", "Ω(v6)∧(Exist v3∈较大的程度 (Exist v4∈程度为 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))"), ("v22", "#"), ("v25", "Ω(v29)∧(Exist v26∈{v15∈副词C对应的集合|And_consequent(v24,v23)∧And_antecedent(v24,v19)∧Ω(v23)∧(Exist v20∈副词A对应的集合 (Exist v21∈副词A对应的谓词 主语(v21,v15)∧宾语(v21,v20)∧谓语(v23,v21)))∧Ω(v19)∧(Exist v16∈副词B对应的集合 (Exist v17∈副词B对应的谓词 主语(v17,v15)∧宾语(v17,v16)∧谓语(v19,v17)))} (Exist v27∈副词C对应的谓词 主语(v27,v25)∧宾语(v27,v26)∧谓语(v29,v27)))"), ("v28", "#"), ("v30", "#"), ("v31", "#"), ("v32", "Ω(v36)∧(Exist v33∈较大的程度 (Exist v34∈程度为 主语(v34,v32)∧宾语(v34,v33)∧谓语(v36,v34)))"), ("v35", "#"), ("v37", "#"), ("v39", "And_consequent(v53,v52)∧And_antecedent(v53,v43)∧And_consequent(v52,v51)∧And_antecedent(v52,v47)∧Ω(v51)∧(Exist v48∈{v7∈较大的年龄|Ω(v11)∧(Exist v8∈{v2∈较大的程度|Ω(v6)∧(Exist v3∈较大的程度 (Exist v4∈程度为 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))} (Exist v9∈程度为 主语(v9,v7)∧宾语(v9,v8)∧谓语(v11,v9)))} (Exist v49∈年龄为 主语(v49,v39)∧宾语(v49,v48)∧谓语(v51,v49)))∧Ω(v47)∧(Exist v44∈{v25∈较大的重量|Ω(v29)∧(Exist v26∈{v15∈副词C对应的集合|And_consequent(v24,v23)∧And_antecedent(v24,v19)∧Ω(v23)∧(Exist v20∈副词A对应的集合 (Exist v21∈副词A对应的谓词 主语(v21,v15)∧宾语(v21,v20)∧谓语(v23,v21)))∧Ω(v19)∧(Exist v16∈副词B对应的集合 (Exist v17∈副词B对应的谓词 主语(v17,v15)∧宾语(v17,v16)∧谓语(v19,v17)))} (Exist v27∈副词C对应的谓词 主语(v27,v25)∧宾语(v27,v26)∧谓语(v29,v27)))} (Exist v45∈重量为 主语(v45,v39)∧宾语(v45,v44)∧谓语(v47,v45)))∧Ω(v43)∧(Exist v40∈{v32∈较大的高度|Ω(v36)∧(Exist v33∈较大的程度 (Exist v34∈程度为 主语(v34,v32)∧宾语(v34,v33)∧谓语(v36,v34)))} (Exist v41∈高度为 主语(v41,v39)∧宾语(v41,v40)∧谓语(v43,v41)))"), ("v42", "#"), ("v46", "#"), ("v5", "#"), ("v50", "#"), ("v7", "Ω(v11)∧(Exist v8∈{v2∈较大的程度|Ω(v6)∧(Exist v3∈较大的程度 (Exist v4∈程度为 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))} (Exist v9∈程度为 主语(v9,v7)∧宾语(v9,v8)∧谓语(v11,v9)))")]
-Amap (Associations):    [("v16", "v13"), ("v17", "v18"), ("v20", "v12"), ("v21", "v22"), ("v26", "v15"), ("v27", "v28"), ("v3", "v1"), ("v33", "v31"), ("v34", "v35"), ("v38", "v39"), ("v4", "v5"), ("v40", "v32"), ("v41", "v42"), ("v44", "v25"), ("v45", "v46"), ("v48", "v7"), ("v49", "v50"), ("v8", "v2"), ("v9", "v10")]
+Smap (Sets):            [("v11", "较大的程度"), ("v14", "程度为"), ("v21", "副词B对应的集合"), ("v24", "副词B对应的谓词"), ("v27", "副词A对应的集合"), ("v30", "副词A对应的谓词"), ("v35", "副词C对应的集合"), ("v38", "副词C对应的谓词"), ("v4", "较大的程度"), ("v44", "较大的程度"), ("v47", "程度为"), ("v51", "人"), ("v53", "较大的高度"), ("v56", "高度为"), ("v59", "较大的重量"), ("v62", "重量为"), ("v65", "较大的年龄"), ("v68", "年龄为"), ("v7", "程度为")]
+Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v17", "#"), ("v18", "#"), ("v19", "And_consequent(v32,v31)∧And_antecedent(v32,v25)∧v31∈Ω∧(Exist v16∈副词A对应的集合 (Exist v29∈副词A对应的谓词 主语(v29,v19)∧宾语(v29,v16)∧谓语(v31,v29)))∧v25∈Ω∧(Exist v17∈副词B对应的集合 (Exist v23∈副词B对应的谓词 主语(v23,v19)∧宾语(v23,v17)∧谓语(v25,v23)))"), ("v2", "v8∈Ω∧(Exist v1∈较大的程度 (Exist v6∈程度为 主语(v6,v2)∧宾语(v6,v1)∧谓语(v8,v6)))"), ("v20", "#"), ("v21", "#"), ("v22", "#"), ("v24", "#"), ("v26", "#"), ("v27", "#"), ("v28", "#"), ("v3", "#"), ("v30", "#"), ("v33", "v39∈Ω∧(Exist v19∈副词C对应的集合 (Exist v37∈副词C对应的谓词 主语(v37,v33)∧宾语(v37,v19)∧谓语(v39,v37)))"), ("v34", "#"), ("v35", "#"), ("v36", "#"), ("v38", "#"), ("v4", "#"), ("v40", "#"), ("v41", "#"), ("v42", "v48∈Ω∧(Exist v41∈较大的程度 (Exist v46∈程度为 主语(v46,v42)∧宾语(v46,v41)∧谓语(v48,v46)))"), ("v43", "#"), ("v44", "#"), ("v45", "#"), ("v47", "#"), ("v49", "#"), ("v5", "#"), ("v51", "And_consequent(v71,v70)∧And_antecedent(v71,v57)∧And_consequent(v70,v69)∧And_antecedent(v70,v63)∧v69∈Ω∧(Exist v9∈较大的年龄 (Exist v67∈年龄为 主语(v67,v51)∧宾语(v67,v9)∧谓语(v69,v67)))∧v63∈Ω∧(Exist v33∈较大的重量 (Exist v61∈重量为 主语(v61,v51)∧宾语(v61,v33)∧谓语(v63,v61)))∧v57∈Ω∧(Exist v42∈较大的高度 (Exist v55∈高度为 主语(v55,v51)∧宾语(v55,v42)∧谓语(v57,v55)))"), ("v52", "#"), ("v53", "#"), ("v54", "#"), ("v56", "#"), ("v58", "#"), ("v59", "#"), ("v60", "#"), ("v62", "#"), ("v64", "#"), ("v65", "#"), ("v66", "#"), ("v68", "#"), ("v7", "#"), ("v9", "v15∈Ω∧(Exist v2∈较大的程度 (Exist v13∈程度为 主语(v13,v9)∧宾语(v13,v2)∧谓语(v15,v13)))")]
+Amap (Associations):    [("v1", "v4"), ("v13", "v14"), ("v16", "v27"), ("v17", "v21"), ("v19", "v35"), ("v2", "v11"), ("v23", "v24"), ("v29", "v30"), ("v33", "v59"), ("v37", "v38"), ("v41", "v44"), ("v42", "v53"), ("v46", "v47"), ("v50", "v51"), ("v55", "v56"), ("v6", "v7"), ("v61", "v62"), ("v67", "v68"), ("v9", "v65")]
 ========================================================
 语义：非常非常老的、A且B地C地重的、非常高的人
 
@@ -980,12 +1228,13 @@ Amap (Associations):    [("v16", "v13"), ("v17", "v18"), ("v20", "v12"), ("v21",
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v19 v18 v17 v16 v15 v14
-Var Middle Stack (VM):
-Var Lower Stack (VL):
-Output Stack (OP):      Ω(v13)∧(All v1∈书 (All v3∈小孩 (All v5∈农夫 (Exist v7∈给 (Exist v10∈读 就_consequent(v13,v12)∧就_antecedent(v13,v9)∧Not(主语(v10,v3)∧宾语(v10,v1)∧谓语(v12,v10))∧Not(主语(v7,v5)∧宾语(v7,v3)∧传递物(v7,v1)∧谓语(v9,v7))))))) v13
-Modifier Stack (MD):
+Var Stack (VR):         ... v19 v18 v17 v16 v15 v14
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v13∈Ω∧(All v1∈书 (All v3∈小孩 (All v5∈农夫 (Exist v7∈给 (Exist v10∈读 就_consequent(v13,v12)∧就_antecedent(v13,v9)∧Not(主语(v10,v3)∧宾语(v10,v1)∧谓语(v12,v10))∧Not(主语(v7,v5)∧宾语(v7,v3)∧传递物(v7,v1)∧谓语(v9,v7))))))) v13
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     [("book", "v1"), ("child", "v3")]
@@ -994,18 +1243,19 @@ Smap (Sets):            [("v11", "读"), ("v2", "书"), ("v4", "小孩"), ("v6",
 Fmap (Filters):         [("v11", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
 Amap (Associations):    [("v1", "v2"), ("v10", "v11"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8")]
 ========================================================
-语义：农民不给小孩书，小孩就不会读它（在某种量化下）
+语义：农民不给小孩书，小孩就不会读它（在默认量化下）
 
 6. "End 吃宏 A名词宏 A关系宏 B名词宏 B关系宏 猫宏 C名词宏 C关系宏 D名词宏 D关系宏 鱼宏 E名词宏 E关系宏 F名词宏 F关系宏"
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v25 v24 v23 v22 v21 v20
-Var Middle Stack (VM):
-Var Lower Stack (VL):
-Output Stack (OP):      Ω(v19)∧(Exist v1∈F名词 (Exist v3∈E名词 (Exist v5∈鱼 (Exist v7∈D名词 (Exist v9∈C名词 (Exist v11∈猫 (Exist v13∈B名词 (Exist v15∈A名词 (Exist v17∈吃 E关系(v5,v3)∧F关系(v5,v1)∧C关系(v11,v9)∧D关系(v11,v7)∧A关系(v17,v15)∧B关系(v17,v13)∧主语(v17,v11)∧宾语(v17,v5)∧谓语(v19,v17)))))))))) v19
-Modifier Stack (MD):
+Var Stack (VR):         ... v25 v24 v23 v22 v21 v20
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v19∈Ω∧(Exist v1∈F名词 (Exist v3∈E名词 (Exist v5∈鱼 (Exist v7∈D名词 (Exist v9∈C名词 (Exist v11∈猫 (Exist v13∈B名词 (Exist v15∈A名词 (Exist v17∈吃 E关系(v5,v3)∧F关系(v5,v1)∧C关系(v11,v9)∧D关系(v11,v7)∧A关系(v17,v15)∧B关系(v17,v13)∧主语(v17,v11)∧宾语(v17,v5)∧谓语(v19,v17)))))))))) v19
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
@@ -1020,12 +1270,13 @@ Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v15", "
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v21 v20 v19 v18 v17 v16
-Var Middle Stack (VM):
-Var Lower Stack (VL):
-Output Stack (OP):      Ω(v15)∧(Exist v1∈鱼 (Exist v3∈猫 (Exist v5∈D名词 (Exist v7∈C名词 (Exist v9∈B名词 (Exist v11∈A名词 (Exist v13∈吃 B关系(v7,v5)∧A关系(v11,v9)∧C关系(v11,v7)∧D关系(v13,v11)∧主语(v13,v3)∧宾语(v13,v1)∧谓语(v15,v13)))))))) v15
-Modifier Stack (MD):
+Var Stack (VR):         ... v21 v20 v19 v18 v17 v16
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v15∈Ω∧(Exist v1∈鱼 (Exist v3∈猫 (Exist v5∈D名词 (Exist v7∈C名词 (Exist v9∈B名词 (Exist v11∈A名词 (Exist v13∈吃 B关系(v7,v5)∧A关系(v11,v9)∧C关系(v11,v7)∧D关系(v13,v11)∧主语(v13,v3)∧宾语(v13,v1)∧谓语(v15,v13)))))))) v15
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
@@ -1040,12 +1291,13 @@ Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v3", "v
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v21 v20 v19 v18 v17 v16
-Var Middle Stack (VM):
-Var Lower Stack (VL):
-Output Stack (OP):      Ω(v15)∧(Exist v1∈东边 (Exist v3∈今天 (Exist v5∈蓝队 (Exist v7∈西边 (Exist v9∈昨天 (Exist v11∈红队 (Exist v13∈攻击 Not在(v5,v3)∧Not在(v5,v1)∧Not在(v11,v9)∧Not在(v11,v7)∧主语(v13,v11)∧宾语(v13,v5)∧谓语(v15,v13)))))))) v15
-Modifier Stack (MD):
+Var Stack (VR):         ... v21 v20 v19 v18 v17 v16
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v15∈Ω∧(Exist v1∈东边 (Exist v3∈今天 (Exist v5∈蓝队 (Exist v7∈西边 (Exist v9∈昨天 (Exist v11∈红队 (Exist v13∈攻击 Not 在(v5,v3)∧Not 在(v5,v1)∧Not 在(v11,v9)∧Not 在(v11,v7)∧主语(v13,v11)∧宾语(v13,v5)∧谓语(v15,v13)))))))) v15
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
@@ -1060,19 +1312,20 @@ Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v3", "v
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v35 v34 v33 v32 v31 v30
-Var Middle Stack (VM):  True v19
-Var Lower Stack (VL):   v19
-Output Stack (OP):
-Modifier Stack (MD):
+Var Stack (VR):         ... v45 v44 v43 v42 v41 v40
+Component Stack (CM):   True v25
+Quant Stack (QN):       None v25
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
-Smap (Sets):            [("v1", "副词A对应的集合"), ("v11", "副词B对应的谓词"), ("v14", "较大的程度"), ("v17", "程度为"), ("v2", "较大的重量"), ("v20", "人"), ("v23", "高度为"), ("v27", "重量为"), ("v5", "副词A对应的谓词"), ("v7", "副词B对应的集合"), ("v8", "较大的高度")]
-Fmap (Filters):         [("v1", "#"), ("v11", "#"), ("v13", "Ω(v18)∧(Exist v15∈较大的程度 (Exist v16∈程度为 主语(v16,v13)∧宾语(v16,v15)∧谓语(v18,v16)))"), ("v14", "#"), ("v17", "#"), ("v2", "Ω(v6)∧(Exist v3∈副词A对应的集合 (Exist v4∈副词A对应的谓词 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))∧Ω(v18)∧(Exist v15∈较大的程度 (Exist v16∈程度为 主语(v16,v2)∧宾语(v16,v15)∧谓语(v18,v16)))"), ("v20", "And_consequent(v29,v28)∧And_antecedent(v29,v24)∧Ω(v28)∧(Exist v25∈{v2∈较大的重量|Ω(v6)∧(Exist v3∈副词A对应的集合 (Exist v4∈副词A对应的谓词 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))∧Ω(v18)∧(Exist v15∈较大的程度 (Exist v16∈程度为 主语(v16,v2)∧宾语(v16,v15)∧谓语(v18,v16)))} (Exist v26∈重量为 主语(v26,v20)∧宾语(v26,v25)∧谓语(v28,v26)))∧Ω(v24)∧(Exist v21∈{v8∈较大的高度|Ω(v12)∧(Exist v9∈副词B对应的集合 (Exist v10∈副词B对应的谓词 主语(v10,v8)∧宾语(v10,v9)∧谓语(v12,v10)))∧Ω(v18)∧(Exist v15∈较大的程度 (Exist v16∈程度为 主语(v16,v8)∧宾语(v16,v15)∧谓语(v18,v16)))} (Exist v22∈高度为 主语(v22,v20)∧宾语(v22,v21)∧谓语(v24,v22)))"), ("v23", "#"), ("v27", "#"), ("v5", "#"), ("v7", "#"), ("v8", "Ω(v12)∧(Exist v9∈副词B对应的集合 (Exist v10∈副词B对应的谓词 主语(v10,v8)∧宾语(v10,v9)∧谓语(v12,v10)))∧Ω(v18)∧(Exist v15∈较大的程度 (Exist v16∈程度为 主语(v16,v8)∧宾语(v16,v15)∧谓语(v18,v16)))")]
-Amap (Associations):    [("v10", "v11"), ("v15", "v14"), ("v16", "v17"), ("v19", "v20"), ("v21", "v8"), ("v22", "v23"), ("v25", "v2"), ("v26", "v27"), ("v3", "v1"), ("v4", "v5"), ("v9", "v7")]
+Smap (Sets):            [("v12", "副词B对应的集合"), ("v15", "副词B对应的谓词"), ("v20", "较大的程度"), ("v23", "程度为"), ("v26", "人"), ("v28", "较大的高度"), ("v31", "高度为"), ("v34", "较大的重量"), ("v37", "重量为"), ("v4", "副词A对应的集合"), ("v7", "副词A对应的谓词")]
+Fmap (Filters):         [("v1", "#"), ("v10", "v16∈Ω∧(Exist v9∈副词B对应的集合 (Exist v14∈副词B对应的谓词 主语(v14,v10)∧宾语(v14,v9)∧谓语(v16,v14)))∧v24∈Ω∧(Exist v18∈较大的程度 (Exist v22∈程度为 主语(v22,v10)∧宾语(v22,v18)∧谓语(v24,v22)))"), ("v11", "#"), ("v12", "#"), ("v13", "#"), ("v15", "#"), ("v17", "v24∈Ω∧(Exist v18∈较大的程度 (Exist v22∈程度为 主语(v22,v17)∧宾语(v22,v18)∧谓语(v24,v22)))"), ("v18", "#"), ("v19", "#"), ("v2", "v8∈Ω∧(Exist v1∈副词A对应的集合 (Exist v6∈副词A对应的谓词 主语(v6,v2)∧宾语(v6,v1)∧谓语(v8,v6)))∧v24∈Ω∧(Exist v18∈较大的程度 (Exist v22∈程度为 主语(v22,v2)∧宾语(v22,v18)∧谓语(v24,v22)))"), ("v20", "#"), ("v21", "#"), ("v23", "#"), ("v26", "And_consequent(v39,v38)∧And_antecedent(v39,v32)∧v38∈Ω∧(Exist v2∈较大的重量 (Exist v36∈重量为 主语(v36,v26)∧宾语(v36,v2)∧谓语(v38,v36)))∧v32∈Ω∧(Exist v10∈较大的高度 (Exist v30∈高度为 主语(v30,v26)∧宾语(v30,v10)∧谓语(v32,v30)))"), ("v27", "#"), ("v28", "#"), ("v29", "#"), ("v3", "#"), ("v31", "#"), ("v33", "#"), ("v34", "#"), ("v35", "#"), ("v37", "#"), ("v4", "#"), ("v5", "#"), ("v7", "#"), ("v9", "#")]
+Amap (Associations):    [("v1", "v4"), ("v10", "v28"), ("v14", "v15"), ("v18", "v20"), ("v2", "v34"), ("v22", "v23"), ("v25", "v26"), ("v30", "v31"), ("v36", "v37"), ("v6", "v7"), ("v9", "v12")]
 ========================================================
 语义：A且非常地重的、B且非常地高的人
 
@@ -1080,43 +1333,113 @@ Amap (Associations):    [("v10", "v11"), ("v15", "v14"), ("v16", "v17"), ("v19",
 程序输出：
 ==================== Machine State ====================
 Input Stack (IP):
-Var Upper Stack (VU):   ... v40 v39 v38 v37 v36 v35
-Var Middle Stack (VM):  True v29
-Var Lower Stack (VL):   v29
-Output Stack (OP):
-Modifier Stack (MD):
+Var Stack (VR):         ... v52 v51 v50 v49 v48 v47
+Component Stack (CM):   True v39
+Quant Stack (QN):       None v39
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
-Smap (Sets):            [("v1", "副词A对应的集合"), ("v11", "副词C对应的谓词"), ("v14", "副词E对应的集合"), ("v17", "副词E对应的谓词"), ("v19", "较大的重量"), ("v2", "副词B对应的集合"), ("v22", "副词D对应的谓词"), ("v26", "副词B对应的谓词"), ("v30", "人"), ("v33", "重量为"), ("v5", "副词A对应的谓词"), ("v7", "副词C对应的集合"), ("v8", "副词D对应的集合")]
-Fmap (Filters):         [("v1", "#"), ("v11", "#"), ("v13", "Ω(v18)∧(Exist v15∈副词E对应的集合 (Exist v16∈副词E对应的谓词 主语(v16,v13)∧宾语(v16,v15)∧谓语(v18,v16)))"), ("v14", "#"), ("v17", "#"), ("v19", "And_consequent(v28,v27)∧And_antecedent(v28,v23)∧Ω(v27)∧(Exist v24∈{v2∈副词B对应的集合|Ω(v6)∧(Exist v3∈副词A对应的集合 (Exist v4∈副词A对应的谓词 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))∧Ω(v18)∧(Exist v15∈副词E对应的集合 (Exist v16∈副词E对应的谓词 主语(v16,v2)∧宾语(v16,v15)∧谓语(v18,v16)))} (Exist v25∈副词B对应的谓词 主语(v25,v19)∧宾语(v25,v24)∧谓语(v27,v25)))∧Ω(v23)∧(Exist v20∈{v8∈副词D对应的集合|Ω(v12)∧(Exist v9∈副词C对应的集合 (Exist v10∈副词C对应的谓词 主语(v10,v8)∧宾语(v10,v9)∧谓语(v12,v10)))∧Ω(v18)∧(Exist v15∈副词E对应的集合 (Exist v16∈副词E对应的谓词 主语(v16,v8)∧宾语(v16,v15)∧谓语(v18,v16)))} (Exist v21∈副词D对应的谓词 主语(v21,v19)∧宾语(v21,v20)∧谓语(v23,v21)))"), ("v2", "Ω(v6)∧(Exist v3∈副词A对应的集合 (Exist v4∈副词A对应的谓词 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))∧Ω(v18)∧(Exist v15∈副词E对应的集合 (Exist v16∈副词E对应的谓词 主语(v16,v2)∧宾语(v16,v15)∧谓语(v18,v16)))"), ("v22", "#"), ("v26", "#"), ("v30", "Ω(v34)∧(Exist v31∈{v19∈较大的重量|And_consequent(v28,v27)∧And_antecedent(v28,v23)∧Ω(v27)∧(Exist v24∈{v2∈副词B对应的集合|Ω(v6)∧(Exist v3∈副词A对应的集合 (Exist v4∈副词A对应的谓词 主语(v4,v2)∧宾语(v4,v3)∧谓语(v6,v4)))∧Ω(v18)∧(Exist v15∈副词E对应的集合 (Exist v16∈副词E对应的谓词 主语(v16,v2)∧宾语(v16,v15)∧谓语(v18,v16)))} (Exist v25∈副词B对应的谓词 主语(v25,v19)∧宾语(v25,v24)∧谓语(v27,v25)))∧Ω(v23)∧(Exist v20∈{v8∈副词D对应的集合|Ω(v12)∧(Exist v9∈副词C对应的集合 (Exist v10∈副词C对应的谓词 主语(v10,v8)∧宾语(v10,v9)∧谓语(v12,v10)))∧Ω(v18)∧(Exist v15∈副词E对应的集合 (Exist v16∈副词E对应的谓词 主语(v16,v8)∧宾语(v16,v15)∧谓语(v18,v16)))} (Exist v21∈副词D对应的谓词 主语(v21,v19)∧宾语(v21,v20)∧谓语(v23,v21)))} (Exist v32∈重量为 主语(v32,v30)∧宾语(v32,v31)∧谓语(v34,v32)))"), ("v33", "#"), ("v5", "#"), ("v7", "#"), ("v8", "Ω(v12)∧(Exist v9∈副词C对应的集合 (Exist v10∈副词C对应的谓词 主语(v10,v8)∧宾语(v10,v9)∧谓语(v12,v10)))∧Ω(v18)∧(Exist v15∈副词E对应的集合 (Exist v16∈副词E对应的谓词 主语(v16,v8)∧宾语(v16,v15)∧谓语(v18,v16)))")]
-Amap (Associations):    [("v10", "v11"), ("v15", "v14"), ("v16", "v17"), ("v20", "v8"), ("v21", "v22"), ("v24", "v2"), ("v25", "v26"), ("v29", "v30"), ("v3", "v1"), ("v31", "v19"), ("v32", "v33"), ("v4", "v5"), ("v9", "v7")]
+Smap (Sets):            [("v12", "副词C对应的集合"), ("v15", "副词C对应的谓词"), ("v20", "副词E对应的集合"), ("v23", "副词E对应的谓词"), ("v27", "副词D对应的集合"), ("v30", "副词D对应的谓词"), ("v33", "副词B对应的集合"), ("v36", "副词B对应的谓词"), ("v4", "副词A对应的集合"), ("v40", "人"), ("v42", "较大的重量"), ("v45", "重量为"), ("v7", "副词A对应的谓词")]
+Fmap (Filters):         [("v1", "#"), ("v10", "v16∈Ω∧(Exist v9∈副词C对应的集合 (Exist v14∈副词C对应的谓词 主语(v14,v10)∧宾语(v14,v9)∧谓语(v16,v14)))∧v24∈Ω∧(Exist v18∈副词E对应的集合 (Exist v22∈副词E对应的谓词 主语(v22,v10)∧宾语(v22,v18)∧谓语(v24,v22)))"), ("v11", "#"), ("v12", "#"), ("v13", "#"), ("v15", "#"), ("v17", "v24∈Ω∧(Exist v18∈副词E对应的集合 (Exist v22∈副词E对应的谓词 主语(v22,v17)∧宾语(v22,v18)∧谓语(v24,v22)))"), ("v18", "#"), ("v19", "#"), ("v2", "v8∈Ω∧(Exist v1∈副词A对应的集合 (Exist v6∈副词A对应的谓词 主语(v6,v2)∧宾语(v6,v1)∧谓语(v8,v6)))∧v24∈Ω∧(Exist v18∈副词E对应的集合 (Exist v22∈副词E对应的谓词 主语(v22,v2)∧宾语(v22,v18)∧谓语(v24,v22)))"), ("v20", "#"), ("v21", "#"), ("v23", "#"), ("v25", "And_consequent(v38,v37)∧And_antecedent(v38,v31)∧v37∈Ω∧(Exist v2∈副词B对应的集合 (Exist v35∈副词B对应的谓词 主语(v35,v25)∧宾语(v35,v2)∧谓语(v37,v35)))∧v31∈Ω∧(Exist v10∈副词D对应的集合 (Exist v29∈副词D对应的谓词 主语(v29,v25)∧宾语(v29,v10)∧谓语(v31,v29)))"), ("v26", "#"), ("v27", "#"), ("v28", "#"), ("v3", "#"), ("v30", "#"), ("v32", "#"), ("v33", "#"), ("v34", "#"), ("v36", "#"), ("v4", "#"), ("v40", "v46∈Ω∧(Exist v25∈较大的重量 (Exist v44∈重量为 主语(v44,v40)∧宾语(v44,v25)∧谓语(v46,v44)))"), ("v41", "#"), ("v42", "#"), ("v43", "#"), ("v45", "#"), ("v5", "#"), ("v7", "#"), ("v9", "#")]
+Amap (Associations):    [("v1", "v4"), ("v10", "v27"), ("v14", "v15"), ("v18", "v20"), ("v2", "v33"), ("v22", "v23"), ("v25", "v42"), ("v29", "v30"), ("v35", "v36"), ("v39", "v40"), ("v44", "v45"), ("v6", "v7"), ("v9", "v12")]
 ========================================================
 语义：A且E地B地、C且E地D地重的人
 
+11. "End 吃宏 二元恒等排列从句结语宏 Negation 喜欢宏 That 三元恒等排列从句结语宏 Negation 给宏 农夫宏 小孩宏 That 猫宏 老的宏 猫薄荷宏 鱼宏"
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Var Stack (VR):         ... v32 v31 v30 v29 v28 v27
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
+Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v26∈Ω∧(Exist v1∈鱼 (Exist v6∈{v7∈猫|v13∈Ω∧(Exist v5∈较大的年龄 (Exist v11∈年龄为 主语(v11,v7)∧宾语(v11,v5)∧谓语(v13,v11)))∧v20∈Ω∧(Exist v14∈小孩 (Exist v16∈农夫 (Exist v18∈给 Not(主语(v18,v16)∧宾语(v18,v14)∧传递物(v18,v7)∧谓语(v20,v18)))))∧v23∈Ω∧(Exist v3∈猫薄荷 (Exist v21∈喜欢 Not(主语(v21,v7)∧宾语(v21,v3)∧谓语(v23,v21))))} (Exist v24∈吃 主语(v24,v6)∧宾语(v24,v1)∧谓语(v26,v24)))) v26
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v12", "年龄为"), ("v15", "小孩"), ("v17", "农夫"), ("v19", "给"), ("v2", "鱼"), ("v22", "喜欢"), ("v25", "吃"), ("v4", "猫薄荷"), ("v7", "猫"), ("v9", "较大的年龄")]
+Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v15", "#"), ("v17", "#"), ("v19", "#"), ("v2", "#"), ("v22", "#"), ("v25", "#"), ("v4", "#"), ("v5", "#"), ("v7", "v13∈Ω∧(Exist v5∈较大的年龄 (Exist v11∈年龄为 主语(v11,v7)∧宾语(v11,v5)∧谓语(v13,v11)))∧v20∈Ω∧(Exist v14∈小孩 (Exist v16∈农夫 (Exist v18∈给 Not(主语(v18,v16)∧宾语(v18,v14)∧传递物(v18,v7)∧谓语(v20,v18)))))∧v23∈Ω∧(Exist v3∈猫薄荷 (Exist v21∈喜欢 Not(主语(v21,v7)∧宾语(v21,v3)∧谓语(v23,v21))))"), ("v8", "#"), ("v9", "#")]
+Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v14", "v15"), ("v16", "v17"), ("v18", "v19"), ("v21", "v22"), ("v24", "v25"), ("v3", "v4"), ("v5", "v9"), ("v6", "v7")]
+========================================================
+语义：不是农夫给小孩的、不喜欢猫薄荷的老猫吃鱼（在默认量化下）
+
+12. "End 发现宏 Not 小孩宏 Not 三元恒等排列名词化结语宏 Not 有趣的宏 Negation 喜欢宏 猫宏 猫薄荷宏"
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Var Stack (VR):         ... v26 v25 v24 v23 v22 v21
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
+Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v20∈Ω∧(Exist v7∈{v9∈Ω|(Exist v1∈猫薄荷 (Exist v3∈猫 (Exist v5∈喜欢 Not(主语(v5,v3)∧宾语(v5,v1)∧谓语(v9,v5)))))∧v15∈Ω∧(Exist v8∈较大的趣味 (Exist v13∈趣味为 主语(v13,v9)∧宾语(v13,v8)∧谓语(v15,v13)))} (Exist v16∈小孩 (Exist v18∈发现 Not 主语(v18,v16)∧Not 宾语(v18,v7)∧Not 谓语(v20,v18)))) v20
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v11", "较大的趣味"), ("v14", "趣味为"), ("v17", "小孩"), ("v19", "发现"), ("v2", "猫薄荷"), ("v4", "猫"), ("v6", "喜欢"), ("v9", "Ω")]
+Fmap (Filters):         [("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v17", "#"), ("v19", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#"), ("v9", "(Exist v1∈猫薄荷 (Exist v3∈猫 (Exist v5∈喜欢 Not(主语(v5,v3)∧宾语(v5,v1)∧谓语(v9,v5)))))∧v15∈Ω∧(Exist v8∈较大的趣味 (Exist v13∈趣味为 主语(v13,v9)∧宾语(v13,v8)∧谓语(v15,v13)))")]
+Amap (Associations):    [("v1", "v2"), ("v13", "v14"), ("v16", "v17"), ("v18", "v19"), ("v3", "v4"), ("v5", "v6"), ("v7", "v9"), ("v8", "v11")]
+========================================================
+语义：存在事件，谓语不是发现，主语不是小孩，宾语不是猫不喜欢猫薄荷这件有趣的事
+
+13. ""老$" 人:S"：
+==================== Machine State ====================
+Input Stack (IP):
+Var Stack (VR):         ... v8 v7 v6 v5 v4 v3
+Component Stack (CM):   True v1
+Quant Stack (QN):       None v1
+Modifier Stack (MD):    Stop
+Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v2", "老人")]
+Fmap (Filters):         [("v2", "#")]
+Amap (Associations):    [("v1", "v2")]
+========================================================
+语义：老人
+
 <宏定义示例>
 
-define 非常的宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,程度为:S,Stop,Formula,y,z,较大的程度:S,Stop,Bubble,y]]
-define 重的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,重量为:S,Stop,Formula,y,z,较大的重量:S,Stop,Bubble,y]]
-define 高的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,高度为:S,Stop,Formula,y,z,较大的高度:S,Stop,Bubble,y]]
-define 老的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,年龄为:S,Stop,Formula,y,z,较大的年龄:S,Stop,Bubble,y]]
-define 快的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,速度为:S,Stop,Formula,y,z,较大的速度:S,Stop,Bubble,y]]
+define 三元恒等排列名词化结语宏:=[Noun,Build,Build,Build]
+define 三元恒等排列从句结语宏:=[Clause,Build,Build,Build]
+define 二元恒等排列从句结语宏:=[Clause,Build,Build]
+define 非常的宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,程度为:S,Empty,Formula,y,z,较大的程度:S,Empty,Bubble,y]]
+define 重的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,重量为:S,Empty,Formula,y,z,较大的重量:S,Empty,Bubble,y]]
+define 高的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,高度为:S,Empty,Formula,y,z,较大的高度:S,Empty,Bubble,y]]
+define 老的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,年龄为:S,Empty,Formula,y,z,较大的年龄:S,Empty,Bubble,y]]
+define 快的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,速度为:S,Empty,Formula,y,z,较大的速度:S,Empty,Bubble,y]]
+define 有趣的宏:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,趣味为:S,Empty,Formula,y,z,较大的趣味:S,Empty,Bubble,y]]
 define 副词合并宏:=[For,Combine,Cancel]
 define 副词合并取消宏:=[Combine,Cancel]
 define 副词交换宏:=[For,Exchange]
-define A副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词A对应的谓词:S,Stop,Formula,y,z,副词A对应的集合:S,Stop,Bubble,y]]
-define B副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词B对应的谓词:S,Stop,Formula,y,z,副词B对应的集合:S,Stop,Bubble,y]]
-define C副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词C对应的谓词:S,Stop,Formula,y,z,副词C对应的集合:S,Stop,Bubble,y]]
-define D副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词D对应的谓词:S,Stop,Formula,y,z,副词D对应的集合:S,Stop,Bubble,y]]
-define E副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词E对应的谓词:S,Stop,Formula,y,z,副词E对应的集合:S,Stop,Bubble,y]]
+define A副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词A对应的谓词:S,Empty,Formula,y,z,副词A对应的集合:S,Empty,Bubble,y]]
+define B副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词B对应的谓词:S,Empty,Formula,y,z,副词B对应的集合:S,Empty,Bubble,y]]
+define C副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词C对应的谓词:S,Empty,Formula,y,z,副词C对应的集合:S,Empty,Bubble,y]]
+define D副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词D对应的谓词:S,Empty,Formula,y,z,副词D对应的集合:S,Empty,Bubble,y]]
+define E副词宏:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,谓语:R,宾语:R,Use,主语:R,x,#,True,Use,Get,副词E对应的谓词:S,Empty,Formula,y,z,副词E对应的集合:S,Empty,Bubble,y]]
+define 发现宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],发现:S]
 define 攻击宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],攻击:S]
+define 喜欢宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],喜欢:S]
 define 吃宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],吃:S]
 define 读宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],读:S]
 define 有宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],有:S]
 define 打宏:=[Deter,谓语:R,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],打:S]
 define 给宏:=[Deter,谓语:R,传递物:R,Absorb,宾语:R,Absorb,主语:R,Absorb,Absorb,Get,Join,[Use],给:S]
+define 猫薄荷宏:=[Deter,Join,[Use],猫薄荷:S]
 define 猫宏:=[Deter,Join,[Use],猫:S]
 define 鱼宏:=[Deter,Join,[Use],鱼:S]
 define 书宏:=[Deter,Join,[Use],书:S]

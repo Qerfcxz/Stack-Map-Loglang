@@ -1,911 +1,1156 @@
-This data structure consists of seven stacks, five mappings, and one counter.
+This data structure consists of eight stacks, five mappings, and one counter.
 
-The seven stacks from top to bottom are (all with the right end as the top):
+The eight stacks from top to bottom are as follows (all with the right end as the top of the stack):
 1. Input Stack (IP)
-2. Var Upper Stack (VU)
-3. Var Middle Stack (VM)
-4. Var Lower Stack (VL)
-5. Output Stack (OP)
-6. Modifier Stack (MD)
-7. Relation Stack (RL)
-The Var Upper Stack is pre-populated with infinitely many mutually distinct variables, the Relation Stack is pre-populated with one Deter, and the counter is initially set to 0.
+2. Variable Stack (VR)
+3. Component Stack (CM)
+4. Quantification Stack (QN)
+5. Modifier Stack (MD)
+6. Relation Stack (RL)
+7. Clause Stack (CL)
+8. Output Stack (OP)
+Among them, the Variable Stack is pre-populated with infinitely many mutually distinct variables, the Quantification Stack is pre-populated with one "None", the Modifier Stack is pre-populated with one "Stop", the Relation Stack is pre-populated with one "Deter", and the counter is initialized to 0.
 
 The five mappings are:
 1. Environment Map (Emap)
 2. Quantifier Map (Qmap)
 3. Set Map (Smap)
 4. Formula Map (Fmap)
-5. Association Map (Amap)
-The keys of all mappings are variable names.
+5. Associated Variable Map (Amap)
+All mapping keys are variable names.
 
-Notational Conventions:
-Lowercase letters denote variables.
-Uppercase letters denote arbitrary elements.
+Symbol Conventions:
+Lowercase letters represent variables.
+Uppercase letters represent arbitrary elements.
 "A:S" denotes that A is a set word.
 "A:R" denotes that A is a relation word.
 "A:Q" denotes that A is a quantifier word.
 "A:C" denotes that A is a connective word.
-"Ω(a)" denotes that a is an event variable.
-"#" denotes an empty expression (#∧A=A, A∧#=A).
-"-" denotes an empty stack.
-"+ A" denotes that the top element of the stack is A, with the remaining stack elements represented collectively by "+".
-"[...,A]" denotes that the top element of the List is A.
+"A:F" denotes that A is a transform word.
+"Ω" denotes the event set.
+"#" denotes the empty formula (# ∧ A = A, A ∧ # = A).
+"IP/VR/CM/QN/MD/RL/CL/OP: A" indicates that the top element of the corresponding stack is A, regardless of the remaining elements.
+"[...,A]" indicates that the head element of the List is A.
 
 Operational Conventions:
 build A a b B C D := A a∈{b∈B|C} D. For example: build ∃ n z Z (z>=0) (n*n=n) := ∃n∈{z∈Z|z>=0}(n*n=n)
-Emap lookup failure throws an error; Qmap lookup failure returns ∃; Smap lookup failure throws an error; Fmap lookup failure throws an error; Amap lookup failure throws an error.
+Emap lookup failure throws an error; Qmap lookup failure returns ∃ (Exist); Smap lookup failure throws an error; Fmap lookup failure throws an error; Amap lookup failure throws an error.
 
 Execution Flow:
 1. Input
-2. Match a start rule once (top-down matching)
-3. Repeatedly match loop rules until no rule can match (top-down matching)
-4. Execute Step 2 again
+2. Match Start Rules once (matched from top to bottom)
+3. Repeatedly match Loop Rules in a loop until no rule matches (matched from top to bottom)
+4. Execute step 2 again
 
 <Start Rules>
 
 1.
-IP: + []
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP: []
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 
 2.
-IP: + [...,A]
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP: [...,A]
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 =>
-IP: + [...]
-VU: +
-VM: +
-VL: +
-OP: + A
-MD: +
-RL: +
+IP: [...]
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A
 Operation:
 
 3.
-IP: + A
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP: A
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A
 Operation:
 
 <Loop Rules>
 
 1.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + New
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Not
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + a
-MD: +
-RL: +
-Operation:
-insert a # Fmap
-
-2.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + Get
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + # a
-MD: +
-RL: +
+IP:
+VR:
+CM: False
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 
-3.
-IP: +
-VU: +
-VM: + A a
-VL: +
-OP: + Use
-MD: +
-RL: +
+2a.
+IP:
+VR:
+CM: False
+QN:
+MD:
+RL:
+CL:
+OP: a Judge
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A # a
-MD: +
-RL: +
+IP:
+VR:
+CM: False a
+QN:
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+2b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a Judge
+=>
+IP:
+VR:
+CM: True a
+QN:
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+3a.
+IP:
+VR:
+CM: False
+QN:
+MD:
+RL:
+CL:
+OP: Pop
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: False
+Operation:
+
+3b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Pop
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: True
 Operation:
 
 4.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + b Bubble
-MD: +
-RL: +
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: New
 =>
-IP: +
-VU: + b a
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a
 Operation:
+insert a # Fmap
 
-5a.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Not a Judge
-MD: +
-RL: +
+5.
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Get
 =>
-IP: +
-VU: +
-VM: + False a
-VL: +
-OP: +
-MD: +
-RL: +
-Operation:
-
-5b.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + a Judge
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: + True a
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: # a
 Operation:
 
 6.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A Drop
-MD: +
-RL: +
+IP:
+VR:
+CM: A a
+QN:
+MD:
+RL:
+CL:
+OP: Use
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A # a
 Operation:
 
 7.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Formula
-MD: +
-RL: +
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: b Bubble
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR: b a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+8.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Formula
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 insert a A Fmap
 
-8.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B λa.A Apply
-MD: +
-RL: +
-=>
-IP: + A[a:=B]
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
-Operation:
-
 9.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B A a Substitute
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Insert
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A[a:=B]
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
+insert a (lookup a Fmap ∧ A) Fmap
 
 10.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B A Conjunction
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B λa.A Apply
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A∧B
-MD: +
-RL: +
+IP: A[a:=B]
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 
 11.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Negation
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B A a Substitute
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + ¬A a
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A[a:=B]
 Operation:
 
 12.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + A:Q
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B A Conjunction
 =>
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A ∧ B
+Operation:
+
+13.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Negation
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: ¬A a
+Operation:
+
+14.
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A:Q
+=>
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 insert a A Qmap
 
-13.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Stop
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + Stop
-RL: +
-Operation:
-
-14a.
-IP: +
-VU: + b a
-VM: +
-VL: +
-OP: + A:S
-MD: -
-RL: +
-=>
-IP: + Judge a
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: -
-RL: +
-Operation:
-insert a b Amap
-insert b A Smap
-insert b # Fmap
-
-14b.
-IP: +
-VU: + b a
-VM: +
-VL: +
-OP: + A:S
-MD: + Stop
-RL: +
-=>
-IP: + Judge a
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: +
-RL: +
-Operation:
-insert a b Amap
-insert b A Smap
-insert b # Fmap
-
-14c.
-IP: +
-VU: + b a
-VM: +
-VL: +
-OP: + A:S
-MD: + B c
-RL: +
-=>
-IP: + Formula b Drop (apply (apply (apply B b) c) (lookup c Fmap)) Judge a
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: +
-RL: +
-Operation:
-insert a b Amap
-insert b A Smap
-
 15.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + D b C B a A:R
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: D b C B a A:R
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B∧D∧E b
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B ∧ D ∧ E b
 Operation:
 let E = if C then A(b,a) else ¬A(b,a)
 
 16.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + C c B b A:C
-MD: +
-RL: +
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: C c B b A:C
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A_consequent(a,b)∧A_antecedent(a,c)∧B∧C a
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A_consequent(a,b) ∧ A_antecedent(a,c) ∧ B ∧ C a
 Operation:
 
 17.
-IP: +
-VU: +
-VM: +
-VL: + an ... a3 a2 a1
-OP: + (in,...,i3,i2,i1)
-MD: +
-RL: +
+IP:
+VR:
+CM: a
+QN:
+MD:
+RL:
+CL:
+OP: A:F
 =>
-IP: +
-VU: +
-VM: +
-VL: + ain ... ai3 ai2 ai1
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM: a
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
+let b = lookup a Amap
+let B = lookup b Smap
+insert b (A B) Smap
 
 18.
-IP: +
-VU: +
-VM: +
-VL: + b a
-OP: + Swap
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Add
 =>
-IP: +
-VU: +
-VM: +
-VL: + a b
-OP: +
-MD: +
-RL: +
-Operation:
-
-19.
-IP: +
-VU: +
-VM: +
-VL: + a
-OP: + Go
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + a
-MD: +
-RL: +
-Operation:
-
-20.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + a Back
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: +
-RL: +
-Operation:
-
-21.
-IP: +
-VU: +
-VM: +
-VL: + a
-OP: + A b Build
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + (build (lookup a Qmap) a c (lookup c Smap) (lookup c Fmap) A) b
-MD: +
-RL: +
-Operation:
-let c = lookup a Amap
-
-22.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Event
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Ω(a)∧A a
-MD: +
-RL: +
-Operation:
-
-23a.
-IP: +
-VU: +
-VM: +
-VL: -
-OP: + End
-MD: +
-RL: +
-=>
-IP: + Event
-VU: +
-VM: +
-VL: -
-OP: +
-MD: +
-RL: +
-Operation:
-
-23b.
-IP: +
-VU: +
-VM: +
-VL: + a
-OP: + End
-MD: +
-RL: +
-=>
-IP: + End Build
-VU: +
-VM: +
-VL: + a
-OP: +
-MD: +
-RL: +
-Operation:
-
-24.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + For
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + For
-RL: +
-Operation:
-
-25.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Cancel
-MD: + For
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
-Operation:
-
-26.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + B b A a Merge
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + B b
-RL: +
-Operation:
-insert b (lookup b Fmap ∧ A) Fmap
-
-27a.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Modify
-MD: + B b For
-RL: +
-=>
-IP: + Merge (apply (apply (apply B a) b) (lookup b Fmap))
-VU: +
-VM: +
-VL: +
-OP: + A a
-MD: +
-RL: +
-Operation:
-
-27b.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A a Modify
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + A a
-RL: +
-Operation:
-
-28.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Exchange
-MD: + B b A a For
-RL: +
-=>
-IP: + Modify
-VU: +
-VM: +
-VL: +
-OP: + B b
-MD: + A a For
-RL: +
-Operation:
-
-29a.
-IP: +
-VU: + a
-VM: +
-VL: +
-OP: + Combine
-MD: + B c A b
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: + λx.λy.λz.[And:C,Apply,Apply,Apply,B,x,c,Conjunction,lookup c Fmap,Substitute,y,z,c,Apply,Apply,Apply,A,x,b,Conjunction,lookup b Fmap,Substitute,y,z,b] a
-RL: +
-Operation:
-insert a # Fmap
-
-29b.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Combine
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
-Operation:
-
-30.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Add
-MD: +
-RL: +
-=>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 Count++
 
-31.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Deter
-MD: +
-RL: +
+19.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Deter
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: + (if Count==0 then Deter)
+IP:
+VR:
+CM:
+QN:
+MD:
+RL: (if Count==0 then Deter)
+CL:
+OP:
 Operation:
 if Count>0 then Count--
 
-32.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + A Join
-MD: +
-RL: +
+20.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A Join
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: + A
+IP:
+VR:
+CM:
+QN:
+MD:
+RL: A
+CL:
+OP:
 Operation:
 
-33a.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Absorb
-MD: +
-RL: + Deter
+21a.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL: Deter
+CL:
+OP: Absorb
 =>
-IP: +
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 
-33b.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Absorb
-MD: +
-RL: + A
+21b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL: A
+CL:
+OP: Absorb
 =>
-IP: + Absorb A
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: +
+IP: Absorb A
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 
-34.
-IP: +
-VU: +
-VM: + a
-VL: +
-OP: + Upload b
-MD: +
-RL: +
+22.
+IP:
+VR:
+CM: a
+QN:
+MD:
+RL:
+CL:
+OP: Upload b
 =>
-IP: +
-VU: +
-VM: + a
-VL: +
-OP: +
-MD: +
-RL: +
+IP:
+VR:
+CM: a
+QN:
+MD:
+RL:
+CL:
+OP:
 Operation:
 insert b a Emap
 
-35.
-IP: +
-VU: +
-VM: +
-VL: +
-OP: + Download a
-MD: +
-RL: +
+23.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Download a
 =>
-IP: + Deter Judge (lookup a Emap)
-VU: +
-VM: +
-VL: +
-OP: +
-MD: +
-RL: + [Use]
+IP: Deter Judge (lookup a Emap)
+VR:
+CM:
+QN:
+MD:
+RL: [Use]
+CL:
+OP:
 Operation:
+
+24.
+IP:
+VR:
+CM:
+QN: an ... a3 a2 a1
+MD:
+RL:
+CL:
+OP: (in,...,i3,i2,i1)
+=>
+IP:
+VR:
+CM:
+QN: ain ... ai3 ai2 ai1
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+25.
+IP:
+VR:
+CM:
+QN: b a
+MD:
+RL:
+CL:
+OP: Swap
+=>
+IP:
+VR:
+CM:
+QN: a b
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+26.
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP: Go
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a
+Operation:
+
+27.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a Back
+=>
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+28.
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP: A b Build
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: (build (lookup a Qmap) a c (lookup c Smap) (lookup c Fmap) A) b
+Operation:
+let c = lookup a Amap
+
+29.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Event
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: a∈Ω ∧ A a
+Operation:
+
+30a.
+IP:
+VR:
+CM:
+QN: None
+MD:
+RL:
+CL:
+OP: End
+=>
+IP: Event
+VR:
+CM:
+QN: None
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+30b.
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP: End
+=>
+IP: End Build
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+31.
+IP:
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP: That
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL: a
+OP:
+Operation:
+
+32.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL: a
+OP: A b Clause
+=>
+IP: Insert c Substitute a b∈Ω∧A c Judge a
+VR:
+CM:
+QN: a
+MD:
+RL: [Use] Deter
+CL:
+OP:
+Operation:
+let c = lookup a Amap
+
+33a.
+IP:
+VR: b a
+CM:
+QN:
+MD: Stop
+RL:
+CL:
+OP: A:S
+=>
+IP: Judge a
+VR:
+CM:
+QN: a
+MD: Stop
+RL:
+CL:
+OP:
+Operation:
+insert a b Amap
+insert b A Smap
+insert b # Fmap
+
+33b.
+IP:
+VR: b a
+CM:
+QN:
+MD: A c
+RL:
+CL:
+OP: B:S
+=>
+IP: Formula b Apply λz.[] (apply (apply (apply A b) c) (lookup c Fmap)) Judge a
+VR:
+CM:
+QN: a
+MD:
+RL:
+CL:
+OP:
+Operation:
+insert a b Amap
+insert b B Smap
+
+34a.
+IP:
+VR: a
+CM:
+QN:
+MD: B c A b
+RL:
+CL:
+OP: Combine
+=>
+IP:
+VR:
+CM:
+QN:
+MD: λx.λy.λz.[And:C,Apply,Apply,Apply,B,x,c,Conjunction,lookup c Fmap,Substitute,y,z,c,Apply,Apply,Apply,A,x,b,Conjunction,lookup b Fmap,Substitute,y,z,b] a
+RL:
+CL:
+OP:
+Operation:
+insert a # Fmap
+
+34b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Combine
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+35.
+IP:
+VR: a
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: Empty
+=>
+IP:
+VR:
+CM:
+QN:
+MD: λx.λy.λz.[a,#] a
+RL:
+CL:
+OP:
+Operation:
+insert a # Fmap
+
+36.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: For
+=>
+IP:
+VR:
+CM:
+QN:
+MD: For
+RL:
+CL:
+OP:
+Operation:
+
+37.
+IP:
+VR:
+CM:
+QN:
+MD: For
+RL:
+CL:
+OP: Cancel
+=>
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP:
+Operation:
+
+38.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B b A a Merge
+=>
+IP:
+VR:
+CM:
+QN:
+MD: B b
+RL:
+CL:
+OP:
+Operation:
+insert b (lookup b Fmap ∧ A) Fmap
+
+39a.
+IP:
+VR:
+CM:
+QN:
+MD: A a For
+RL:
+CL:
+OP: B b Modify
+=>
+IP: Merge (apply (apply (apply A b) a) (lookup a Fmap))
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: B b
+Operation:
+
+39b.
+IP:
+VR:
+CM:
+QN:
+MD:
+RL:
+CL:
+OP: A a Modify
+=>
+IP:
+VR:
+CM:
+QN:
+MD: A a
+RL:
+CL:
+OP:
+Operation:
+
+40.
+IP:
+VR:
+CM:
+QN:
+MD: B b A a For
+RL:
+CL:
+OP: Exchange
+=>
+IP: Modify
+VR:
+CM:
+QN:
+MD: A a For
+RL:
+CL:
+OP: B b
+Operation:
+
+41a.
+IP:
+VR: a
+CM:
+QN:
+MD: Stop
+RL:
+CL:
+OP: A b Noun
+=>
+IP: Judge b
+VR:
+CM:
+QN: b
+MD: Stop
+RL: [Use] Deter
+CL:
+OP:
+Operation:
+insert b a Amap
+insert a Ω Smap
+insert a A[b:=a] Fmap
+
+41b.
+IP:
+VR: a
+CM:
+QN:
+MD: A b
+RL:
+CL:
+OP: B c Noun
+=>
+IP: Insert a Apply λz.[] (apply (apply (apply A a) b) (lookup b Fmap)) Judge c
+VR:
+CM:
+QN: c
+MD:
+RL: [Use] Deter
+CL:
+OP:
+Operation:
+insert c a Amap
+insert a Ω Smap
+insert a B[c:=a] Fmap
 
 <Macro Definitions>
 
-Binary_Predicate_Macro:=[Deter,Predicate:R,Object:R,Absorb,Subject:R,Absorb,Absorb,Get,Join,[Use],Predicate_Set:S]
-(Similarly for n-ary predicates)
+Ternary Nominalization Closing Macro := [Noun, Build, Build, Build, (i3,i2,i1)]
+(N-ary nominalization closing macros are defined analogously)
 
-Noun_Macro:=[Deter,Join,[Use],Noun:S]
+Binary Clause Closing Macro := [Clause, Build, Build, (i2,i1)]
+(N-ary clause closing macros are defined analogously)
 
-Relation_Macro:=[Add,Join,[Relation:R]]
+Binary Predicate Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Predicate_Name:S]
+(N-ary predicate macros are defined analogously)
 
-Adjective_Macro:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Adj_Predicate:S,Stop,Formula,y,z,Adj_Set:S,Stop,Bubble,y]]
+Noun Macro := [Deter, Join, [Use], Noun:S]
 
-Adverb_Macro:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Adv_Predicate:S,Stop,Formula,y,z,Adv_Set:S,Stop,Bubble,y]]
+Relation Macro := [Add, Join, [Relation:R]]
 
-Adverb_Combine_Macro:=[For,Combine,Cancel]
+Adjective Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adjective_Predicate:S, Empty, Formula, y, z, Adjective_Set:S, Empty, Bubble, y]]
 
-Adverb_Combine_Cancel_Macro:=[Combine,Cancel]
+Adverb Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adverb_Predicate:S, Empty, Formula, y, z, Adverb_Set:S, Empty, Bubble, y]]
 
-Adverb_Exchange_Macro:=[For,Exchange]
+Adverb Combine Macro := [For, Combine, Cancel]
 
-Permutation_Closing_Word:=[End,Permutation_Word]
+Adverb Combine Cancel Macro := [Combine, Cancel]
 
-<Example Sentences>
+Adverb Exchange Macro := [For, Exchange]
+
+<Examples>
 
 1. "End Negation Eat_Macro Cat_Macro Fish_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v13 v12 v11 v10 v9 v8
-Var Middle Stack (VM):  
-Var Lower Stack (VL):   
-Output Stack (OP):      Ω(v7)∧(Exist v1∈Fish (Exist v3∈Cat (Exist v5∈Eat Not(Subject(v5,v3)∧Object(v5,v1)∧Predicate(v7,v5))))) v7
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v13 v12 v11 v10 v9 v8
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v7∈Ω∧(Exist v1∈Fish (Exist v3∈Cat (Exist v5∈Eat Not(Subject(v5,v3)∧Object(v5,v1)∧Predicate(v7,v5))))) v7
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
@@ -914,78 +1159,82 @@ Smap (Sets):            [("v2", "Fish"), ("v4", "Cat"), ("v6", "Eat")]
 Fmap (Filters):         [("v2", "#"), ("v4", "#"), ("v6", "#")]
 Amap (Associations):    [("v1", "v2"), ("v3", "v4"), ("v5", "v6")]
 ========================================================
-Semantics: The cat does not eat the fish (under a certain quantification).
+Semantics: The cat does not eat fish (under default quantification)
 
-2. "End (1,3,2) Eat_Macro Not All Fast_Macro Cat_Macro Not All Old_Macro Fish_Macro Not All Heavy_Macro"
+2. "End Eat_Macro Not All Fast_Macro Cat_Macro Not All Old_Macro Fish_Macro Not All Heavy_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v28 v27 v26 v25 v24 v23
-Var Middle Stack (VM):  
-Var Lower Stack (VL):   
-Output Stack (OP):      Ω(v22)∧(All v9∈{v10∈Cat|Ω(v14)∧(Exist v11∈Large_Age (Exist v12∈Age_Is Subject(v12,v10)∧Object(v12,v11)∧Predicate(v14,v12)))} (All v2∈{v3∈Fish|Ω(v7)∧(Exist v4∈Large_Weight (Exist v5∈Weight_Is Subject(v5,v3)∧Object(v5,v4)∧Predicate(v7,v5)))} (All v16∈{v17∈Eat|Ω(v21)∧(Exist v18∈Large_Speed (Exist v19∈Speed_Is Subject(v19,v17)∧Object(v19,v18)∧Predicate(v21,v19)))} Not Subject(v16,v9)∧Not Object(v16,v2)∧Not Predicate(v22,v16)))) v22
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v34 v33 v32 v31 v30 v29
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v28∈Ω∧(All v2∈{v3∈Fish|v9∈Ω∧(Exist v1∈Large_Weight (Exist v7∈Weight_Is Subject(v7,v3)∧Object(v7,v1)∧Predicate(v9,v7)))} (All v11∈{v12∈Cat|v18∈Ω∧(Exist v10∈Large_Age (Exist v16∈Age_Is Subject(v16,v12)∧Object(v16,v10)∧Predicate(v18,v16)))} (All v20∈{v21∈Eat|v27∈Ω∧(Exist v19∈Large_Speed (Exist v25∈Speed_Is Subject(v25,v21)∧Object(v25,v19)∧Predicate(v27,v25)))} Not Subject(v20,v11)∧Not Object(v20,v2)∧Not Predicate(v28,v20)))) v28
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
-Qmap (Quantifiers):     [("v16", "All"), ("v2", "All"), ("v9", "All")]
-Smap (Sets):            [("v1", "Large_Weight"), ("v10", "Cat"), ("v13", "Age_Is"), ("v15", "Large_Speed"), ("v17", "Eat"), ("v20", "Speed_Is"), ("v3", "Fish"), ("v6", "Weight_Is"), ("v8", "Large_Age")]
-Fmap (Filters):         [("v1", "#"), ("v10", "Ω(v14)∧(Exist v11∈Large_Age (Exist v12∈Age_Is Subject(v12,v10)∧Object(v12,v11)∧Predicate(v14,v12)))"), ("v13", "#"), ("v15", "#"), ("v17", "Ω(v21)∧(Exist v18∈Large_Speed (Exist v19∈Speed_Is Subject(v19,v17)∧Object(v19,v18)∧Predicate(v21,v19)))"), ("v20", "#"), ("v3", "Ω(v7)∧(Exist v4∈Large_Weight (Exist v5∈Weight_Is Subject(v5,v3)∧Object(v5,v4)∧Predicate(v7,v5)))"), ("v6", "#"), ("v8", "#")]
-Amap (Associations):    [("v11", "v8"), ("v12", "v13"), ("v16", "v17"), ("v18", "v15"), ("v19", "v20"), ("v2", "v3"), ("v4", "v1"), ("v5", "v6"), ("v9", "v10")]
+Qmap (Quantifiers):     [("v11", "All"), ("v2", "All"), ("v20", "All")]
+Smap (Sets):            [("v12", "Cat"), ("v14", "Large_Age"), ("v17", "Age_Is"), ("v21", "Eat"), ("v23", "Large_Speed"), ("v26", "Speed_Is"), ("v3", "Fish"), ("v5", "Large_Weight"), ("v8", "Weight_Is")]
+Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v12", "v18∈Ω∧(Exist v10∈Large_Age (Exist v16∈Age_Is Subject(v16,v12)∧Object(v16,v10)∧Predicate(v18,v16)))"), ("v13", "#"), ("v14", "#"), ("v15", "#"), ("v17", "#"), ("v19", "#"), ("v21", "v27∈Ω∧(Exist v19∈Large_Speed (Exist v25∈Speed_Is Subject(v25,v21)∧Object(v25,v19)∧Predicate(v27,v25)))"), ("v22", "#"), ("v23", "#"), ("v24", "#"), ("v26", "#"), ("v3", "v9∈Ω∧(Exist v1∈Large_Weight (Exist v7∈Weight_Is Subject(v7,v3)∧Object(v7,v1)∧Predicate(v9,v7)))"), ("v4", "#"), ("v5", "#"), ("v6", "#"), ("v8", "#")]
+Amap (Associations):    [("v1", "v5"), ("v10", "v14"), ("v11", "v12"), ("v16", "v17"), ("v19", "v23"), ("v2", "v3"), ("v20", "v21"), ("v25", "v26"), ("v7", "v8")]
 ========================================================
-Semantics: There exists an event in which fast eating is not the predicate, an old cat is not the subject, and a heavy fish is not the object.
+Semantics: There exists an event where fast eating is not the predicate, the old cat is not the subject, and the heavy fish is not the object (under default quantification)
 
 3. "Person:S Tall_Macro Very_Macro Heavy_Macro Old_Macro Very_Macro Very_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v42 v41 v40 v39 v38 v37
-Var Middle Stack (VM):  True v21
-Var Lower Stack (VL):   v21
-Output Stack (OP):      
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v54 v53 v52 v51 v50 v49
+Component Stack (CM):   True v27
+Quant Stack (QN):       None v27
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
-Smap (Sets):            [("v1", "Large_Degree"), ("v10", "Degree_Is"), ("v12", "Large_Weight"), ("v14", "Large_Degree"), ("v15", "Large_Height"), ("v18", "Degree_Is"), ("v2", "Large_Degree"), ("v22", "Person"), ("v25", "Height_Is"), ("v29", "Weight_Is"), ("v33", "Age_Is"), ("v5", "Degree_Is"), ("v7", "Large_Age")]
-Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v12", "#"), ("v13", "#"), ("v14", "#"), ("v15", "Ω(v19)∧(Exist v16∈Large_Degree (Exist v17∈Degree_Is Subject(v17,v15)∧Object(v17,v16)∧Predicate(v19,v17)))"), ("v18", "#"), ("v2", "Ω(v6)∧(Exist v3∈Large_Degree (Exist v4∈Degree_Is Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))"), ("v20", "#"), ("v22", "And_consequent(v36,v35)∧And_antecedent(v36,v26)∧And_consequent(v35,v34)∧And_antecedent(v35,v30)∧Ω(v34)∧(Exist v31∈{v7∈Large_Age|Ω(v11)∧(Exist v8∈{v2∈Large_Degree|Ω(v6)∧(Exist v3∈Large_Degree (Exist v4∈Degree_Is Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))} (Exist v9∈Degree_Is Subject(v9,v7)∧Object(v9,v8)∧Predicate(v11,v9)))} (Exist v32∈Age_Is Subject(v32,v22)∧Object(v32,v31)∧Predicate(v34,v32)))∧Ω(v30)∧(Exist v27∈Large_Weight (Exist v28∈Weight_Is Subject(v28,v22)∧Object(v28,v27)∧Predicate(v30,v28)))∧Ω(v26)∧(Exist v23∈{v15∈Large_Height|Ω(v19)∧(Exist v16∈Large_Degree (Exist v17∈Degree_Is Subject(v17,v15)∧Object(v17,v16)∧Predicate(v19,v17)))} (Exist v24∈Height_Is Subject(v24,v22)∧Object(v24,v23)∧Predicate(v26,v24)))"), ("v25", "#"), ("v29", "#"), ("v33", "#"), ("v5", "#"), ("v7", "Ω(v11)∧(Exist v8∈{v2∈Large_Degree|Ω(v6)∧(Exist v3∈Large_Degree (Exist v4∈Degree_Is Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))} (Exist v9∈Degree_Is Subject(v9,v7)∧Object(v9,v8)∧Predicate(v11,v9)))")]
-Amap (Associations):    [("v16", "v14"), ("v17", "v18"), ("v21", "v22"), ("v23", "v15"), ("v24", "v25"), ("v27", "v12"), ("v28", "v29"), ("v3", "v1"), ("v31", "v7"), ("v32", "v33"), ("v4", "v5"), ("v8", "v2"), ("v9", "v10")]
+Smap (Sets):            [("v11", "Large_Degree"), ("v14", "Degree_Is"), ("v21", "Large_Degree"), ("v24", "Degree_Is"), ("v28", "Person"), ("v30", "Large_Height"), ("v33", "Height_Is"), ("v36", "Large_Weight"), ("v39", "Weight_Is"), ("v4", "Large_Degree"), ("v42", "Large_Age"), ("v45", "Age_Is"), ("v7", "Degree_Is")]
+Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v17", "#"), ("v18", "#"), ("v19", "v25∈Ω∧(Exist v18∈Large_Degree (Exist v23∈Degree_Is Subject(v23,v19)∧Object(v23,v18)∧Predicate(v25,v23)))"), ("v2", "v8∈Ω∧(Exist v1∈Large_Degree (Exist v6∈Degree_Is Subject(v6,v2)∧Object(v6,v1)∧Predicate(v8,v6)))"), ("v20", "#"), ("v21", "#"), ("v22", "#"), ("v24", "#"), ("v26", "#"), ("v28", "And_consequent(v48,v47)∧And_antecedent(v48,v34)∧And_consequent(v47,v46)∧And_antecedent(v47,v40)∧v46∈Ω∧(Exist v9∈Large_Age (Exist v44∈Age_Is Subject(v44,v28)∧Object(v44,v9)∧Predicate(v46,v44)))∧v40∈Ω∧(Exist v16∈Large_Weight (Exist v38∈Weight_Is Subject(v38,v28)∧Object(v38,v16)∧Predicate(v40,v38)))∧v34∈Ω∧(Exist v19∈Large_Height (Exist v32∈Height_Is Subject(v32,v28)∧Object(v32,v19)∧Predicate(v34,v32)))"), ("v29", "#"), ("v3", "#"), ("v30", "#"), ("v31", "#"), ("v33", "#"), ("v35", "#"), ("v36", "#"), ("v37", "#"), ("v39", "#"), ("v4", "#"), ("v41", "#"), ("v42", "#"), ("v43", "#"), ("v45", "#"), ("v5", "#"), ("v7", "#"), ("v9", "v15∈Ω∧(Exist v2∈Large_Degree (Exist v13∈Degree_Is Subject(v13,v9)∧Object(v13,v2)∧Predicate(v15,v13)))")]
+Amap (Associations):    [("v1", "v4"), ("v13", "v14"), ("v16", "v36"), ("v18", "v21"), ("v19", "v30"), ("v2", "v11"), ("v23", "v24"), ("v27", "v28"), ("v32", "v33"), ("v38", "v39"), ("v44", "v45"), ("v6", "v7"), ("v9", "v42")]
 ========================================================
-Semantics: A very, very old, heavy, and very tall person.
+Semantics: A very very old, heavy, very tall person
 
 4. "Person:S Tall_Macro Very_Macro Heavy_Macro Adv_C_Macro Adv_Combine_Macro Adv_B_Macro Cancel Adv_A_Macro Old_Macro Very_Macro Very_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v59 v58 v57 v56 v55 v54
-Var Middle Stack (VM):  True v38
-Var Lower Stack (VL):   v38
-Output Stack (OP):      
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v77 v76 v75 v74 v73 v72
+Component Stack (CM):   True v50
+Quant Stack (QN):       None v50
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
-Smap (Sets):            [("v1", "Large_Degree"), ("v10", "Degree_Is"), ("v12", "Adv_A_Set"), ("v13", "Adv_B_Set"), ("v15", "Adv_C_Set"), ("v18", "Adv_B_Predicate"), ("v2", "Large_Degree"), ("v22", "Adv_A_Predicate"), ("v25", "Large_Weight"), ("v28", "Adv_C_Predicate"), ("v31", "Large_Degree"), ("v32", "Large_Height"), ("v35", "Degree_Is"), ("v39", "Person"), ("v42", "Height_Is"), ("v46", "Weight_Is"), ("v5", "Degree_Is"), ("v50", "Age_Is"), ("v7", "Large_Age")]
-Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v12", "#"), ("v13", "#"), ("v14", "#"), ("v15", "And_consequent(v24,v23)∧And_antecedent(v24,v19)∧Ω(v23)∧(Exist v20∈Adv_A_Set (Exist v21∈Adv_A_Predicate Subject(v21,v15)∧Object(v21,v20)∧Predicate(v23,v21)))∧Ω(v19)∧(Exist v16∈Adv_B_Set (Exist v17∈Adv_B_Predicate Subject(v17,v15)∧Object(v17,v16)∧Predicate(v19,v17)))"), ("v18", "#"), ("v2", "Ω(v6)∧(Exist v3∈Large_Degree (Exist v4∈Degree_Is Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))"), ("v22", "#"), ("v25", "Ω(v29)∧(Exist v26∈{v15∈Adv_C_Set|And_consequent(v24,v23)∧And_antecedent(v24,v19)∧Ω(v23)∧(Exist v20∈Adv_A_Set (Exist v21∈Adv_A_Predicate Subject(v21,v15)∧Object(v21,v20)∧Predicate(v23,v21)))∧Ω(v19)∧(Exist v16∈Adv_B_Set (Exist v17∈Adv_B_Predicate Subject(v17,v15)∧Object(v17,v16)∧Predicate(v19,v17)))} (Exist v27∈Adv_C_Predicate Subject(v27,v25)∧Object(v27,v26)∧Predicate(v29,v27)))"), ("v28", "#"), ("v30", "#"), ("v31", "#"), ("v32", "Ω(v36)∧(Exist v33∈Large_Degree (Exist v34∈Degree_Is Subject(v34,v32)∧Object(v34,v33)∧Predicate(v36,v34)))"), ("v35", "#"), ("v37", "#"), ("v39", "And_consequent(v53,v52)∧And_antecedent(v53,v43)∧And_consequent(v52,v51)∧And_antecedent(v52,v47)∧Ω(v51)∧(Exist v48∈{v7∈Large_Age|Ω(v11)∧(Exist v8∈{v2∈Large_Degree|Ω(v6)∧(Exist v3∈Large_Degree (Exist v4∈Degree_Is Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))} (Exist v9∈Degree_Is Subject(v9,v7)∧Object(v9,v8)∧Predicate(v11,v9)))} (Exist v49∈Age_Is Subject(v49,v39)∧Object(v49,v48)∧Predicate(v51,v49)))∧Ω(v47)∧(Exist v44∈{v25∈Large_Weight|Ω(v29)∧(Exist v26∈{v15∈Adv_C_Set|And_consequent(v24,v23)∧And_antecedent(v24,v19)∧Ω(v23)∧(Exist v20∈Adv_A_Set (Exist v21∈Adv_A_Predicate Subject(v21,v15)∧Object(v21,v20)∧Predicate(v23,v21)))∧Ω(v19)∧(Exist v16∈Adv_B_Set (Exist v17∈Adv_B_Predicate Subject(v17,v15)∧Object(v17,v16)∧Predicate(v19,v17)))} (Exist v27∈Adv_C_Predicate Subject(v27,v25)∧Object(v27,v26)∧Predicate(v29,v27)))} (Exist v45∈Weight_Is Subject(v45,v39)∧Object(v45,v44)∧Predicate(v47,v45)))∧Ω(v43)∧(Exist v40∈{v32∈Large_Height|Ω(v36)∧(Exist v33∈Large_Degree (Exist v34∈Degree_Is Subject(v34,v32)∧Object(v34,v33)∧Predicate(v36,v34)))} (Exist v41∈Height_Is Subject(v41,v39)∧Object(v41,v40)∧Predicate(v43,v41)))"), ("v42", "#"), ("v46", "#"), ("v5", "#"), ("v50", "#"), ("v7", "Ω(v11)∧(Exist v8∈{v2∈Large_Degree|Ω(v6)∧(Exist v3∈Large_Degree (Exist v4∈Degree_Is Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))} (Exist v9∈Degree_Is Subject(v9,v7)∧Object(v9,v8)∧Predicate(v11,v9)))")]
-Amap (Associations):    [("v16", "v13"), ("v17", "v18"), ("v20", "v12"), ("v21", "v22"), ("v26", "v15"), ("v27", "v28"), ("v3", "v1"), ("v33", "v31"), ("v34", "v35"), ("v38", "v39"), ("v4", "v5"), ("v40", "v32"), ("v41", "v42"), ("v44", "v25"), ("v45", "v46"), ("v48", "v7"), ("v49", "v50"), ("v8", "v2"), ("v9", "v10")]
+Smap (Sets):            [("v11", "Large_Degree"), ("v14", "Degree_Is"), ("v21", "Adv_B_Set"), ("v24", "Adv_B_Predicate"), ("v27", "Adv_A_Set"), ("v30", "Adv_A_Predicate"), ("v35", "Adv_C_Set"), ("v38", "Adv_C_Predicate"), ("v4", "Large_Degree"), ("v44", "Large_Degree"), ("v47", "Degree_Is"), ("v51", "Person"), ("v53", "Large_Height"), ("v56", "Height_Is"), ("v59", "Large_Weight"), ("v62", "Weight_Is"), ("v65", "Large_Age"), ("v68", "Age_Is"), ("v7", "Degree_Is")]
+Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v17", "#"), ("v18", "#"), ("v19", "And_consequent(v32,v31)∧And_antecedent(v32,v25)∧v31∈Ω∧(Exist v16∈Adv_A_Set (Exist v29∈Adv_A_Predicate Subject(v29,v19)∧Object(v29,v16)∧Predicate(v31,v29)))∧v25∈Ω∧(Exist v17∈Adv_B_Set (Exist v23∈Adv_B_Predicate Subject(v23,v19)∧Object(v23,v17)∧Predicate(v25,v23)))"), ("v2", "v8∈Ω∧(Exist v1∈Large_Degree (Exist v6∈Degree_Is Subject(v6,v2)∧Object(v6,v1)∧Predicate(v8,v6)))"), ("v20", "#"), ("v21", "#"), ("v22", "#"), ("v24", "#"), ("v26", "#"), ("v27", "#"), ("v28", "#"), ("v3", "#"), ("v30", "#"), ("v33", "v39∈Ω∧(Exist v19∈Adv_C_Set (Exist v37∈Adv_C_Predicate Subject(v37,v33)∧Object(v37,v19)∧Predicate(v39,v37)))"), ("v34", "#"), ("v35", "#"), ("v36", "#"), ("v38", "#"), ("v4", "#"), ("v40", "#"), ("v41", "#"), ("v42", "v48∈Ω∧(Exist v41∈Large_Degree (Exist v46∈Degree_Is Subject(v46,v42)∧Object(v46,v41)∧Predicate(v48,v46)))"), ("v43", "#"), ("v44", "#"), ("v45", "#"), ("v47", "#"), ("v49", "#"), ("v5", "#"), ("v51", "And_consequent(v71,v70)∧And_antecedent(v71,v57)∧And_consequent(v70,v69)∧And_antecedent(v70,v63)∧v69∈Ω∧(Exist v9∈Large_Age (Exist v67∈Age_Is Subject(v67,v51)∧Object(v67,v9)∧Predicate(v69,v67)))∧v63∈Ω∧(Exist v33∈Large_Weight (Exist v61∈Weight_Is Subject(v61,v51)∧Object(v61,v33)∧Predicate(v63,v61)))∧v57∈Ω∧(Exist v42∈Large_Height (Exist v55∈Height_Is Subject(v55,v51)∧Object(v55,v42)∧Predicate(v57,v55)))"), ("v52", "#"), ("v53", "#"), ("v54", "#"), ("v56", "#"), ("v58", "#"), ("v59", "#"), ("v60", "#"), ("v62", "#"), ("v64", "#"), ("v65", "#"), ("v66", "#"), ("v68", "#"), ("v7", "#"), ("v9", "v15∈Ω∧(Exist v2∈Large_Degree (Exist v13∈Degree_Is Subject(v13,v9)∧Object(v13,v2)∧Predicate(v15,v13)))")]
+Amap (Associations):    [("v1", "v4"), ("v13", "v14"), ("v16", "v27"), ("v17", "v21"), ("v19", "v35"), ("v2", "v11"), ("v23", "v24"), ("v29", "v30"), ("v33", "v59"), ("v37", "v38"), ("v41", "v44"), ("v42", "v53"), ("v46", "v47"), ("v50", "v51"), ("v55", "v56"), ("v6", "v7"), ("v61", "v62"), ("v67", "v68"), ("v9", "v65")]
 ========================================================
-Semantics: A very, very old, A-and-B-ly C-ly heavy, and very tall person.
+Semantics: A very very old, A-and-B-ly C-ly heavy, very tall person
 
 5. "End Then:C Negation Read_Macro Exist Download child Download book Negation Give_Macro Exist Farmer_Macro All Upload child Child_Macro All Upload book Book_Macro All"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v19 v18 v17 v16 v15 v14
-Var Middle Stack (VM):  
-Var Lower Stack (VL):   
-Output Stack (OP):      Ω(v13)∧(All v1∈Book (All v3∈Child (All v5∈Farmer (Exist v7∈Give (Exist v10∈Read Then_consequent(v13,v12)∧Then_antecedent(v13,v9)∧Not(Subject(v10,v3)∧Object(v10,v1)∧Predicate(v12,v10))∧Not(Subject(v7,v5)∧Object(v7,v3)∧Theme(v7,v1)∧Predicate(v9,v7))))))) v13
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v19 v18 v17 v16 v15 v14
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v13∈Ω∧(All v1∈Book (All v3∈Child (All v5∈Farmer (Exist v7∈Give (Exist v10∈Read Then_consequent(v13,v12)∧Then_antecedent(v13,v9)∧Not(Subject(v10,v3)∧Object(v10,v1)∧Predicate(v12,v10))∧Not(Subject(v7,v5)∧Object(v7,v3)∧Theme(v7,v1)∧Predicate(v9,v7))))))) v13
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     [("book", "v1"), ("child", "v3")]
@@ -994,18 +1243,19 @@ Smap (Sets):            [("v11", "Read"), ("v2", "Book"), ("v4", "Child"), ("v6"
 Fmap (Filters):         [("v11", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
 Amap (Associations):    [("v1", "v2"), ("v10", "v11"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8")]
 ========================================================
-Semantics: If a farmer does not give a child a book, the child will not read it (under a certain quantification).
+Semantics: If the farmer does not give the child the book, the child will not read it (under default quantification)
 
 6. "End Eat_Macro Noun_A_Macro Rel_A_Macro Noun_B_Macro Rel_B_Macro Cat_Macro Noun_C_Macro Rel_C_Macro Noun_D_Macro Rel_D_Macro Fish_Macro Noun_E_Macro Rel_E_Macro Noun_F_Macro Rel_F_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v25 v24 v23 v22 v21 v20
-Var Middle Stack (VM):  
-Var Lower Stack (VL):   
-Output Stack (OP):      Ω(v19)∧(Exist v1∈Noun_F (Exist v3∈Noun_E (Exist v5∈Fish (Exist v7∈Noun_D (Exist v9∈Noun_C (Exist v11∈Cat (Exist v13∈Noun_B (Exist v15∈Noun_A (Exist v17∈Eat Rel_E(v5,v3)∧Rel_F(v5,v1)∧Rel_C(v11,v9)∧Rel_D(v11,v7)∧Rel_A(v17,v15)∧Rel_B(v17,v13)∧Subject(v17,v11)∧Object(v17,v5)∧Predicate(v19,v17)))))))))) v19
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v25 v24 v23 v22 v21 v20
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v19∈Ω∧(Exist v1∈Noun_F (Exist v3∈Noun_E (Exist v5∈Fish (Exist v7∈Noun_D (Exist v9∈Noun_C (Exist v11∈Cat (Exist v13∈Noun_B (Exist v15∈Noun_A (Exist v17∈Eat Rel_E(v5,v3)∧Rel_F(v5,v1)∧Rel_C(v11,v9)∧Rel_D(v11,v7)∧Rel_A(v17,v15)∧Rel_B(v17,v13)∧Subject(v17,v11)∧Object(v17,v5)∧Predicate(v19,v17)))))))))) v19
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
@@ -1014,18 +1264,19 @@ Smap (Sets):            [("v10", "Noun_C"), ("v12", "Cat"), ("v14", "Noun_B"), (
 Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v18", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
 Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v15", "v16"), ("v17", "v18"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
 ========================================================
-Semantics: The cat eats the fish (Cat, Eat, and Fish are all modified).
+Semantics: The cat eats the fish (cat, eat, and fish are all modified)
 
 7. "End Eat_Macro Noun_A_Macro Noun_B_Macro Rel_A_Macro Noun_C_Macro Noun_D_Macro Rel_B_Macro Rel_C_Macro Rel_D_Macro Cat_Macro Fish_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v21 v20 v19 v18 v17 v16
-Var Middle Stack (VM):  
-Var Lower Stack (VL):   
-Output Stack (OP):      Ω(v15)∧(Exist v1∈Fish (Exist v3∈Cat (Exist v5∈Noun_D (Exist v7∈Noun_C (Exist v9∈Noun_B (Exist v11∈Noun_A (Exist v13∈Eat Rel_B(v7,v5)∧Rel_A(v11,v9)∧Rel_C(v11,v7)∧Rel_D(v13,v11)∧Subject(v13,v3)∧Object(v13,v1)∧Predicate(v15,v13)))))))) v15
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v21 v20 v19 v18 v17 v16
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v15∈Ω∧(Exist v1∈Fish (Exist v3∈Cat (Exist v5∈Noun_D (Exist v7∈Noun_C (Exist v9∈Noun_B (Exist v11∈Noun_A (Exist v13∈Eat Rel_B(v7,v5)∧Rel_A(v11,v9)∧Rel_C(v11,v7)∧Rel_D(v13,v11)∧Subject(v13,v3)∧Object(v13,v1)∧Predicate(v15,v13)))))))) v15
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
@@ -1034,18 +1285,19 @@ Smap (Sets):            [("v10", "Noun_B"), ("v12", "Noun_A"), ("v14", "Eat"), (
 Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
 Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
 ========================================================
-Semantics: The cat eats the fish (Eat is modified with nested adjuncts).
+Semantics: The cat eats the fish (eat is nestedly modified)
 
 8. "End Attack_Macro RedTeam_Macro Yesterday_Macro Not At_Macro West_Macro Not At_Macro BlueTeam_Macro Today_Macro Not At_Macro East_Macro Not At_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v21 v20 v19 v18 v17 v16
-Var Middle Stack (VM):  
-Var Lower Stack (VL):   
-Output Stack (OP):      Ω(v15)∧(Exist v1∈East (Exist v3∈Today (Exist v5∈BlueTeam (Exist v7∈West (Exist v9∈Yesterday (Exist v11∈RedTeam (Exist v13∈Attack Not At(v5,v3)∧Not At(v5,v1)∧Not At(v11,v9)∧Not At(v11,v7)∧Subject(v13,v11)∧Object(v13,v5)∧Predicate(v15,v13)))))))) v15
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v21 v20 v19 v18 v17 v16
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v15∈Ω∧(Exist v1∈East (Exist v3∈Today (Exist v5∈BlueTeam (Exist v7∈West (Exist v9∈Yesterday (Exist v11∈RedTeam (Exist v13∈Attack Not At(v5,v3)∧Not At(v5,v1)∧Not At(v11,v9)∧Not At(v11,v7)∧Subject(v13,v11)∧Object(v13,v5)∧Predicate(v15,v13)))))))) v15
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
@@ -1054,90 +1306,162 @@ Smap (Sets):            [("v10", "Yesterday"), ("v12", "RedTeam"), ("v14", "Atta
 Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
 Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
 ========================================================
-Semantics: The red team that was not in the west yesterday attacks the blue team that is not in the east today.
+Semantics: The red team that was not in the west yesterday attacks the blue team that is not in the east today
 
 9. "Person:S Exchange Very_Macro Tall_Macro Adv_B_Macro Heavy_Macro Adv_A_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v35 v34 v33 v32 v31 v30
-Var Middle Stack (VM):  True v19
-Var Lower Stack (VL):   v19
-Output Stack (OP):      
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v45 v44 v43 v42 v41 v40
+Component Stack (CM):   True v25
+Quant Stack (QN):       None v25
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
-Smap (Sets):            [("v1", "Adv_A_Set"), ("v11", "Adv_B_Predicate"), ("v14", "Large_Degree"), ("v17", "Degree_Is"), ("v2", "Large_Weight"), ("v20", "Person"), ("v23", "Height_Is"), ("v27", "Weight_Is"), ("v5", "Adv_A_Predicate"), ("v7", "Adv_B_Set"), ("v8", "Large_Height")]
-Fmap (Filters):         [("v1", "#"), ("v11", "#"), ("v13", "Ω(v18)∧(Exist v15∈Large_Degree (Exist v16∈Degree_Is Subject(v16,v13)∧Object(v16,v15)∧Predicate(v18,v16)))"), ("v14", "#"), ("v17", "#"), ("v2", "Ω(v6)∧(Exist v3∈Adv_A_Set (Exist v4∈Adv_A_Predicate Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))∧Ω(v18)∧(Exist v15∈Large_Degree (Exist v16∈Degree_Is Subject(v16,v2)∧Object(v16,v15)∧Predicate(v18,v16)))"), ("v20", "And_consequent(v29,v28)∧And_antecedent(v29,v24)∧Ω(v28)∧(Exist v25∈{v2∈Large_Weight|Ω(v6)∧(Exist v3∈Adv_A_Set (Exist v4∈Adv_A_Predicate Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))∧Ω(v18)∧(Exist v15∈Large_Degree (Exist v16∈Degree_Is Subject(v16,v2)∧Object(v16,v15)∧Predicate(v18,v16)))} (Exist v26∈Weight_Is Subject(v26,v20)∧Object(v26,v25)∧Predicate(v28,v26)))∧Ω(v24)∧(Exist v21∈{v8∈Large_Height|Ω(v12)∧(Exist v9∈Adv_B_Set (Exist v10∈Adv_B_Predicate Subject(v10,v8)∧Object(v10,v9)∧Predicate(v12,v10)))∧Ω(v18)∧(Exist v15∈Large_Degree (Exist v16∈Degree_Is Subject(v16,v8)∧Object(v16,v15)∧Predicate(v18,v16)))} (Exist v22∈Height_Is Subject(v22,v20)∧Object(v22,v21)∧Predicate(v24,v22)))"), ("v23", "#"), ("v27", "#"), ("v5", "#"), ("v7", "#"), ("v8", "Ω(v12)∧(Exist v9∈Adv_B_Set (Exist v10∈Adv_B_Predicate Subject(v10,v8)∧Object(v10,v9)∧Predicate(v12,v10)))∧Ω(v18)∧(Exist v15∈Large_Degree (Exist v16∈Degree_Is Subject(v16,v8)∧Object(v16,v15)∧Predicate(v18,v16)))")]
-Amap (Associations):    [("v10", "v11"), ("v15", "v14"), ("v16", "v17"), ("v19", "v20"), ("v21", "v8"), ("v22", "v23"), ("v25", "v2"), ("v26", "v27"), ("v3", "v1"), ("v4", "v5"), ("v9", "v7")]
+Smap (Sets):            [("v12", "Adv_B_Set"), ("v15", "Adv_B_Predicate"), ("v20", "Large_Degree"), ("v23", "Degree_Is"), ("v26", "Person"), ("v28", "Large_Height"), ("v31", "Height_Is"), ("v34", "Large_Weight"), ("v37", "Weight_Is"), ("v4", "Adv_A_Set"), ("v7", "Adv_A_Predicate")]
+Fmap (Filters):         [("v1", "#"), ("v10", "v16∈Ω∧(Exist v9∈Adv_B_Set (Exist v14∈Adv_B_Predicate Subject(v14,v10)∧Object(v14,v9)∧Predicate(v16,v14)))∧v24∈Ω∧(Exist v18∈Large_Degree (Exist v22∈Degree_Is Subject(v22,v10)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v11", "#"), ("v12", "#"), ("v13", "#"), ("v15", "#"), ("v17", "v24∈Ω∧(Exist v18∈Large_Degree (Exist v22∈Degree_Is Subject(v22,v17)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v18", "#"), ("v19", "#"), ("v2", "v8∈Ω∧(Exist v1∈Adv_A_Set (Exist v6∈Adv_A_Predicate Subject(v6,v2)∧Object(v6,v1)∧Predicate(v8,v6)))∧v24∈Ω∧(Exist v18∈Large_Degree (Exist v22∈Degree_Is Subject(v22,v2)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v20", "#"), ("v21", "#"), ("v23", "#"), ("v26", "And_consequent(v39,v38)∧And_antecedent(v39,v32)∧v38∈Ω∧(Exist v2∈Large_Weight (Exist v36∈Weight_Is Subject(v36,v26)∧Object(v36,v2)∧Predicate(v38,v36)))∧v32∈Ω∧(Exist v10∈Large_Height (Exist v30∈Height_Is Subject(v30,v26)∧Object(v30,v10)∧Predicate(v32,v30)))"), ("v27", "#"), ("v28", "#"), ("v29", "#"), ("v3", "#"), ("v31", "#"), ("v33", "#"), ("v34", "#"), ("v35", "#"), ("v37", "#"), ("v4", "#"), ("v5", "#"), ("v7", "#"), ("v9", "#")]
+Amap (Associations):    [("v1", "v4"), ("v10", "v28"), ("v14", "v15"), ("v18", "v20"), ("v2", "v34"), ("v22", "v23"), ("v25", "v26"), ("v30", "v31"), ("v36", "v37"), ("v6", "v7"), ("v9", "v12")]
 ========================================================
-Semantics: An A-and-very-ly heavy, B-and-very-ly tall person.
+Semantics: An A-and-very-ly heavy, B-and-very-ly tall person
 
 10. "Person:S Heavy_Macro Adv_Exchange_Macro Adv_E_Macro Adv_Combine_Cancel_Macro Adv_D_Macro Adv_C_Macro Cancel Adv_B_Macro Adv_A_Macro"
 Program Output:
 ==================== Machine State ====================
-Input Stack (IP):       
-Var Upper Stack (VU):   ... v40 v39 v38 v37 v36 v35
-Var Middle Stack (VM):  True v29
-Var Lower Stack (VL):   v29
-Output Stack (OP):      
-Modifier Stack (MD):    
+Input Stack (IP):
+Var Stack (VR):         ... v52 v51 v50 v49 v48 v47
+Component Stack (CM):   True v39
+Quant Stack (QN):       None v39
+Modifier Stack (MD):    Stop
 Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
 Counter (Count):        0
 ------------------------- Maps -------------------------
 Emap (Environment):     []
 Qmap (Quantifiers):     []
-Smap (Sets):            [("v1", "Adv_A_Set"), ("v11", "Adv_C_Predicate"), ("v14", "Adv_E_Set"), ("v17", "Adv_E_Predicate"), ("v19", "Large_Weight"), ("v2", "Adv_B_Set"), ("v22", "Adv_D_Predicate"), ("v26", "Adv_B_Predicate"), ("v30", "Person"), ("v33", "Weight_Is"), ("v5", "Adv_A_Predicate"), ("v7", "Adv_C_Set"), ("v8", "Adv_D_Set")]
-Fmap (Filters):         [("v1", "#"), ("v11", "#"), ("v13", "Ω(v18)∧(Exist v15∈Adv_E_Set (Exist v16∈Adv_E_Predicate Subject(v16,v13)∧Object(v16,v15)∧Predicate(v18,v16)))"), ("v14", "#"), ("v17", "#"), ("v19", "And_consequent(v28,v27)∧And_antecedent(v28,v23)∧Ω(v27)∧(Exist v24∈{v2∈Adv_B_Set|Ω(v6)∧(Exist v3∈Adv_A_Set (Exist v4∈Adv_A_Predicate Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))∧Ω(v18)∧(Exist v15∈Adv_E_Set (Exist v16∈Adv_E_Predicate Subject(v16,v2)∧Object(v16,v15)∧Predicate(v18,v16)))} (Exist v25∈Adv_B_Predicate Subject(v25,v19)∧Object(v25,v24)∧Predicate(v27,v25)))∧Ω(v23)∧(Exist v20∈{v8∈Adv_D_Set|Ω(v12)∧(Exist v9∈Adv_C_Set (Exist v10∈Adv_C_Predicate Subject(v10,v8)∧Object(v10,v9)∧Predicate(v12,v10)))∧Ω(v18)∧(Exist v15∈Adv_E_Set (Exist v16∈Adv_E_Predicate Subject(v16,v8)∧Object(v16,v15)∧Predicate(v18,v16)))} (Exist v21∈Adv_D_Predicate Subject(v21,v19)∧Object(v21,v20)∧Predicate(v23,v21)))"), ("v2", "Ω(v6)∧(Exist v3∈Adv_A_Set (Exist v4∈Adv_A_Predicate Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))∧Ω(v18)∧(Exist v15∈Adv_E_Set (Exist v16∈Adv_E_Predicate Subject(v16,v2)∧Object(v16,v15)∧Predicate(v18,v16)))"), ("v22", "#"), ("v26", "#"), ("v30", "Ω(v34)∧(Exist v31∈{v19∈Large_Weight|And_consequent(v28,v27)∧And_antecedent(v28,v23)∧Ω(v27)∧(Exist v24∈{v2∈Adv_B_Set|Ω(v6)∧(Exist v3∈Adv_A_Set (Exist v4∈Adv_A_Predicate Subject(v4,v2)∧Object(v4,v3)∧Predicate(v6,v4)))∧Ω(v18)∧(Exist v15∈Adv_E_Set (Exist v16∈Adv_E_Predicate Subject(v16,v2)∧Object(v16,v15)∧Predicate(v18,v16)))} (Exist v25∈Adv_B_Predicate Subject(v25,v19)∧Object(v25,v24)∧Predicate(v27,v25)))∧Ω(v23)∧(Exist v20∈{v8∈Adv_D_Set|Ω(v12)∧(Exist v9∈Adv_C_Set (Exist v10∈Adv_C_Predicate Subject(v10,v8)∧Object(v10,v9)∧Predicate(v12,v10)))∧Ω(v18)∧(Exist v15∈Adv_E_Set (Exist v16∈Adv_E_Predicate Subject(v16,v8)∧Object(v16,v15)∧Predicate(v18,v16)))} (Exist v21∈Adv_D_Predicate Subject(v21,v19)∧Object(v21,v20)∧Predicate(v23,v21)))} (Exist v32∈Weight_Is Subject(v32,v30)∧Object(v32,v31)∧Predicate(v34,v32)))"), ("v33", "#"), ("v5", "#"), ("v7", "#"), ("v8", "Ω(v12)∧(Exist v9∈Adv_C_Set (Exist v10∈Adv_C_Predicate Subject(v10,v8)∧Object(v10,v9)∧Predicate(v12,v10)))∧Ω(v18)∧(Exist v15∈Adv_E_Set (Exist v16∈Adv_E_Predicate Subject(v16,v8)∧Object(v16,v15)∧Predicate(v18,v16)))")]
-Amap (Associations):    [("v10", "v11"), ("v15", "v14"), ("v16", "v17"), ("v20", "v8"), ("v21", "v22"), ("v24", "v2"), ("v25", "v26"), ("v29", "v30"), ("v3", "v1"), ("v31", "v19"), ("v32", "v33"), ("v4", "v5"), ("v9", "v7")]
+Smap (Sets):            [("v12", "Adv_C_Set"), ("v15", "Adv_C_Predicate"), ("v20", "Adv_E_Set"), ("v23", "Adv_E_Predicate"), ("v27", "Adv_D_Set"), ("v30", "Adv_D_Predicate"), ("v33", "Adv_B_Set"), ("v36", "Adv_B_Predicate"), ("v4", "Adv_A_Set"), ("v40", "Person"), ("v42", "Large_Weight"), ("v45", "Weight_Is"), ("v7", "Adv_A_Predicate")]
+Fmap (Filters):         [("v1", "#"), ("v10", "v16∈Ω∧(Exist v9∈Adv_C_Set (Exist v14∈Adv_C_Predicate Subject(v14,v10)∧Object(v14,v9)∧Predicate(v16,v14)))∧v24∈Ω∧(Exist v18∈Adv_E_Set (Exist v22∈Adv_E_Predicate Subject(v22,v10)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v11", "#"), ("v12", "#"), ("v13", "#"), ("v15", "#"), ("v17", "v24∈Ω∧(Exist v18∈Adv_E_Set (Exist v22∈Adv_E_Predicate Subject(v22,v17)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v18", "#"), ("v19", "#"), ("v2", "v8∈Ω∧(Exist v1∈Adv_A_Set (Exist v6∈Adv_A_Predicate Subject(v6,v2)∧Object(v6,v1)∧Predicate(v8,v6)))∧v24∈Ω∧(Exist v18∈Adv_E_Set (Exist v22∈Adv_E_Predicate Subject(v22,v2)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v20", "#"), ("v21", "#"), ("v23", "#"), ("v25", "And_consequent(v38,v37)∧And_antecedent(v38,v31)∧v37∈Ω∧(Exist v2∈Adv_B_Set (Exist v35∈Adv_B_Predicate Subject(v35,v25)∧Object(v35,v2)∧Predicate(v37,v35)))∧v31∈Ω∧(Exist v10∈Adv_D_Set (Exist v29∈Adv_D_Predicate Subject(v29,v25)∧Object(v29,v10)∧Predicate(v31,v29)))"), ("v26", "#"), ("v27", "#"), ("v28", "#"), ("v3", "#"), ("v30", "#"), ("v32", "#"), ("v33", "#"), ("v34", "#"), ("v36", "#"), ("v4", "#"), ("v40", "v46∈Ω∧(Exist v25∈Large_Weight (Exist v44∈Weight_Is Subject(v44,v40)∧Object(v44,v25)∧Predicate(v46,v44)))"), ("v41", "#"), ("v42", "#"), ("v43", "#"), ("v45", "#"), ("v5", "#"), ("v7", "#"), ("v9", "#")]
+Amap (Associations):    [("v1", "v4"), ("v10", "v27"), ("v14", "v15"), ("v18", "v20"), ("v2", "v33"), ("v22", "v23"), ("v25", "v42"), ("v29", "v30"), ("v35", "v36"), ("v39", "v40"), ("v44", "v45"), ("v6", "v7"), ("v9", "v12")]
 ========================================================
-Semantics: An A-and-E-ly B-ly, C-and-E-ly D-ly heavy person.
+Semantics: An A-and-E-ly B-ly, C-and-E-ly D-ly heavy person
+
+11. "End Eat_Macro Binary_Identity_Perm_Clause_Closing_Macro Negation Like_Macro That Ternary_Identity_Perm_Clause_Closing_Macro Negation Give_Macro Farmer_Macro Child_Macro That Cat_Macro Old_Macro Catnip_Macro Fish_Macro"
+Program Output:
+==================== Machine State ====================
+Input Stack (IP):
+Var Stack (VR):         ... v32 v31 v30 v29 v28 v27
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
+Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v26∈Ω∧(Exist v1∈Fish (Exist v6∈{v7∈Cat|v13∈Ω∧(Exist v5∈Large_Age (Exist v11∈Age_Is Subject(v11,v7)∧Object(v11,v5)∧Predicate(v13,v11)))∧v20∈Ω∧(Exist v14∈Child (Exist v16∈Farmer (Exist v18∈Give Not(Subject(v18,v16)∧Object(v18,v14)∧Theme(v18,v7)∧Predicate(v20,v18)))))∧v23∈Ω∧(Exist v3∈Catnip (Exist v21∈Like Not(Subject(v21,v7)∧Object(v21,v3)∧Predicate(v23,v21))))} (Exist v24∈Eat Subject(v24,v6)∧Object(v24,v1)∧Predicate(v26,v24)))) v26
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v12", "Age_Is"), ("v15", "Child"), ("v17", "Farmer"), ("v19", "Give"), ("v2", "Fish"), ("v22", "Like"), ("v25", "Eat"), ("v4", "Catnip"), ("v7", "Cat"), ("v9", "Large_Age")]
+Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v15", "#"), ("v17", "#"), ("v19", "#"), ("v2", "#"), ("v22", "#"), ("v25", "#"), ("v4", "#"), ("v5", "#"), ("v7", "v13∈Ω∧(Exist v5∈Large_Age (Exist v11∈Age_Is Subject(v11,v7)∧Object(v11,v5)∧Predicate(v13,v11)))∧v20∈Ω∧(Exist v14∈Child (Exist v16∈Farmer (Exist v18∈Give Not(Subject(v18,v16)∧Object(v18,v14)∧Theme(v18,v7)∧Predicate(v20,v18)))))∧v23∈Ω∧(Exist v3∈Catnip (Exist v21∈Like Not(Subject(v21,v7)∧Object(v21,v3)∧Predicate(v23,v21))))"), ("v8", "#"), ("v9", "#")]
+Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v14", "v15"), ("v16", "v17"), ("v18", "v19"), ("v21", "v22"), ("v24", "v25"), ("v3", "v4"), ("v5", "v9"), ("v6", "v7")]
+========================================================
+Semantics: The old cat that was not given to the child by the farmer and does not like catnip eats fish (under default quantification)
+
+12. "End Discover_Macro Not Child_Macro Not Ternary_Identity_Perm_Nominalization_Closing_Macro Not Interesting_Macro Negation Like_Macro Cat_Macro Catnip_Macro"
+Program Output:
+==================== Machine State ====================
+Input Stack (IP):
+Var Stack (VR):         ... v26 v25 v24 v23 v22 v21
+Component Stack (CM):
+Quant Stack (QN):       None
+Modifier Stack (MD):    Stop
+Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):      v20∈Ω∧(Exist v7∈{v9∈Ω|(Exist v1∈Catnip (Exist v3∈Cat (Exist v5∈Like Not(Subject(v5,v3)∧Object(v5,v1)∧Predicate(v9,v5)))))∧v15∈Ω∧(Exist v8∈Large_Interest (Exist v13∈Interest_Is Subject(v13,v9)∧Object(v13,v8)∧Predicate(v15,v13)))} (Exist v16∈Child (Exist v18∈Discover Not Subject(v18,v16)∧Not Object(v18,v7)∧Not Predicate(v20,v18)))) v20
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v11", "Large_Interest"), ("v14", "Interest_Is"), ("v17", "Child"), ("v19", "Discover"), ("v2", "Catnip"), ("v4", "Cat"), ("v6", "Like"), ("v9", "Ω")]
+Fmap (Filters):         [("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v17", "#"), ("v19", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#"), ("v9", "(Exist v1∈Catnip (Exist v3∈Cat (Exist v5∈Like Not(Subject(v5,v3)∧Object(v5,v1)∧Predicate(v9,v5)))))∧v15∈Ω∧(Exist v8∈Large_Interest (Exist v13∈Interest_Is Subject(v13,v9)∧Object(v13,v8)∧Predicate(v15,v13)))")]
+Amap (Associations):    [("v1", "v2"), ("v13", "v14"), ("v16", "v17"), ("v18", "v19"), ("v3", "v4"), ("v5", "v6"), ("v7", "v9"), ("v8", "v11")]
+========================================================
+Semantics: There exists an event where the predicate is not discover, the subject is not the child, and the object is not the interesting event of the cat not liking catnip
+
+13. "\"Old$\" Person:S"
+Program Output:
+==================== Machine State ====================
+Input Stack (IP):
+Var Stack (VR):         ... v8 v7 v6 v5 v4 v3
+Component Stack (CM):   True v1
+Quant Stack (QN):       None v1
+Modifier Stack (MD):    Stop
+Relation Stack (RL):    Deter
+Clause Stack (CL):
+Output Stack (OP):
+Counter (Count):        0
+------------------------- Maps -------------------------
+Emap (Environment):     []
+Qmap (Quantifiers):     []
+Smap (Sets):            [("v2", "Old_Person")]
+Fmap (Filters):         [("v2", "#")]
+Amap (Associations):    [("v1", "v2")]
+========================================================
+Semantics: Old person
 
 <Macro Definition Examples>
 
-define Very_Macro:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Degree_Is:S,Stop,Formula,y,z,Large_Degree:S,Stop,Bubble,y]]
-define Heavy_Macro:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Weight_Is:S,Stop,Formula,y,z,Large_Weight:S,Stop,Bubble,y]]
-define Tall_Macro:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Height_Is:S,Stop,Formula,y,z,Large_Height:S,Stop,Bubble,y]]
-define Old_Macro:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Age_Is:S,Stop,Formula,y,z,Large_Age:S,Stop,Bubble,y]]
-define Fast_Macro:=[Combine,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Speed_Is:S,Stop,Formula,y,z,Large_Speed:S,Stop,Bubble,y]]
-define Adv_Combine_Macro:=[For,Combine,Cancel]
-define Adv_Combine_Cancel_Macro:=[Combine,Cancel]
-define Adv_Exchange_Macro:=[For,Exchange]
-define Adv_A_Macro:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Adv_A_Predicate:S,Stop,Formula,y,z,Adv_A_Set:S,Stop,Bubble,y]]
-define Adv_B_Macro:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Adv_B_Predicate:S,Stop,Formula,y,z,Adv_B_Set:S,Stop,Bubble,y]]
-define Adv_C_Macro:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Adv_C_Predicate:S,Stop,Formula,y,z,Adv_C_Set:S,Stop,Bubble,y]]
-define Adv_D_Macro:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Adv_D_Predicate:S,Stop,Formula,y,z,Adv_D_Set:S,Stop,Bubble,y]]
-define Adv_E_Macro:=[For,Modify,New,λx.λy.λz.[Event,Build,Build,Predicate:R,Object:R,Use,Subject:R,x,#,True,Use,Get,Adv_E_Predicate:S,Stop,Formula,y,z,Adv_E_Set:S,Stop,Bubble,y]]
-define Attack_Macro:=[Deter,Predicate:R,Object:R,Absorb,Subject:R,Absorb,Absorb,Get,Join,[Use],Attack:S]
-define Eat_Macro:=[Deter,Predicate:R,Object:R,Absorb,Subject:R,Absorb,Absorb,Get,Join,[Use],Eat:S]
-define Read_Macro:=[Deter,Predicate:R,Object:R,Absorb,Subject:R,Absorb,Absorb,Get,Join,[Use],Read:S]
-define Have_Macro:=[Deter,Predicate:R,Object:R,Absorb,Subject:R,Absorb,Absorb,Get,Join,[Use],Have:S]
-define Hit_Macro:=[Deter,Predicate:R,Object:R,Absorb,Subject:R,Absorb,Absorb,Get,Join,[Use],Hit:S]
-define Give_Macro:=[Deter,Predicate:R,Theme:R,Absorb,Object:R,Absorb,Subject:R,Absorb,Absorb,Get,Join,[Use],Give:S]
-define Cat_Macro:=[Deter,Join,[Use],Cat:S]
-define Fish_Macro:=[Deter,Join,[Use],Fish:S]
-define Book_Macro:=[Deter,Join,[Use],Book:S]
-define Farmer_Macro:=[Deter,Join,[Use],Farmer:S]
-define Child_Macro:=[Deter,Join,[Use],Child:S]
-define RedTeam_Macro:=[Deter,Join,[Use],RedTeam:S]
-define BlueTeam_Macro:=[Deter,Join,[Use],BlueTeam:S]
-define East_Macro:=[Deter,Join,[Use],East:S]
-define West_Macro:=[Deter,Join,[Use],West:S]
-define Yesterday_Macro:=[Deter,Join,[Use],Yesterday:S]
-define Today_Macro:=[Deter,Join,[Use],Today:S]
-define Noun_A_Macro:=[Deter,Join,[Use],Noun_A:S]
-define Noun_B_Macro:=[Deter,Join,[Use],Noun_B:S]
-define Noun_C_Macro:=[Deter,Join,[Use],Noun_C:S]
-define Noun_D_Macro:=[Deter,Join,[Use],Noun_D:S]
-define Noun_E_Macro:=[Deter,Join,[Use],Noun_E:S]
-define Noun_F_Macro:=[Deter,Join,[Use],Noun_F:S]
-define Rel_A_Macro:=[Add,Join,[Relation_A:R]]
-define Rel_B_Macro:=[Add,Join,[Relation_B:R]]
-define Rel_C_Macro:=[Add,Join,[Relation_C:R]]
-define Rel_D_Macro:=[Add,Join,[Relation_D:R]]
-define Rel_E_Macro:=[Add,Join,[Relation_E:R]]
-define Rel_F_Macro:=[Add,Join,[Relation_F:R]]
-define At_Macro:=[Add,Join,[At:R]]
+define Ternary_Identity_Perm_Nominalization_Closing_Macro := [Noun, Build, Build, Build]
+define Ternary_Identity_Perm_Clause_Closing_Macro := [Clause, Build, Build, Build]
+define Binary_Identity_Perm_Clause_Closing_Macro := [Clause, Build, Build]
+define Very_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Degree_Is:S, Empty, Formula, y, z, Large_Degree:S, Empty, Bubble, y]]
+define Heavy_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Weight_Is:S, Empty, Formula, y, z, Large_Weight:S, Empty, Bubble, y]]
+define Tall_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Height_Is:S, Empty, Formula, y, z, Large_Height:S, Empty, Bubble, y]]
+define Old_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Age_Is:S, Empty, Formula, y, z, Large_Age:S, Empty, Bubble, y]]
+define Fast_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Speed_Is:S, Empty, Formula, y, z, Large_Speed:S, Empty, Bubble, y]]
+define Interesting_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Interest_Is:S, Empty, Formula, y, z, Large_Interest:S, Empty, Bubble, y]]
+define Adv_Combine_Macro := [For, Combine, Cancel]
+define Adv_Combine_Cancel_Macro := [Combine, Cancel]
+define Adv_Exchange_Macro := [For, Exchange]
+define Adv_A_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_A_Predicate:S, Empty, Formula, y, z, Adv_A_Set:S, Empty, Bubble, y]]
+define Adv_B_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_B_Predicate:S, Empty, Formula, y, z, Adv_B_Set:S, Empty, Bubble, y]]
+define Adv_C_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_C_Predicate:S, Empty, Formula, y, z, Adv_C_Set:S, Empty, Bubble, y]]
+define Adv_D_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_D_Predicate:S, Empty, Formula, y, z, Adv_D_Set:S, Empty, Bubble, y]]
+define Adv_E_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_E_Predicate:S, Empty, Formula, y, z, Adv_E_Set:S, Empty, Bubble, y]]
+define Discover_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Discover:S]
+define Attack_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Attack:S]
+define Like_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Like:S]
+define Eat_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Eat:S]
+define Read_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Read:S]
+define Have_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Have:S]
+define Hit_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Hit:S]
+define Give_Macro := [Deter, Predicate:R, Theme:R, Absorb, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Give:S]
+define Catnip_Macro := [Deter, Join, [Use], Catnip:S]
+define Cat_Macro := [Deter, Join, [Use], Cat:S]
+define Fish_Macro := [Deter, Join, [Use], Fish:S]
+define Book_Macro := [Deter, Join, [Use], Book:S]
+define Farmer_Macro := [Deter, Join, [Use], Farmer:S]
+define Child_Macro := [Deter, Join, [Use], Child:S]
+define RedTeam_Macro := [Deter, Join, [Use], RedTeam:S]
+define BlueTeam_Macro := [Deter, Join, [Use], BlueTeam:S]
+define East_Macro := [Deter, Join, [Use], East:S]
+define West_Macro := [Deter, Join, [Use], West:S]
+define Yesterday_Macro := [Deter, Join, [Use], Yesterday:S]
+define Today_Macro := [Deter, Join, [Use], Today:S]
+define Noun_A_Macro := [Deter, Join, [Use], Noun_A:S]
+define Noun_B_Macro := [Deter, Join, [Use], Noun_B:S]
+define Noun_C_Macro := [Deter, Join, [Use], Noun_C:S]
+define Noun_D_Macro := [Deter, Join, [Use], Noun_D:S]
+define Noun_E_Macro := [Deter, Join, [Use], Noun_E:S]
+define Noun_F_Macro := [Deter, Join, [Use], Noun_F:S]
+define Rel_A_Macro := [Add, Join, [Rel_A:R]]
+define Rel_B_Macro := [Add, Join, [Rel_B:R]]
+define Rel_C_Macro := [Add, Join, [Rel_C:R]]
+define Rel_D_Macro := [Add, Join, [Rel_D:R]]
+define Rel_E_Macro := [Add, Join, [Rel_E:R]]
+define Rel_F_Macro := [Add, Join, [Rel_F:R]]
+define At_Macro := [Add, Join, [At:R]]

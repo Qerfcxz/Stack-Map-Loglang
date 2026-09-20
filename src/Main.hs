@@ -30,6 +30,7 @@ data Token
     | TDummy
     | TNot Token
     | TOmega String
+    | TIn String String
     | TLam String Token
     | TApp Token Token
     | TAnd Token Token
@@ -41,6 +42,7 @@ data Token
     | TRelName String
     | TQuant String
     | TConn String
+    | TTrans String String
     | TUpload String
     | TDownload String
     | TPerm [Int]
@@ -48,12 +50,13 @@ data Token
 
 data State = State
     { input_stack       :: [Token]
-    , var_upper_stack   :: [String]
-    , var_middle_stack  :: [Token]
-    , var_lower_stack   :: [String]
-    , output_stack      :: [Token]
+    , var_stack         :: [String]
+    , component_stack   :: [Token]
+    , quant_stack       :: [String]
     , modifier_stack    :: [Token]
     , relation_stack    :: [Token]
+    , clause_stack      :: [String]
+    , output_stack      :: [Token]
     , count             :: Int
     , emap              :: Map String String
     , qmap              :: Map String String
@@ -76,6 +79,10 @@ subst_var var val token = case token of
     TDummy -> TDummy
     TNot t -> TNot (subst_var var val t)
     TOmega s -> if s == var then case val of TSym v -> TOmega v; _ -> TOmega s else TOmega s
+    TIn a s ->
+        let new_a = if a == var then case val of TSym v -> v; _ -> a else a
+            new_s = if s == var then case val of TSym v -> v; _ -> s else s
+        in TIn new_a new_s
     TLam v b -> if v == var then TLam v b else TLam v (subst_var var val b)
     TApp f x -> TApp (subst_var var val f) (subst_var var val x)
     TAnd a b -> smart_and (subst_var var val a) (subst_var var val b)
@@ -106,134 +113,116 @@ start_rule state = case state.input_stack of
 
 loop_rule :: State -> Maybe State
 loop_rule state = case ( state.input_stack
-                       , state.var_upper_stack
-                       , state.var_middle_stack
-                       , state.var_lower_stack
-                       , state.output_stack
+                       , state.var_stack
+                       , state.component_stack
+                       , state.quant_stack
                        , state.modifier_stack
                        , state.relation_stack
+                       , state.clause_stack
+                       , state.output_stack
                        ) of
 
-    ( _, a : vus_rest, _, _, TOp "New" : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "Not" : os_rest ) ->
         Just state
-            { var_upper_stack = vus_rest
-            , output_stack    = TSym a : os_rest
-            , fmap            = Map.insert a TDummy state.fmap
-            }
-
-    ( _, a : vus_rest, _, _, TOp "Get" : os_rest, _, _ ) ->
-        Just state
-            { var_upper_stack = vus_rest
-            , output_stack    = TSym a : TDummy : os_rest
-            }
-
-    ( _, _, TSym a : big_a : vms_rest, _, TOp "Use" : os_rest, _, _ ) ->
-        Just state
-            { var_middle_stack = vms_rest
-            , output_stack     = TSym a : TDummy : big_a : os_rest
-            }
-
-    ( _, a : vus_rest, _, _, TOp "Bubble" : TSym b : os_rest, _, _ ) ->
-        Just state
-            { var_upper_stack = a : b : vus_rest
+            { component_stack = TBool False : state.component_stack
             , output_stack    = os_rest
             }
 
-    ( _, _, _, _, TOp "Judge" : TSym a : TOp "Not" : os_rest, _, _ ) ->
+    ( _, _, TBool False : cms_rest, _, _, _, _, TOp "Judge" : TSym a : os_rest ) ->
         Just state
-            { var_middle_stack = TSym a : TBool False : state.var_middle_stack
-            , output_stack     = os_rest
+            { component_stack = TSym a : TBool False : cms_rest
+            , output_stack    = os_rest
             }
 
-    ( _, _, _, _, TOp "Judge" : TSym a : os_rest, _, _ ) ->
+    ( _, _, cms, _, _, _, _, TOp "Judge" : TSym a : os_rest ) ->
         Just state
-            { var_middle_stack = TSym a : TBool True : state.var_middle_stack
-            , output_stack     = os_rest
+            { component_stack = TSym a : TBool True : cms
+            , output_stack    = os_rest
             }
 
-    ( _, _, _, _, TOp "Drop" : _ : os_rest, _, _ ) ->
+    ( _, _, TBool False : cms_rest, _, _, _, _, TOp "Pop" : os_rest ) ->
         Just state
-            { output_stack = os_rest
+            { component_stack = cms_rest
+            , output_stack    = TBool False : os_rest
             }
 
-    ( _, _, _, _, TOp "Formula" : TSym a : big_a : os_rest, _, _ ) ->
+    ( _, _, cms, _, _, _, _, TOp "Pop" : os_rest ) ->
+        let new_cms = case cms of
+                TBool True : rest -> rest
+                _                 -> cms
+        in Just state
+            { component_stack = new_cms
+            , output_stack    = TBool True : os_rest
+            }
+
+    ( _, a : vrs_rest, _, _, _, _, _, TOp "New" : os_rest ) ->
+        Just state
+            { var_stack    = vrs_rest
+            , output_stack = TSym a : os_rest
+            , fmap         = Map.insert a TDummy state.fmap
+            }
+
+    ( _, a : vrs_rest, _, _, _, _, _, TOp "Get" : os_rest ) ->
+        Just state
+            { var_stack    = vrs_rest
+            , output_stack = TSym a : TDummy : os_rest
+            }
+
+    ( _, _, TSym a : big_a : cms_rest, _, _, _, _, TOp "Use" : os_rest ) ->
+        Just state
+            { component_stack = cms_rest
+            , output_stack    = TSym a : TDummy : big_a : os_rest
+            }
+
+    ( _, a : vrs_rest, _, _, _, _, _, TOp "Bubble" : TSym b : os_rest ) ->
+        Just state
+            { var_stack    = a : b : vrs_rest
+            , output_stack = os_rest
+            }
+
+    ( _, _, _, _, _, _, _, TOp "Formula" : TSym a : big_a : os_rest ) ->
         Just state
             { output_stack = os_rest
             , fmap         = Map.insert a big_a state.fmap
             }
 
-    ( is_rest, _, _, _, TOp "Apply" : TLam a big_a : big_b : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "Insert" : TSym a : big_a : os_rest ) ->
+        case Map.lookup a state.fmap of
+            Just old_f ->
+                Just state
+                    { output_stack = os_rest
+                    , fmap         = Map.insert a (smart_and old_f big_a) state.fmap
+                    }
+            Nothing -> Nothing
+
+    ( is_rest, _, _, _, _, _, _, TOp "Apply" : TLam a big_a : big_b : os_rest ) ->
         Just state
             { input_stack  = subst_var a big_b big_a : is_rest
             , output_stack = os_rest
             }
 
-    ( _, _, _, _, TOp "Substitute" : TSym a : big_a : big_b : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "Substitute" : TSym a : big_a : big_b : os_rest ) ->
         Just state
             { output_stack = subst_var a big_b big_a : os_rest
             }
 
-    ( _, _, _, _, TOp "Conjunction" : big_a : big_b : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "Conjunction" : big_a : big_b : os_rest ) ->
         Just state
             { output_stack = smart_and big_a big_b : os_rest
             }
 
-    ( _, _, _, _, TOp "Negation" : TSym a : big_a : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "Negation" : TSym a : big_a : os_rest ) ->
         Just state
             { output_stack = TSym a : TNot big_a : os_rest
             }
 
-    ( _, a : _, _, _, TQuant q : os_rest, _, _ ) ->
+    ( _, a : _, _, _, _, _, _, TQuant q : os_rest ) ->
         Just state
             { qmap         = Map.insert a q state.qmap
             , output_stack = os_rest
             }
 
-    ( _, _, _, _, TOp "Stop" : os_rest, _, _ ) ->
-        Just state
-            { output_stack   = os_rest
-            , modifier_stack = TOp "Stop" : state.modifier_stack
-            }
-
-    ( is_rest, a : b : vus_rest, _, _, TSet set_name : os_rest, [], _ ) ->
-        Just state
-            { input_stack     = TSym a : TOp "Judge" : is_rest
-            , var_upper_stack = vus_rest
-            , var_lower_stack = a : state.var_lower_stack
-            , output_stack    = os_rest
-            , amap            = Map.insert a b state.amap
-            , smap            = Map.insert b set_name state.smap
-            , fmap            = Map.insert b TDummy state.fmap
-            }
-
-    ( is_rest, a : b : vus_rest, _, _, TSet set_name : os_rest, TOp "Stop" : mds_rest, _ ) ->
-        Just state
-            { input_stack     = TSym a : TOp "Judge" : is_rest
-            , var_upper_stack = vus_rest
-            , var_lower_stack = a : state.var_lower_stack
-            , output_stack    = os_rest
-            , modifier_stack  = mds_rest
-            , amap            = Map.insert a b state.amap
-            , smap            = Map.insert b set_name state.smap
-            , fmap            = Map.insert b TDummy state.fmap
-            }
-
-    ( is_rest, a : b : vus_rest, _, _, TSet set_name : os_rest, TSym c : big_b : mds_rest, _ ) ->
-        case Map.lookup c state.fmap of
-            Just f_c ->
-                let applied = eval_app (eval_app (eval_app big_b (TSym b)) (TSym c)) f_c
-                in Just state
-                    { input_stack     = TSym a : TOp "Judge" : applied : TOp "Drop" : TSym b : TOp "Formula" : is_rest
-                    , var_upper_stack = vus_rest
-                    , var_lower_stack = a : state.var_lower_stack
-                    , output_stack    = os_rest
-                    , modifier_stack  = mds_rest
-                    , amap            = Map.insert a b state.amap
-                    , smap            = Map.insert b set_name state.smap
-                    }
-            Nothing -> Nothing
-
-    ( _, _, _, _, TRelName r_name : TSym a : big_b : c_val : TSym b : big_d : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TRelName r_name : TSym a : big_b : c_val : TSym b : big_d : os_rest ) ->
         let is_pos = case c_val of
                 TBool True -> True
                 TSym "True" -> True
@@ -244,122 +233,202 @@ loop_rule state = case ( state.input_stack
             { output_stack = TSym b : smart_and (smart_and big_b big_d) e_val : os_rest
             }
 
-    ( _, a : vus_rest, _, _, TConn conn_name : TSym b : big_b : TSym c_sym : big_c : os_rest, _, _ ) ->
+    ( _, a : vrs_rest, _, _, _, _, _, TConn conn_name : TSym b : big_b : TSym c_sym : big_c : os_rest ) ->
         let res = smart_and (TRel (conn_name ++ "_consequent") (TSym a) (TSym b))
                     (smart_and (TRel (conn_name ++ "_antecedent") (TSym a) (TSym c_sym))
                         (smart_and big_b big_c))
         in Just state
-            { var_upper_stack = vus_rest
-            , output_stack    = TSym a : res : os_rest
+            { var_stack    = vrs_rest
+            , output_stack = TSym a : res : os_rest
             }
 
-    ( _, _, _, _, TPerm idxs : os_rest, _, _ ) ->
+    ( _, _, TSym a : _, _, _, _, _, TTrans prefix suffix : os_rest ) ->
+        case Map.lookup a state.amap of
+            Just b -> case Map.lookup b state.smap of
+                Just old_s ->
+                    let new_s = prefix ++ old_s ++ suffix
+                    in Just state
+                        { output_stack = os_rest
+                        , smap         = Map.insert b new_s state.smap
+                        }
+                Nothing -> Nothing
+            Nothing -> Nothing
+
+    ( _, _, _, _, _, _, _, TOp "Add" : os_rest ) ->
+        Just state
+            { output_stack = os_rest
+            , count        = state.count + 1
+            }
+
+    ( _, _, _, _, _, rl_stack, _, TOp "Deter" : os_rest ) ->
+        let new_rl    = if state.count == 0 then TOp "Deter" : rl_stack else rl_stack
+            new_count = if state.count > 0 then state.count - 1 else 0
+        in Just state
+            { output_stack   = os_rest
+            , relation_stack = new_rl
+            , count          = new_count
+            }
+
+    ( _, _, _, _, _, rl_stack, _, TOp "Join" : a : os_rest ) ->
+        Just state
+            { output_stack   = os_rest
+            , relation_stack = a : rl_stack
+            }
+
+    ( _, _, _, _, _, TOp "Deter" : rls_rest, _, TOp "Absorb" : os_rest ) ->
+        Just state
+            { output_stack   = os_rest
+            , relation_stack = rls_rest
+            }
+
+    ( is_rest, _, _, _, _, a : rls_rest, _, TOp "Absorb" : os_rest ) ->
+        Just state
+            { input_stack    = a : TOp "Absorb" : is_rest
+            , output_stack   = os_rest
+            , relation_stack = rls_rest
+            }
+
+    ( _, _, TSym a : _, _, _, _, _, TUpload b : os_rest ) ->
+        Just state
+            { emap         = Map.insert b a state.emap
+            , output_stack = os_rest
+            }
+
+    ( is_rest, _, _, _, _, rl_stack, _, TDownload a : os_rest ) ->
+        case Map.lookup a state.emap of
+            Just val -> Just state
+                { input_stack    = TSym val : TOp "Judge" : TOp "Deter" : is_rest
+                , output_stack   = os_rest
+                , relation_stack = TList [TOp "Use"] : rl_stack
+                }
+            Nothing -> Nothing
+
+    ( _, _, _, qns, _, _, _, TPerm idxs : os_rest ) ->
         let n = length idxs
-        in if length state.var_lower_stack >= n
+        in if length qns >= n
             then
-                let (top_n, rest) = splitAt n state.var_lower_stack
-                    permuted = map (\i -> top_n !! (i - 1)) idxs
+                let (top_n, rest) = splitAt n qns
+                    permuted = map (\i -> top_n !! (i - 1)) (reverse idxs)
                 in Just state
-                    { var_lower_stack = permuted ++ rest
-                    , output_stack    = os_rest
+                    { quant_stack  = permuted ++ rest
+                    , output_stack = os_rest
                     }
             else Nothing
 
-    ( _, _, _, a : b : vls_rest, TOp "Swap" : os_rest, _, _ ) ->
+    ( _, _, _, a : b : qns_rest, _, _, _, TOp "Swap" : os_rest ) ->
         Just state
-            { var_lower_stack = b : a : vls_rest
-            , output_stack    = os_rest
+            { quant_stack  = b : a : qns_rest
+            , output_stack = os_rest
             }
 
-    ( _, _, _, a : vls_rest, TOp "Go" : os_rest, _, _ ) ->
+    ( _, _, _, a : qns_rest, _, _, _, TOp "Go" : os_rest ) ->
         Just state
-            { var_lower_stack = vls_rest
-            , output_stack    = TSym a : os_rest
+            { quant_stack  = qns_rest
+            , output_stack = TSym a : os_rest
             }
 
-    ( _, _, _, _, TOp "Back" : TSym a : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "Back" : TSym a : os_rest ) ->
         Just state
-            { var_lower_stack = a : state.var_lower_stack
-            , output_stack    = os_rest
+            { quant_stack  = a : state.quant_stack
+            , output_stack = os_rest
             }
 
-    ( _, _, _, a : vls_rest, TOp "Build" : TSym b : big_a : os_rest, _, _ ) ->
+    ( _, _, _, a : qns_rest, _, _, _, TOp "Build" : TSym b : big_a : os_rest ) ->
         case Map.lookup a state.amap of
             Just c -> case Map.lookup c state.smap of
                 Just s -> case Map.lookup c state.fmap of
                     Just f ->
                         let q = Map.findWithDefault "Exist" a state.qmap
                         in Just state
-                            { var_lower_stack = vls_rest
-                            , output_stack    = TSym b : TBuild q a c s f big_a : os_rest
+                            { quant_stack  = qns_rest
+                            , output_stack = TSym b : TBuild q a c s f big_a : os_rest
                             }
                     Nothing -> Nothing
                 Nothing -> Nothing
             Nothing -> Nothing
 
-    ( _, _, _, _, TOp "Event" : TSym a : big_a : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "Event" : TSym a : big_a : os_rest ) ->
         Just state
-            { output_stack = TSym a : smart_and (TOmega a) big_a : os_rest
+            { output_stack = TSym a : smart_and (TIn a "Ω") big_a : os_rest
             }
 
-    ( is_rest, _, _, [], TOp "End" : os_rest, _, _ ) ->
+    ( is_rest, _, _, "None" : _, _, _, _, TOp "End" : os_rest ) ->
         Just state
             { input_stack  = TOp "Event" : is_rest
             , output_stack = os_rest
             }
 
-    ( is_rest, _, _, _ : _, TOp "End" : os_rest, _, _ ) ->
+    ( is_rest, _, _, a : _, _, _, _, TOp "End" : os_rest )
+        | a /= "None" ->
+            Just state
+                { input_stack  = TOp "Build" : TOp "End" : is_rest
+                , output_stack = os_rest
+                }
+
+    ( _, _, _, a : qns_rest, _, _, _, TOp "That" : os_rest ) ->
         Just state
-            { input_stack  = TOp "Build" : TOp "End" : is_rest
+            { quant_stack  = qns_rest
+            , clause_stack = a : state.clause_stack
             , output_stack = os_rest
             }
 
-    ( _, _, _, _, TOp "For" : os_rest, _, _ ) ->
-        Just state
-            { output_stack   = os_rest
-            , modifier_stack = TOp "For" : state.modifier_stack
-            }
-
-    ( _, _, _, _, TOp "Cancel" : os_rest, TOp "For" : mds_rest, _ ) ->
-        Just state
-            { output_stack   = os_rest
-            , modifier_stack = mds_rest
-            }
-
-    ( _, _, _, _, TOp "Merge" : TSym _ : big_a : TSym b : big_b : os_rest, _, _ ) ->
-        case Map.lookup b state.fmap of
-            Just f_b -> Just state
-                { output_stack   = os_rest
-                , modifier_stack = TSym b : big_b : state.modifier_stack
-                , fmap           = Map.insert b (smart_and f_b big_a) state.fmap
-                }
-            Nothing -> Nothing
-
-    ( is_rest, _, _, _, TOp "Modify" : TSym a : big_a : os_rest, TOp "For" : TSym b : big_b : mds_rest, _ ) ->
-        case Map.lookup b state.fmap of
-            Just f_b ->
-                let applied = eval_app (eval_app (eval_app big_b (TSym a)) (TSym b)) f_b
+    ( is_rest, _, _, _, _, rl_stack, a : cls_rest, TOp "Clause" : TSym b : big_a : os_rest ) ->
+        case Map.lookup a state.amap of
+            Just c ->
+                let omega_b_and_a = smart_and (TIn b "Ω") big_a
+                    tokens = [ TSym a
+                             , TOp "Judge"
+                             , TSym c
+                             , omega_b_and_a
+                             , TSym a
+                             , TOp "Substitute"
+                             , TSym c
+                             , TOp "Insert"
+                             ]
                 in Just state
-                    { input_stack    = applied : TOp "Merge" : is_rest
-                    , output_stack   = TSym a : big_a : os_rest
-                    , modifier_stack = mds_rest
+                    { input_stack    = tokens ++ is_rest
+                    , quant_stack    = a : state.quant_stack
+                    , clause_stack   = cls_rest
+                    , relation_stack = TOp "Deter" : TList [TOp "Use"] : rl_stack
+                    , output_stack   = os_rest
                     }
             Nothing -> Nothing
 
-    ( _, _, _, _, TOp "Modify" : TSym a : big_a : os_rest, _, _ ) ->
+    ( is_rest, a : b : vrs_rest, _, _, TOp "Stop" : _, _, _, TSet set_name : os_rest ) ->
         Just state
-            { output_stack   = os_rest
-            , modifier_stack = TSym a : big_a : state.modifier_stack
+            { input_stack   = TSym a : TOp "Judge" : is_rest
+            , var_stack     = vrs_rest
+            , quant_stack   = a : state.quant_stack
+            , output_stack  = os_rest
+            , amap          = Map.insert a b state.amap
+            , smap          = Map.insert b set_name state.smap
+            , fmap          = Map.insert b TDummy state.fmap
             }
 
-    ( is_rest, _, _, _, TOp "Exchange" : os_rest, TOp "For" : TSym a : big_a : TSym b : big_b : mds_rest, _ ) ->
-        Just state
-            { input_stack    = TOp "Modify" : is_rest
-            , output_stack   = TSym b : big_b : os_rest
-            , modifier_stack = TOp "For" : TSym a : big_a : mds_rest
-            }
+    ( is_rest, a : b : vrs_rest, _, _, TSym c : big_a : mds_rest, _, _, TSet set_name : os_rest ) ->
+        case Map.lookup c state.fmap of
+            Just f_c ->
+                let applied = eval_app (eval_app (eval_app big_a (TSym b)) (TSym c)) f_c
+                    tokens  = [ TSym a
+                              , TOp "Judge"
+                              , applied
+                              , TLam "z" (TList [])
+                              , TOp "Apply"
+                              , TSym b
+                              , TOp "Formula"
+                              ]
+                in Just state
+                    { input_stack    = tokens ++ is_rest
+                    , var_stack      = vrs_rest
+                    , quant_stack    = a : state.quant_stack
+                    , modifier_stack = mds_rest
+                    , output_stack   = os_rest
+                    , amap           = Map.insert a b state.amap
+                    , smap           = Map.insert b set_name state.smap
+                    }
+            Nothing -> Nothing
 
-    ( _, a : vus_rest, _, _, TOp "Combine" : os_rest, TSym b : big_a : TSym c : big_b : mds_rest, _ ) ->
+    ( _, a : vrs_rest, _, _, TSym b : big_a : TSym c : big_b : mds_rest, _, _, TOp "Combine" : os_rest ) ->
         case Map.lookup c state.fmap of
             Just f_c -> case Map.lookup b state.fmap of
                 Just f_b ->
@@ -371,66 +440,108 @@ loop_rule state = case ( state.input_stack
                             ])
                         combined = TLam "x" (TLam "y" (TLam "z" body))
                     in Just state
-                        { var_upper_stack = vus_rest
-                        , output_stack    = os_rest
-                        , modifier_stack  = TSym a : combined : mds_rest
-                        , fmap            = Map.insert a TDummy state.fmap
+                        { var_stack      = vrs_rest
+                        , modifier_stack = TSym a : combined : mds_rest
+                        , output_stack   = os_rest
+                        , fmap           = Map.insert a TDummy state.fmap
                         }
                 Nothing -> Nothing
             Nothing -> Nothing
 
-    ( _, _, _, _, TOp "Combine" : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "Combine" : os_rest ) ->
         Just state
             { output_stack = os_rest
             }
 
-    ( _, _, _, _, TOp "Add" : os_rest, _, _ ) ->
-        Just state
-            { output_stack = os_rest
-            , count        = state.count + 1
-            }
-
-    ( _, _, _, _, TOp "Deter" : os_rest, _, rl_stack ) ->
-        let new_rl    = if state.count == 0 then TOp "Deter" : rl_stack else rl_stack
-            new_count = if state.count > 0 then state.count - 1 else 0
+    ( _, a : vrs_rest, _, _, _, _, _, TOp "Empty" : os_rest ) ->
+        let empty_lam = TLam "x" (TLam "y" (TLam "z" (TList [TDummy, TSym a])))
         in Just state
-            { output_stack   = os_rest
-            , relation_stack = new_rl
-            , count          = new_count
-            }
-
-    ( _, _, _, _, TOp "Join" : a : os_rest, _, rl_stack ) ->
-        Just state
-            { output_stack   = os_rest
-            , relation_stack = a : rl_stack
-            }
-
-    ( _, _, _, _, TOp "Absorb" : os_rest, _, TOp "Deter" : rls_rest ) ->
-        Just state
-            { output_stack   = os_rest
-            , relation_stack = rls_rest
-            }
-
-    ( is_rest, _, _, _, TOp "Absorb" : os_rest, _, a : rls_rest ) ->
-        Just state
-            { input_stack    = a : TOp "Absorb" : is_rest
+            { var_stack      = vrs_rest
+            , modifier_stack = TSym a : empty_lam : state.modifier_stack
             , output_stack   = os_rest
-            , relation_stack = rls_rest
+            , fmap           = Map.insert a TDummy state.fmap
             }
 
-    ( _, _, TSym a : _, _, TUpload b : os_rest, _, _ ) ->
+    ( _, _, _, _, _, _, _, TOp "For" : os_rest ) ->
         Just state
-            { emap         = Map.insert b a state.emap
-            , output_stack = os_rest
+            { modifier_stack = TOp "For" : state.modifier_stack
+            , output_stack   = os_rest
             }
 
-    ( is_rest, _, _, _, TDownload a : os_rest, _, rl_stack ) ->
-        case Map.lookup a state.emap of
-            Just val -> Just state
-                { input_stack    = TSym val : TOp "Judge" : TOp "Deter" : is_rest
+    ( _, _, _, _, TOp "For" : mds_rest, _, _, TOp "Cancel" : os_rest ) ->
+        Just state
+            { modifier_stack = mds_rest
+            , output_stack   = os_rest
+            }
+
+    ( _, _, _, _, _, _, _, TOp "Merge" : TSym _ : big_a : TSym b_sym : big_b : os_rest ) ->
+        case Map.lookup b_sym state.fmap of
+            Just f_b -> Just state
+                { modifier_stack = TSym b_sym : big_b : state.modifier_stack
                 , output_stack   = os_rest
-                , relation_stack = TList [TOp "Use"] : rl_stack
+                , fmap           = Map.insert b_sym (smart_and f_b big_a) state.fmap
                 }
+            Nothing -> Nothing
+
+    ( is_rest, _, _, _, TOp "For" : TSym a : big_a : mds_rest, _, _, TOp "Modify" : TSym b : big_b : os_rest ) ->
+        case Map.lookup a state.fmap of
+            Just f_a ->
+                let applied = eval_app (eval_app (eval_app big_a (TSym b)) (TSym a)) f_a
+                in Just state
+                    { input_stack    = applied : TOp "Merge" : is_rest
+                    , modifier_stack = mds_rest
+                    , output_stack   = TSym b : big_b : os_rest
+                    }
+            Nothing -> Nothing
+
+    ( _, _, _, _, _, _, _, TOp "Modify" : TSym a : big_a : os_rest ) ->
+        Just state
+            { modifier_stack = TSym a : big_a : state.modifier_stack
+            , output_stack   = os_rest
+            }
+
+    ( is_rest, _, _, _, TOp "For" : TSym a : big_a : TSym b : big_b : mds_rest, _, _, TOp "Exchange" : os_rest ) ->
+        Just state
+            { input_stack    = TOp "Modify" : is_rest
+            , modifier_stack = TOp "For" : TSym a : big_a : mds_rest
+            , output_stack   = TSym b : big_b : os_rest
+            }
+
+    ( is_rest, a : vrs_rest, _, _, TOp "Stop" : _, rl_stack, _, TOp "Noun" : TSym b : big_a : os_rest ) ->
+        Just state
+            { input_stack    = TSym b : TOp "Judge" : is_rest
+            , var_stack      = vrs_rest
+            , quant_stack    = b : state.quant_stack
+            , relation_stack = TOp "Deter" : TList [TOp "Use"] : rl_stack
+            , output_stack   = os_rest
+            , amap           = Map.insert b a state.amap
+            , smap           = Map.insert a "Ω" state.smap
+            , fmap           = Map.insert a (subst_var b (TSym a) big_a) state.fmap
+            }
+
+    ( is_rest, a : vrs_rest, _, _, TSym b : big_a : mds_rest, rl_stack, _, TOp "Noun" : TSym c : big_b : os_rest ) ->
+        case Map.lookup b state.fmap of
+            Just f_b ->
+                let applied = eval_app (eval_app (eval_app big_a (TSym a)) (TSym b)) f_b
+                    tokens  = [ TSym c
+                              , TOp "Judge"
+                              , applied
+                              , TLam "z" (TList [])
+                              , TOp "Apply"
+                              , TSym a
+                              , TOp "Insert"
+                              ]
+                in Just state
+                    { input_stack    = tokens ++ is_rest
+                    , var_stack      = vrs_rest
+                    , quant_stack    = c : state.quant_stack
+                    , modifier_stack = mds_rest
+                    , relation_stack = TOp "Deter" : TList [TOp "Use"] : rl_stack
+                    , output_stack   = os_rest
+                    , amap           = Map.insert c a state.amap
+                    , smap           = Map.insert a "Ω" state.smap
+                    , fmap           = Map.insert a (subst_var c (TSym a) big_b) state.fmap
+                    }
             Nothing -> Nothing
 
     _ -> Nothing
@@ -490,26 +601,40 @@ atom_p env = do
         Just tok -> return tok
         Nothing  -> return (parse_atom s)
 
+strip_quotes :: String -> String
+strip_quotes str
+    | length str >= 2 && head str == '"' && last str == '"' = init (tail str)
+    | otherwise = str
+
 parse_atom :: String -> Token
-parse_atom s
+parse_atom raw_s
     | s == "#"                                    = TDummy
     | s == "True"                                 = TBool True
     | s == "False"                                = TBool False
-    | s `elem` [ "New", "Get", "Use", "Bubble", "Judge", "Drop", "Formula"
-               , "Apply", "Substitute", "Conjunction", "Negation", "Stop", "Swap"
-               , "Go", "Back", "Build", "Event", "End", "For", "Cancel"
-               , "Merge", "Modify", "Exchange", "Combine", "Not", "Add", "Deter"
-               , "Join", "Absorb"
+    | s `elem` [ "Not", "Judge", "Pop", "New", "Get", "Use", "Bubble", "Formula", "Insert"
+               , "Apply", "Substitute", "Conjunction", "Negation", "Add", "Deter", "Join"
+               , "Absorb", "Swap", "Go", "Back", "Build", "Event", "End", "That", "Clause"
+               , "Empty", "For", "Cancel", "Merge", "Modify", "Exchange", "Noun", "Stop"
+               , "Combine"
                ]                                  = TOp s
     | s == "Exist"                                = TQuant "Exist"
     | s == "All"                                  = TQuant "All"
-    | ":S" `isSuffixOf` s                         = TSet (take (length s - 2) s)
-    | ":R" `isSuffixOf` s                         = TRelName (take (length s - 2) s)
+    | ":S" `isSuffixOf` s                         = TSet (strip_quotes (take (length s - 2) s))
+    | ":R" `isSuffixOf` s                         = TRelName (strip_quotes (take (length s - 2) s))
     | ":Q" `isSuffixOf` s                         =
-        let q = take (length s - 2) s
+        let q = strip_quotes (take (length s - 2) s)
         in if q == "All" then TQuant "All" else TQuant "Exist"
-    | ":C" `isSuffixOf` s                         = TConn (take (length s - 2) s)
+    | ":C" `isSuffixOf` s                         = TConn (strip_quotes (take (length s - 2) s))
+    | ":F" `isSuffixOf` s                         =
+        let base = strip_quotes (take (length s - 2) s)
+            (pre, rest) = break (== '$') base
+        in TTrans (strip_quotes pre) (strip_quotes (if null rest then "" else drop 1 rest))
+    | '$' `elem` s                                =
+        let (pre, rest) = break (== '$') s
+        in TTrans (strip_quotes pre) (strip_quotes (drop 1 rest))
     | otherwise                                   = TSym s
+  where
+    s = strip_quotes raw_s
 
 parse_input :: MacroEnv -> String -> Maybe [Token]
 parse_input env str =
@@ -535,8 +660,10 @@ show_token token = case token of
     TSym s             -> s
     TBool b            -> show b
     TDummy             -> "#"
-    TNot t             -> "Not" ++ show_token_nested t
+    TNot t@(TAnd _ _)  -> "Not(" ++ show_token t ++ ")"
+    TNot t             -> "Not " ++ show_token_nested t
     TOmega a           -> "Ω(" ++ a ++ ")"
+    TIn a s            -> a ++ "∈" ++ s
     TLam v b           -> "λ" ++ v ++ "." ++ show_token b
     TApp f x           -> "(" ++ show_token f ++ " " ++ show_token x ++ ")"
     TAnd x y           -> show_token x ++ "∧" ++ show_token y
@@ -555,6 +682,7 @@ show_token token = case token of
     TRelName s         -> s ++ ":R"
     TQuant s           -> s ++ ":Q"
     TConn s            -> s ++ ":C"
+    TTrans pre post    -> pre ++ "$" ++ post
     TUpload s          -> "Upload " ++ s
     TDownload s        -> "Download " ++ s
     TPerm idxs         -> "(" ++ intercalate "," (map show idxs) ++ ")"
@@ -581,12 +709,13 @@ print_state :: State -> IO ()
 print_state s = do
     putStrLn "==================== Machine State ===================="
     putStrLn $ "Input Stack (IP):       " ++ show_stack s.input_stack
-    putStrLn $ "Var Upper Stack (VU):   " ++ show_vus s.var_upper_stack
-    putStrLn $ "Var Middle Stack (VM):  " ++ show_stack s.var_middle_stack
-    putStrLn $ "Var Lower Stack (VL):   " ++ show_var_stack s.var_lower_stack
-    putStrLn $ "Output Stack (OP):      " ++ show_stack s.output_stack
+    putStrLn $ "Var Stack (VR):         " ++ show_vus s.var_stack
+    putStrLn $ "Component Stack (CM):   " ++ show_stack s.component_stack
+    putStrLn $ "Quant Stack (QN):       " ++ show_var_stack s.quant_stack
     putStrLn $ "Modifier Stack (MD):    " ++ show_stack s.modifier_stack
     putStrLn $ "Relation Stack (RL):    " ++ show_stack s.relation_stack
+    putStrLn $ "Clause Stack (CL):      " ++ show_var_stack s.clause_stack
+    putStrLn $ "Output Stack (OP):      " ++ show_stack s.output_stack
     putStrLn $ "Counter (Count):        " ++ show s.count
     putStrLn "------------------------- Maps -------------------------"
     putStrLn $ "Emap (Environment):     " ++ show_map s.emap
@@ -630,12 +759,13 @@ run_machine silent step state = case start_rule state of
 initial_state :: State
 initial_state = State
     { input_stack       = []
-    , var_upper_stack   = ["v" ++ show i | i <- [(1 :: Int)..]]
-    , var_middle_stack  = []
-    , var_lower_stack   = []
-    , output_stack      = []
-    , modifier_stack    = []
+    , var_stack         = ["v" ++ show i | i <- [(1 :: Int)..]]
+    , component_stack   = []
+    , quant_stack       = ["None"]
+    , modifier_stack    = [TOp "Stop"]
     , relation_stack    = [TOp "Deter"]
+    , clause_stack      = []
+    , output_stack      = []
     , count             = 0
     , emap              = Map.empty
     , qmap              = Map.empty
@@ -646,7 +776,7 @@ initial_state = State
 
 repl :: MacroEnv -> State -> IO ()
 repl env state = do
-    putStrLn "\nReady for input (:q to quit, :r to reset, // for trace mode, define <name> := <expr>):"
+    putStrLn "\nReady for input (:q to quit, :r to reset, // for trace mode, define <name> := <expr>, suffix * to auto-reset):"
     input_str <- getLine
     let trimmed = trim input_str
     case trimmed of
@@ -655,35 +785,48 @@ repl env state = do
             putStrLn "System reset. Stacks, maps, and counter cleared (macros preserved)."
             repl env initial_state
         "" -> repl env state
-        _ -> case parse_define_cmd trimmed of
-            Just (name, def_str) -> case parse_input env def_str of
-                Just [tok] -> do
-                    putStrLn $ "Macro defined: " ++ name ++ " := " ++ show_token tok
-                    repl ((name, tok) : env) state
-                _ -> do
-                    putStrLn "Error: Failed to parse macro definition."
-                    repl env state
-            Nothing -> do
-                let (silent, expr_str) =
-                        if "//" `isPrefixOf` trimmed
-                            then (False, trim (drop 2 trimmed))
-                            else (True, trimmed)
-                case parse_input env expr_str of
-                    Nothing -> do
-                        putStrLn "Error: Syntax parse failed."
+        _ ->
+            let (auto_reset, no_star) =
+                    if not (null trimmed) && last trimmed == '*'
+                        then (True, trim (init trimmed))
+                        else (False, trimmed)
+            in case parse_define_cmd no_star of
+                Just (name, def_str) -> case parse_input env def_str of
+                    Just [tok] -> do
+                        putStrLn $ "Macro defined: " ++ name ++ " := " ++ show_token tok
+                        if auto_reset
+                            then do
+                                putStrLn "System reset (:r auto-executed, macros preserved)."
+                                repl ((name, tok) : env) initial_state
+                            else repl ((name, tok) : env) state
+                    _ -> do
+                        putStrLn "Error: Failed to parse macro definition."
                         repl env state
-                    Just tokens -> do
-                        let state_to_run = state { input_stack = tokens ++ state.input_stack }
-                        putStrLn $ "\n>>> Running input: " ++ expr_str
-                        (final_state, _) <- run_machine silent 1 state_to_run
-                        putStrLn "\n[Final Output]:"
-                        print_state final_state
-                        repl env final_state
+                Nothing -> do
+                    let (silent, expr_str) =
+                            if "//" `isPrefixOf` no_star
+                                then (False, trim (drop 2 no_star))
+                                else (True, no_star)
+                    case parse_input env expr_str of
+                        Nothing -> do
+                            putStrLn "Error: Syntax parse failed."
+                            repl env state
+                        Just tokens -> do
+                            let state_to_run = state { input_stack = tokens ++ state.input_stack }
+                            putStrLn $ "\n>>> Running input: " ++ expr_str
+                            (final_state, _) <- run_machine silent 1 state_to_run
+                            putStrLn "\n[Final Output]:"
+                            print_state final_state
+                            if auto_reset
+                                then do
+                                    putStrLn "\n[Auto Reset]: Stacks and maps cleared (:r auto-executed, macros preserved)."
+                                    repl env initial_state
+                                else repl env final_state
 
 main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering
     putStrLn "==============================================================="
-    putStrLn " Seven-Stack Five-Mapping One-Counter Semantic Deduction Engine"
+    putStrLn " Eight-Stack Five-Mapping One-Counter Semantic Deduction Engine"
     putStrLn "==============================================================="
     repl [] initial_state
