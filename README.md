@@ -7,381 +7,219 @@
 <a id="english"></a>
 # SML (English)
 
-> An experimental formal semantic deduction engine and logical language (Loglang) based on an 8-stack, 5-mapping, 1-counter concatenative state machine.
+> An experimental formal semantic deduction engine and logical language (Loglang) architecture based on a 6-Stack, 1-Stream, 1-Register, and 8-Map concatenative state machine.
 
 > [!NOTE]
-> **STATUS: SPECIFICATION & WORKING PROTOTYPE (v0.99)**  
-> SML eliminates the rigid fixed-place structures (`x₁, x₂, ...`) and scope-leakage issues common in loglangs like Lojban. It natively supports **First-Order Restricted Quantification**, **Universal Event Reification (`e ∈ Ω`)**, **Linear Relative Clauses**, **Clausal Event Nominalization**, **Higher-Order Modifier Distribution**, and **Dynamic Donkey-Sentence Anaphora** purely via linear stack reductions and associative maps—completely free of syntactic tree overhead.
+> **STATUS: EXPERIMENTAL SPECIFICATION & PROTOTYPE (v1.0)**  
+> This project is currently an experimental formal specification and prototype. The core reduction engine has been validated against a preliminary suite of 8 representative benchmark cases (covering deeply nested relative clauses, generalized quantifiers, donkey sentences, scale semantics, dynamic permutation pipelines, and dual-track negation). It remains an exploratory design and awaits broader corpus testing, formal verification, and automated stress testing.
 
 ---
 
 ## 🚀 Overview
 
-Traditional formal semantics (e.g., Montague Grammar) relies heavily on compositional syntax trees and higher-order lambda-calculus λ-reductions. Similarly, classical loglangs (such as Lojban) encode predicate argument places as rigid, predetermined tuple slots (`x₁, x₂, ..., xₙ`), requiring elidable terminators, conversion particles, or awkward relative clauses for local modifications.
+Traditional formal semantics (e.g., Montague Grammar) typically relies on compositional syntactic trees, type-driven functional application, and Quantifier Raising (QR). Conversely, classical logical languages (such as Lojban) encode predicates as rigid, predetermined tuple slots (`x₁, ..., xₙ`), which often introduces substantial lexical memorization burdens and necessitates elidable terminators (`ku`, `vau`, `kei`, etc.) to resolve structural ambiguities.
 
-**SML (Stack-Map-Loglang)** replaces syntactic trees and fixed place structures with an **8-Stack + 5-Mapping + 1-Counter linear automaton**.
+**SML (Stack-Map-Loglang) v1.0** explores an alternative, tree-free operational model: **a linear concatenative abstract machine with relational graph construction and quantifier closure**.
 
-By unifying all nominal concepts into unary sets (`:S`), reifying all actions into first-class events (`e ∈ Ω`), and decomposing all predicates into **Neo-Davidsonian binary relations (`:R`)**, SML establishes a strict algebraic conservation law: **every relational modifier R consumes exactly one entity S (ΔR = ΔS)**. Combined with an integrated **Relation Stack (`RL`)**, a dedicated **Clause Stack (`CL`)**, and an automatic **Debt Counter (`Count`)**, SML enables seamless attachment of arbitrary adjuncts, nested relative clauses, and nominalized propositions without closing delimiters or cross-clause scope leakage.
-
----
-
-## ✨ Key Features & Concepts (v0.99)
-
-*   **8-Stack + 5-Mapping + 1-Counter State Machine:**  
-    Decouples variable generation, active polarity cursors, quantifier scopes, modifier delays, relational frames, relative clause traces, nominal domain constraints, and syntactic debts into specialized linear stacks and key-value maps.
-*   **Universal Event Reification (`e ∈ Ω`) & Zero Fixed Places:**  
-    Actions are unified as first-class entities in the universe of events (`Ω`). Thematic roles (`Subject:R`, `Object:R`, `Theme:R`, etc.) are attached as universal binary relations, freeing users from memorizing predicate-specific argument indices.
-*   **Linear Relative Clauses without Syntax Trees (`CL` & `That`):**  
-    Relative clauses (定语从句) are resolved linearly using the Clause Stack (`CL`) and the `That` / `Clause` operators. Host entity variables are safely passed across scope boundaries and substituted into relative clauses without syntactic tree traversals or variable capture.
-*   **Clausal Event Nominalization (`Noun` Operator):**  
-    Complete propositions and complex event descriptions can be dynamically reified into first-class entity variables typed as `Ω` in `Smap`, allowing entire clauses to serve directly as subjects, objects, or hosts for adjectival modification.
-*   **Terminator-Free Modifiers via ΔR = ΔS Conservation:**  
-    Every relational link (`Add`) increments `Count` (logging open syntactic debt); core entities (`Deter`) decrement `Count`. This arithmetic balancing allows ad-hoc prepositional and adjectival attachments without closing delimiters (`ku`, `vau`, etc.).
-*   **Dual-Track Negation (Propositional vs. Constituent):**  
-    *   **Whole-Proposition Negation (`Negation`):** Inverts entire closed relational propositions at the outer matrix level.
-    *   **Constituent / Thematic Negation (`Not` + `Judge`):** Flips truth polarity on the active variable cursor (`CM`), negating specific relational edges without scope drift.
-*   **Higher-Order Modifier Calculus & Distributive Exchange (`Exchange`):**  
-    *   **Adjectives (`Modify`):** Dynamically restrict nominal domains in `Fmap`.
-    *   **Adverbs (`For` / `Modify`):** Recursively scale degree dimensions and event properties.
-    *   **Composition & Combinators (`Combine` / `Cancel`):** Merges modifiers via higher-order λ-abstractions.
-    *   **Distributive Law (`Exchange`):** Realizes `A → (B ∧ C) ≡ (A → B) ∧ (A → C)`, distributing a single adverb across coordinate adjectives.
-*   **In-Situ Morphological Derivation (`:F` Transform Words):**  
-    Directly transforms base set categories at the map level (e.g., `"Old$"` applied to `Person:S` yields `Old_Person`), providing native morphological derivation without external preprocessors.
-*   **Restricted Quantifier Construction (`build` Primitive):**  
-    Quantifiers are constructed on demand via:
-    $$\text{build}(Q, a, b, S, F, D) \triangleq Q a \in \{b \in S \mid F\} (D)$$
-    This cleanly isolates quantifier force (`Qmap`), base domain (`Smap`), and dynamic filter restrictions (`Fmap`).
-*   **Dynamic Anaphora & Donkey Sentences:**  
-    Registers `Upload` and `Download` interact with the environment map (`Emap`), allowing multi-clause pronouns and donkey-sentence coreferences to resolve cleanly.
-*   **Emergent Surface Syntax (Chunking):**  
-    While the underlying engine executes right-to-left via LIFO stacks, the surface grammar follows a natural **VSO Head-Initial + Incremental Post-Modification** template:
-    $$\mathbf{Chunk} = [\text{Entity:S}] \ + \ [\text{Not}] \ + \ [\text{Quantifier:Q}] \ + \ [\text{Modifiers}\dots]$$
+By treating all lexical content as unary base sets (`:S`), dynamic event reification (`Ω`), and binary relations (`:R`), SML establishes an incremental state-transition system. Coupled with higher-order continuation closures on a Wait Stack (`WT`), a dual-track restrictor/nuclear scope mapping (`Imap` / `Omap`), and a permutation pipeline (`PR`), SML aims to resolve complex quantifier scopings, nested and coordinate relative clauses, and constituent/propositional negations without syntax trees or structural closing delimiters.
 
 ---
 
-## 🏗️ The 8-Stack 5-Map 1-Counter Model
+## 🏗️ Abstract Machine Model (v1.0)
 
-$$\text{State} = \langle \mathbf{IP}, \mathbf{VR}, \mathbf{CM}, \mathbf{QN}, \mathbf{MD}, \mathbf{RL}, \mathbf{CL}, \mathbf{OP}, \text{Count}, \mathbf{Emap}, \mathbf{Qmap}, \mathbf{Smap}, \mathbf{Fmap}, \mathbf{Amap} \rangle$$
+```text
+State = ⟨ IP, NM, QN, WT, CM, PR, OP, ⟨F⟩, Imap, Omap, Qmap, Smap, Mmap, Fmap, Emap, Map ⟩
+```
 
-### 1. The 8 Stacks (Right end is Top)
+### 1. The 6 Stacks + 1 Stream + 1 Scalar Register (Right end is Top)
 
-| Stack | Identifier | Preset / Initial Top | Description |
-| :--- | :--- | :--- | :--- |
-| **Input Stack** | **IP** | (User tokens) | Instruction queue holding tokens, macros, and operators awaiting reduction. |
-| **Var Stack** | **VR** | `v1 v2 v3 ...` (Infinite) | Infinite stream of fresh, mutually distinct variables. |
-| **Component Stack** | **CM** | `Empty` | Active component cursor stack for truth polarities and active variables (`True`, `False`, `v_i`). |
-| **Quant Stack** | **QN** | `None` | Active entity queue awaiting quantifier closure (`Build`/`End`). Supports arbitrary permutation `(i_n, ..., i_1)`. |
-| **Modifier Stack** | **MD** | `Stop` | Specialized stack for higher-order modifiers, adjectival/adverbial scopes, and delayed composition. |
-| **Relation Stack** | **RL** | `Deter` | Manages open thematic roles and predicate barriers (`Deter`, `Absorb`, `Join`). |
-| **Clause Stack** | **CL** | `Empty` | Trace memory storing host entity variables for relative clause binding (`That`/`Clause`). |
-| **Output Stack** | **OP** | `Empty` | Working memory accumulating derived logical propositions, relations, and AST subtrees. |
+| Component | Identifier | Description |
+| :--- | :--- | :--- |
+| **Input Stack** | **IP** | Queue of tokens, instruction blocks, and unpacked macros awaiting execution. |
+| **Number Stream** | **NM** | Infinite generator of fresh, monotonically increasing integer IDs (`1, 2, 3, ...`). |
+| **Quantifier Queue** | **QN** | Queue storing entity IDs awaiting quantifier closure (`Build !`). |
+| **Wait Stack** | **WT** | Staging area for higher-order continuation closures (`λa. B`), intermediate entities, and modifier polarities. |
+| **Component Stack**| **CM** | Storage for active arguments and their truth polarities (`Polarity Entity`). |
+| **Permutation Stack**| **PR** | Buffer and pipeline for permutation operations and dynamic combinator adjustments. |
+| **Output Stack** | **OP** | Immediate working memory for atomic reductions, boolean logic, and relation triggers. |
+| **Focus Register** | **`⟨F⟩`** | Scalar integer register tracking the core host entity currently undergoing clause closure. |
 
-### 2. The Syntactic Debt Counter
+### 2. The 8 Associative Maps (Keys are Entity IDs)
 
-*   **`Count` (Integer, initial 0):** Tracks unfulfilled relational obligations. Relation macros invoke `Add` (`Count++`), while entity macros invoke `Deter` (`Count--` if active, else push `Deter` barrier to `RL`). This eliminates the need for closing brackets around modifiers.
-
-### 3. The 5 Associative Mappings (Keys are Variables)
-
-| Mapping | Name | Default / Miss Behavior | Purpose |
-| :--- | :--- | :--- | :--- |
-| **Emap** | Environment Map | Throws Error | Stores dynamic variable registers for coreference (`Upload`/`Download`). |
-| **Qmap** | Quantifier Map | Returns ∃ (`Exist`) | Maps bound variables to quantifier force (∀, ∃). |
-| **Smap** | Set Map | Throws Error | Maps domain variables to base set categories (e.g., `Farmer`, `Book`, `Ω`). |
-| **Fmap** | Formula/Filter Map | Throws Error | Accumulates domain restrictions, relative clause formulas, and degree filters. |
-| **Amap** | Association Map | Throws Error | Pairs quantified instance variables (`a`) with domain restriction variables (`b`). |
+| Map | Identifier | Function |
+| :--- | :--- | :--- |
+| **Restrictor Map** | **Imap** | Accumulates nominal restrictions and relative clause formulas inside `{α_i ∈ S_i \| Imap[i]}`. |
+| **Nuclear Scope Map** | **Omap** | Accumulates asserted predicate propositions. |
+| **Quantifier Map** | **Qmap** | Maps entity variables to generalized quantifier forces (default: `Exist` / ∃). |
+| **Base Set Map** | **Smap** | Maps entity IDs to base category names or event domains (e.g., `"Cat"`, `"Ω"`). |
+| **Mode Map** | **Mmap** | Polarity mode: `True` writes relations to `Imap` (Inner), `False` writes to `Omap` (Outer). |
+| **Focus Flag Map** | **Fmap** | Identifies whether an entity is a protected host of an active relative clause. |
+| **Environment Map**| **Emap** | Dynamic variable alias registry for cross-clause pronoun coreference (`Upload` / `Download`). |
+| **Lexical Macro Map**| **Map** | Global dictionary mapping lexical set strings to their predicate frame macros. |
 
 ---
 
-## 💡 Showcase Examples (v0.99 Verified)
+## 💡 Key Architectural Evolutions (v1.0 vs v0.99)
 
-### 1. Relative Clauses & Multi-Constraint Nominal Restriction
-> *"The old cat that was not given to the child by the farmer and does not like catnip eats fish."*
-
-```text
-Input:
-End Eat_Macro Binary_Identity_Perm_Clause_Closing_Macro Negation Like_Macro That Ternary_Identity_Perm_Clause_Closing_Macro Negation Give_Macro Farmer_Macro Child_Macro That Cat_Macro Old_Macro Catnip_Macro Fish_Macro
-
-Evaluated Logical Output:
-v26∈Ω ∧ (Exist v1∈Fish (Exist v6∈{v7∈Cat |
-    v13∈Ω ∧ (Exist v5∈Large_Age (Exist v11∈Age_Is Subject(v11,v7) ∧ Object(v11,v5) ∧ Predicate(v13,v11))) ∧
-    v20∈Ω ∧ (Exist v14∈Child (Exist v16∈Farmer (Exist v18∈Give Not(Subject(v18,v16) ∧ Object(v18,v14) ∧ Theme(v18,v7) ∧ Predicate(v20,v18))))) ∧
-    v23∈Ω ∧ (Exist v3∈Catnip (Exist v21∈Like Not(Subject(v21,v7) ∧ Object(v21,v3) ∧ Predicate(v23,v21))))}
-    (Exist v24∈Eat Subject(v24,v6) ∧ Object(v24,v1) ∧ Predicate(v26,v24)))) v26
-```
-*Note: `That` pushes the cat variable `v7` onto `CL`, allowing multiple independent relative clauses to safely capture it as their theme/subject.*
-
-### 2. Clausal Event Nominalization & Propositional Objects
-> *"There exists an event where the predicate is not discover, the subject is not the child, and the object is not the interesting event of the cat not liking catnip."*
-
-```text
-Input:
-End Discover_Macro Not Child_Macro Not Ternary_Identity_Perm_Nominalization_Closing_Macro Not Interesting_Macro Negation Like_Macro Cat_Macro Catnip_Macro
-
-Evaluated Logical Output:
-v20∈Ω ∧ (Exist v7∈{v9∈Ω |
-    (Exist v1∈Catnip (Exist v3∈Cat (Exist v5∈Like Not(Subject(v5,v3) ∧ Object(v5,v1) ∧ Predicate(v9,v5))))) ∧
-    v15∈Ω ∧ (Exist v8∈Large_Interest (Exist v13∈Interest_Is Subject(v13,v9) ∧ Object(v13,v8) ∧ Predicate(v15,v13)))}
-    (Exist v16∈Child (Exist v18∈Discover Not Subject(v18,v16) ∧ Not Object(v18,v7) ∧ Not Predicate(v20,v18)))) v20
-```
-*Note: The clausal proposition "the cat does not like catnip" is nominalized into an entity `v7` of type Ω, modified by the adjective "interesting", and consumed as the object of "discover".*
-
-### 3. Higher-Order Adverb Distribution across Coordinate Adjectives
-> *"An A-and-very-ly heavy, B-and-very-ly tall person."*
-
-```text
-Input:
-Person:S Exchange Very_Macro Tall_Macro Adv_B_Macro Heavy_Macro Adv_A_Macro
-
-Evaluated Domain Filter (Fmap for v26):
-And_consequent(v39,v38) ∧ And_antecedent(v39,v32) ∧
-v38∈Ω ∧ (Exist v2∈Large_Weight (Exist v36∈Weight_Is Subject(v36,v26) ∧ Object(v36,v2) ∧ Predicate(v38,v36))) ∧
-v32∈Ω ∧ (Exist v10∈Large_Height (Exist v30∈Height_Is Subject(v30,v26) ∧ Object(v30,v10) ∧ Predicate(v32,v30)))
-```
-
-### 4. Localized Spatiotemporal Scoping & Fine-Grained Role Negation
-> *"The red team that was not in the west yesterday attacks the blue team that is not in the east today."*
-
-```text
-Input:
-End Attack_Macro RedTeam_Macro Yesterday_Macro Not At_Macro West_Macro Not At_Macro BlueTeam_Macro Today_Macro Not At_Macro East_Macro Not At_Macro
-
-Evaluated Logical Output:
-v15∈Ω ∧ (Exist v1∈East (Exist v3∈Today (Exist v5∈BlueTeam (Exist v7∈West (Exist v9∈Yesterday (Exist v11∈RedTeam (Exist v13∈Attack
-    Not At(v5,v3) ∧ Not At(v5,v1) ∧
-    Not At(v11,v9) ∧ Not At(v11,v7) ∧
-    Subject(v13,v11) ∧ Object(v13,v5) ∧ Predicate(v15,v13)))))))) v15
-```
-
-### 5. Dynamic Anaphora & Donkey Sentence with Negation
-> *"If a farmer does not give a child a book, the child will not read it."*
-
-```text
-Input:
-End Then:C Negation Read_Macro Exist Download child Download book Negation Give_Macro Exist Farmer_Macro All Upload child Child_Macro All Upload book Book_Macro All
-
-Evaluated Logical Output:
-v13∈Ω ∧ (All v1∈Book (All v3∈Child (All v5∈Farmer (Exist v7∈Give (Exist v10∈Read
-    Then_consequent(v13,v12) ∧ Then_antecedent(v13,v9) ∧
-    Not(Subject(v10,v3) ∧ Object(v10,v1) ∧ Predicate(v12,v10)) ∧
-    Not(Subject(v7,v5) ∧ Object(v7,v3) ∧ Theme(v7,v1) ∧ Predicate(v9,v7))))))) v13
-```
-
-### 6. In-Situ Lexical Derivation
-> *"Old person (Elder)."*
-
-```text
-Input:
-"Old$" Person:S
-
-Evaluated State:
-Smap (Sets): [("v2", "Old_Person")]
-```
+*   **Noun-Verb Parity**:  
+    Verbs and nouns are unified as unary sets (`:S`). Verbal predicate frames are dynamically unpacked via `Map`, allowing verbs to natively host relative clauses and higher-order adjuncts just like nouns.
+*   **Currying Continuation Closures on `WT`**:  
+    Pre-modifiers and relation builders are staged on `WT` as `λ`-closures, resolving surface word-order mismatches through post-order beta-substitutions without syntax trees.
+*   **Generalized Quantifier Duality (`Imap` vs `Omap`)**:  
+    Quantification cleanly separates restrictors from nuclear scopes, naturally accommodating Generalized Quantifiers (such as proportional quantifiers, e.g., *More Than Half*).
+*   **Single Scalar Focus Register with Invariant Restoration**:  
+    Replacing the dedicated clause stack with `⟨F⟩` and atomic `Release` macros allows both nested and coordinate relative clauses to evaluate with automatic host reset.
+*   **Permutation Pipeline (`PR`) and Church-Peano Recursion**:  
+    High-arity quantifiers and permutation adjustments are driven by a dynamic permutation stack and list-peeling recursion, preventing fixed-arity macro combinatorial explosion.
 
 ---
 
-## 💻 REPL Commands
+## 🌐 Linguistic Philosophy: The Relational "Annotation" Model
 
-*   `:r` — Reset automaton state, stacks, and maps (macro definitions are preserved).
-*   `:q` — Exit the deduction engine.
-*   `// <expr>` — Step-by-step trace mode (prints state transitions across all 8 stacks and 5 maps).
-*   `define <Name> := <Expr>` — Define a reusable macro expansion.
+Rather than hardcoding rigid metaphysical assumptions into the grammar (e.g., prescribing a specific tense logic, or baking in a fixed Kripkean possible-world modal frame), SML treats language as an **open topological graph construction and quantifier closure process**:
+
+*   **Grammar as an Agnostic Canvas**:  
+    The core abstract machine enforces only topological conservation and generalized quantifier closure. It does not dictate how speakers must conceptualize time, space, or probability.
+*   **Semantics as Progressive Annotation**:  
+    Complex linguistic phenomena are represented as iterative binary relations (`R`) attached to entities (`S`) or events (`Ω`):
+    *   *Tense & Aspect*: Modeled via relational spatiotemporal coordinates attached to event entities (e.g., `Occurred_At(e, t)`).
+    *   *Modality & Probability*: Modeled as graded attributes (e.g., `Probability(e, 0.5)` or `Evidence_Source(e, Direct_Sight)`) rather than rigid modal operators.
+    *   *Degree Semantics*: Gradable adjectives and adverbs are treated as measurement relations over normalized scale sets (e.g., `0 ~ 1`).
+    *   *Questions*: Represented via named placeholder variables (holes) awaiting contextual resolution.
+*   **Arbitrary Tree and DAG Topologies**:  
+    Because postfix chains can construct arbitrary nested relational trees (`S S R S S R R R`), and dynamic anaphora (`Upload` / `Download`) enables cross-branch reference, the system naturally expresses arbitrary Directed Acyclic Graphs (DAGs).
+
+*(Note: A detailed philosophical and technical exposition of the Relational Annotation Model is documented in `English/OtherNotes.txt` / `中文/其他说明.txt`.)*
 
 ---
 
-## 📝 Design & Architecture Notes
+## 📂 Repository Structure
 
-The theoretical foundations, formal semantic rules, 8-Stack 5-Map 1-Counter automaton architecture, event reification algebra, and relational reduction calculus of SML were conceived and mathematically designed entirely by **the author**.
+```text
+.
+├── English/
+│   ├── OriginalDraft.txt    # Complete formal reduction rules (v1.0), macro library, and 8 benchmark traces
+│   └── OtherNotes.txt       # Conceptual notes, linguistic rationale, and theoretical expansions
+├── 中文/
+│   ├── 原始草稿.txt          # v1.0 形式规约规则集、全套核心宏模板与 8 个基准测试推导记录
+│   └── 其他说明.txt          # 架构设计思想、关系批注模型与语言学功能构想说明
+├── src/
+│   └── Main.hs              # Reference implementation (Haskell prototype)
+└── README.md                # Project documentation (Bilingual)
+```
 
-The reference implementation was generated with AI assistance based strictly on the author's formal reduction rules, serving as an executable proof of the deduction rules and empirical verification of zero-leakage scoping.
+> **Detailed Formal Rules & Examples**:  
+> For the complete specification of the 29 reduction rules, all macro definitions (connectives, scale modifiers, donkey macros, combinators), and full execution trace states for the 8 benchmark sentences, please refer directly to:
+> *   `English/OriginalDraft.txt` (English)
+> *   `中文/原始草稿.txt` (Chinese)
 
 ---
 
 <a id="中文"></a>
 # SML (中文)
 
-> 基于“八栈五映射一计数器”（8-Stack 5-Map 1-Counter）串接式状态机的形式语义推导引擎与逻辑语言（Loglang）原型。
+> 基于“六栈一流水一标量寄存器八映射”（6-Stack 1-Stream 1-Register 8-Map）串接式状态机的形式语义推导引擎与逻辑语言（Loglang）架构。
 
 > [!NOTE]
-> **当前状态：形式规范与可用原型 (v0.99)**  
-> SML 彻底攻克了传统逻辑语（如 Lojban）饱受诟病的**固定位点结构（`x₁, x₂, ...` 位点记忆负担）**与**修饰语作用域全局泄漏**难题。系统无需句法树，仅依靠线性多栈状态转移、代数计数平衡与关联映射，即可完备支持**一阶受限量词**、**全事件集合本体化（`e ∈ Ω`）**、**定语从句（关系从句）线性绑定**、**主宾语从句（事件名词化）**、**高阶修饰分配递归**、**词法派生**与**动态驴子句照应**。
+> **当前状态：试验性形式规范与原型系统 (v1.0)**  
+> 本项目目前处于试验性形式规范与原型机探索阶段。核心状态机规约引擎已在 8 个具有代表性的典型基准用例（涵盖多层嵌套动词定语从句、广义受限量词、经典驴子句、标度语义学、置换栈动态流水线以及双轨否定）上完成了推导自洽性验证。系统目前仅进行了有限用例的初步验证，仍有待更广泛的语料测试、自动化模糊测试（Fuzzing）与严格形式化证明。
 
 ---
 
-## 🚀 简介
+## 🚀 项目概述
 
-经典形式语义学（如蒙太格语法）高度依赖复杂的句法语义树递归与高阶 λ 规约；而传统逻辑语（如 Lojban）则将多元谓词绑定为固定的位点结构（如 x₁ 到 x₅），导致实词记忆负担极重，且为单个论元添加局部时空修饰或嵌套定语从句时语法繁琐。
+经典形式语义学（如蒙太格语法）高度依赖句法树递归、类型驱动的应用与量词提升（QR）；而传统人造逻辑语（如 Lojban）则普遍将谓词固定为刚性的位点结构（`x₁, ..., xₙ`），这不仅带来了沉重的词汇位点记忆负担，还需要依靠庞杂的括号终止符（`ku`, `vau`, `kei` 等）来消除句法歧义。
 
-**SML (Stack-Map-Loglang)** 提出了全新的**八栈五映射一计数器（8-Stack + 5-Map + 1-Counter）自动机模型**。
+**SML (Stack-Map-Loglang) v1.0** 探索了一种**去语法树化的串接式线性状态机**路径。
 
-系统将全语言的概念统一为单目集合（`:S`），将所有动作统一实体化为事件集合（`Ω`）中的一阶个体（`e ∈ Ω`），并将所有多元谓词拆解为**新大卫森二元关系（`:R`）**。由此建立了一条严密的数学守恒律：**每一个二元修饰关系 R 在拓扑上必然且唯一地要求消费一个实体集合 S（ΔR = ΔS）**。配合**关系栈（`RL`）**、**从句栈（`CL`）**与**债务计数器（`Count`）**，SML 允许自由挂载任意时空修饰、定语从句与主宾语从句，既无需手动书写闭合括号/终止子（Terminator-Free），也彻底杜绝了跨层级作用域污染。
-
----
-
-## ✨ 核心概念与特性 (v0.99)
-
-*   **八栈五映射一计数器（8-Stack 5-Map 1-Counter）架构:**  
-    将变量源、极性游标、量词闭包、输出命题、修饰语计算、关系格框、从句穿透记忆以及修饰债务完全解耦。
-*   **全事件集合本体化（`e ∈ Ω`）与消灭固定位点:**  
-    事件作为基底集合 `Ω` 中的一阶个体，与普通实体具有同等数学地位。题元角色（`主语:R`, `宾语:R`, `传递物:R` 等）作为全局通用的二元关系自由挂载，使用者无需记忆谓词特有的位点列表。
-*   **无需句法树的定语从句线性求解（`CL` 与 `That`）:**  
-    通过从句栈 `CL` 与 `That` / `Clause` 算子，被修饰名词的变量可在栈间穿透，并在从句推导完成后通过 `Substitute` 精准代入从句的“空缺位（Trace）”，实现零 AST 开销的定语从句绑定。
-*   **事件名词化与从句充当论元（`Noun` 算子）:**  
-    完整命题（如“猫不喜欢猫薄荷”）可通过 `Noun` 算子直接降维打包为类型为 `Ω` 的一阶实体变量，直接充当主句的主语、宾语，或接受形容词修饰。
-*   **零终止子的修饰吸收律（ΔR = ΔS 计数平衡）:**  
-    任何关系修饰（`Add`）都会让 `Count++`（登记语法债务）；而核心实体宏的 `Deter` 会在有债务时代替压栈执行 `Count--`（结清债务），彻底杜绝 Lojban 式的冗余闭合词（如 `ku`, `vau`）。
-*   **双轨否定系统（命题全局否定 vs. 题元成分否定）:**  
-    *   **命题全局否定（`Negation`）:** 直接对已闭合的关系命题外层取反。
-    *   **题元成分否定（`Not` + `Judge`）:** 通过 `CM` 游标翻转局部极性，精准实现具体关系边（如 ¬在(x, y)）的否定，作用域绝不漂移。
-*   **高阶修饰语演算与分配律（`Exchange`）:**  
-    *   **形容词（`Modify`）:** 动态收缩名词在 `Fmap` 中的受限集合内涵。
-    *   **副词（`For` / `Modify`）:** 对程度标尺与事件属性进行高阶函数抽象与连续修饰。
-    *   **合并与组合子（`Combine` / `Cancel`）:** 借助高阶 λ-演算合并多个修饰语。
-    *   **分配律（`Exchange`）:** 完美实现 `A → (B ∧ C) ≡ (A → B) ∧ (A → C)`，让单个副词自动向并列形容词分支分配。
-*   **原位词法派生（`:F` 变换词）:**  
-    支持直接在映射层变换基底集合（如 `"老$"` 作用于 `人:S` 得到 `老人`），使语言原生具备词根派生能力。
-*   **受限量词构建原语 (`build` Primitive):**  
-    统一使用受限量词模板进行语义闭包：
-    $$\text{build}(Q, a, b, S, F, D) \triangleq Q a \in \{b \in S \mid F\} (D)$$
-    解耦量词力量（`Qmap`）、基底集合（`Smap`）与修饰过滤式（`Fmap`）。
-*   **跨从句动态指代与代词照应:**  
-    通过 `Upload` 与 `Download` 指令存取环境映射（`Emap`），以图（DAG）的形式优雅解决跨子句论元复用与经典驴子句照应。
-*   **高度模块化的人性表层语法（Chunking）:**  
-    虽然底层是逆向消费的 LIFO 栈式抽象机，但表层语言呈现出极其自然的 **VSO 动词前置 + 后置渐进限定** 模式：
-    $$\mathbf{Chunk} = [\text{实体宏:S}] \ + \ [\text{Not}] \ + \ [\text{量词:Q}] \ + \ [\text{修饰语/从句}\dots]$$
+系统将语言中的实词统一抽象为单目基底集合（`:S`），动作统一本体化为一阶事件个体（`Ω`），多元关系统一分解为二元谓词（`:R`）。通过等待栈（`WT`）上的高阶延续闭包、限制域与核域的双轨映射（`Imap` / `Omap`）、焦点单值寄存器（`⟨F⟩`）与排列流水线栈（`PR`），SML 旨在不构建显式句法树、不书写闭合括号的前提下，线性求解复杂量词辖域、深层嵌套与并列定语从句，以及细粒度题元否定。
 
 ---
 
-## 🏗️ 八栈五映射一计数器自动机模型
+## 🏗️ 抽象机模型 (v1.0)
 
-$$\text{State} = \langle \mathbf{IP}, \mathbf{VR}, \mathbf{CM}, \mathbf{QN}, \mathbf{MD}, \mathbf{RL}, \mathbf{CL}, \mathbf{OP}, \text{Count}, \mathbf{Emap}, \mathbf{Qmap}, \mathbf{Smap}, \mathbf{Fmap}, \mathbf{Amap} \rangle$$
+```text
+State = ⟨ IP, NM, QN, WT, CM, PR, OP, ⟨F⟩, Imap, Omap, Qmap, Smap, Mmap, Fmap, Emap, Map ⟩
+```
 
-### 1. 八个线性栈（均以右端为栈顶）
+### 1. 六个线性栈 + 一个自然数流 + 一个标量寄存器（均以右端为栈顶）
 
-| 栈名称 | 缩写 | 预置栈顶 | 功能说明 |
-| :--- | :--- | :--- | :--- |
-| **输入栈** | **IP** | (用户输入) | 待处理的 Token 流、宏指令与操作符队列。 |
-| **变量栈** | **VR** | `v1 v2 v3 ...` (无穷) | 预置的无穷新鲜变量源。 |
-| **成分栈** | **CM** | `空` | 当前活跃成分的真值极性与变量游标栈（`True`, `False`, `v_i`）。 |
-| **量化栈** | **QN** | `None` | 论元变量排队栈，暂存等待参与量词闭包（`Build`/`End`）的变量。支持任意置换 `(i_n, ..., i_1)`。 |
-| **修饰栈** | **MD** | `Stop` | 专用的修饰语暂存区，维护形容词、副词的作用域与延迟合成。 |
-| **关系栈** | **RL** | `Deter` | 维护当前未闭合的题元角色与关系定界屏障（`Deter`, `Absorb`, `Join`）。 |
-| **从句栈** | **CL** | `空` | 专用于关系从句（定语从句）的宿主实体变量追踪栈（`That`/`Clause`）。 |
-| **输出栈** | **OP** | `空` | 逻辑命题工作区，累加推导中的中间关系项与最终逻辑公式。 |
+| 组件名称 | 缩写标识 | 功能说明 |
+| :--- | :--- | :--- |
+| **输入栈** | **IP** | 待执行的指令块、Token 流与解包后的宏指令序列。 |
+| **数字流** | **NM** | 预置无限递增自然数生成器（`1, 2, 3, ...`），为新实体分配全局唯一数值标号。 |
+| **量化栈** | **QN** | 论元实体排队栈，维护等待执行受限量词闭包（`Build !`）的实体队列。 |
+| **等待栈** | **WT** | 暂存区，维护高阶柯里化延续闭包（`λa. B`）、实体中间态及修饰语极性。 |
+| **成分栈** | **CM** | 规约完毕的论元实体及真值极性游标栈（格式为 `Polarity Entity`）。 |
+| **排列栈** | **PR** | 置换群操作流水线，用于动态调整量化置换元组与执行顺序。 |
+| **输出栈** | **OP** | 即时运算与规约工作台，执行原子规约、布尔逻辑及关系连接触发。 |
+| **焦点寄存器** | **`⟨F⟩`** | 标量整数寄存器，记录当前正在执行闭包的核心宿主实体标号。 |
 
-### 2. 语法债务计数器
+### 2. 八个关联映射表（键均为实体数字标号）
 
-*   **`Count` (整数，初值 0):** 实时追踪当前悬挂的二元修饰关系债务。遇到关系宏执行 `Add`（`Count++`）；遇到实体宏执行 `Deter`（若 `Count > 0` 则消费债务 `Count--`，否则正常压入 `Deter` 隔离屏障）。
-
-### 3. 五个关联映射（键均为变量名）
-
-| 映射表 | 对应全称 | 缺省行为 (Lookup Miss) | 用途说明 |
-| :--- | :--- | :--- | :--- |
-| **Emap** | 环境映射 (Environment) | 报错 (Error) | 记录动态变量别名，用于代词照应（`Upload`/`Download`）。 |
-| **Qmap** | 量化映射 (Quantifier) | 缺省为 ∃ (`Exist`) | 绑定量化变量的量词属性（∀, ∃）。 |
-| **Smap** | 集合映射 (Set) | 报错 (Error) | 记录变量所属的基底类别（如 `农夫`, `书`, `Ω`）。 |
-| **Fmap** | 表达式映射 (Filter) | 报错 (Error) | 累积形容词收缩条件、定语从句约束与程度过滤器。 |
-| **Amap** | 关联变量映射 (Association)| 报错 (Error) | 将量化实体变量 (a) 与其定义域限制变量 (b) 关联。 |
+| 映射表 | 缩写标识 | 用途说明 |
+| :--- | :--- | :--- |
+| **限制域映射** | **Imap** | 累积名词内涵修饰与定语从句条件（`{α_i ∈ S_i \| Imap[i]}`）。 |
+| **核域映射** | **Omap** | 累积主谓陈述命题。 |
+| **量化映射** | **Qmap** | 记录实体的广义量词类型（缺省为 `Exist` / ∃）。 |
+| **集合映射** | **Smap** | 记录实体所属的基底类别名称或事件空间（如 `"猫"`, `"Ω"`）。 |
+| **模式映射** | **Mmap** | 写入模式布尔值：`True` 表示内模式（写入 `Imap`），`False` 表示外模式（写入 `Omap`）。 |
+| **焦点标记** | **Fmap** | 标记该实体是否为当前定语从句受保护的宿主。 |
+| **环境映射** | **Emap** | 动态变量别名映射，用于跨子句代词照应与驴子句消解（`Upload` / `Download`）。 |
+| **全局宏映射** | **Map** | 全局词汇字典，建立从集合名称字符串到对应格框宏代码的映射。 |
 
 ---
 
-## 💡 典型例句推导展示 (v0.99 核实)
+## 💡 v1.0 核心设计演进
 
-### 1. 多重定语从句与复合名词内涵收缩
-> *“不是农夫给小孩的、不喜欢猫薄荷的老猫吃鱼”*
-
-```text
-输入 (Input):
-End 吃宏 二元恒等排列从句结语宏 Negation 喜欢宏 That 三元恒等排列从句结语宏 Negation 给宏 农夫宏 小孩宏 That 猫宏 老的宏 猫薄荷宏 鱼宏
-
-推导逻辑输出 (Output):
-v26∈Ω ∧ (Exist v1∈鱼 (Exist v6∈{v7∈猫 |
-    v13∈Ω ∧ (Exist v5∈较大的年龄 (Exist v11∈年龄为 主语(v11,v7) ∧ 宾语(v11,v5) ∧ 谓语(v13,v11))) ∧
-    v20∈Ω ∧ (Exist v14∈小孩 (Exist v16∈农夫 (Exist v18∈给 Not(主语(v18,v16) ∧ 宾语(v18,v14) ∧ 传递物(v18,v7) ∧ 谓语(v20,v18))))) ∧
-    v23∈Ω ∧ (Exist v3∈猫薄荷 (Exist v21∈喜欢 Not(主语(v21,v7) ∧ 宾语(v21,v3) ∧ 谓语(v23,v21))))}
-    (Exist v24∈吃 主语(v24,v6) ∧ 宾语(v24,v1) ∧ 谓语(v26,v24)))) v26
-```
-*注：`That` 算子将被修饰词“猫”的变量 `v7` 压入 `CL` 栈，使两个独立的否定定语从句能够精准将其捕获为传递物与主语。*
-
-### 2. 完整事件名词化（主/宾语从句具象化）
-> *“存在事件，谓语不是发现，主语不是小孩，宾语不是‘猫不喜欢猫薄荷’这件有趣的事”*
-
-```text
-输入 (Input):
-End 发现宏 Not 小孩宏 Not 三元恒等排列名词化结语宏 Not 有趣的宏 Negation 喜欢宏 猫宏 猫薄荷宏
-
-推导逻辑输出 (Output):
-v20∈Ω ∧ (Exist v7∈{v9∈Ω |
-    (Exist v1∈猫薄荷 (Exist v3∈猫 (Exist v5∈喜欢 Not(主语(v5,v3) ∧ 宾语(v5,v1) ∧ 谓语(v9,v5))))) ∧
-    v15∈Ω ∧ (Exist v8∈较大的趣味 (Exist v13∈趣味为 主语(v13,v9) ∧ 宾语(v13,v8) ∧ 谓语(v15,v13)))}
-    (Exist v16∈小孩 (Exist v18∈发现 Not 主语(v18,v16) ∧ Not 宾语(v18,v7) ∧ Not 谓语(v20,v18)))) v20
-```
-*注：命题“猫不喜欢猫薄荷”被 `Noun` 算子实体化为类型为 Ω 的变量 `v7`，进而接受形容词“有趣的”修饰，并作为“发现”的宾语。*
-
-### 3. 并列形容词的高阶副词分配律
-> *“A且非常地重的、B且非常地高的人”*
-
-```text
-输入 (Input):
-人:S Exchange 非常的宏 高的宏 B副词宏 重的宏 A副词宏
-
-推导集合内涵输出 (Fmap 对应 v26):
-And_consequent(v39,v38) ∧ And_antecedent(v39,v32) ∧
-v38∈Ω ∧ (Exist v2∈较大的重量 (Exist v36∈重量为 主语(v36,v26) ∧ 宾语(v36,v2) ∧ 谓语(v38,v36))) ∧
-v32∈Ω ∧ (Exist v10∈较大的高度 (Exist v30∈高度为 主语(v30,v26) ∧ 宾语(v30,v10) ∧ 谓语(v32,v30)))
-```
-
-### 4. 局部时空精准界定与细粒度题元否定
-> *“不在昨天的不在西边的红队攻击不在今天的不在东边的蓝队”*
-
-```text
-输入 (Input):
-End 攻击宏 红队宏 昨天宏 Not 在宏 西边宏 Not 在宏 蓝队宏 今天宏 Not 在宏 东边宏 Not 在宏
-
-推导逻辑输出 (Output):
-v15∈Ω ∧ (Exist v1∈东边 (Exist v3∈今天 (Exist v5∈蓝队 (Exist v7∈西边 (Exist v9∈昨天 (Exist v11∈红队 (Exist v13∈攻击
-    Not 在(v5,v3) ∧ Not 在(v5,v1) ∧
-    Not 在(v11,v9) ∧ Not 在(v11,v7) ∧
-    主语(v13,v11) ∧ 宾语(v13,v5) ∧ 谓语(v15,v13)))))))) v15
-```
-
-### 5. 动态代词照应与带否定的经典驴子句
-> *“农民不给小孩书，小孩就不会读它。”*
-
-```text
-输入 (Input):
-End 就:C Negation 读宏 Exist Download child Download book Negation 给宏 Exist 农夫宏 All Upload child 小孩宏 All Upload book 书宏 All
-
-推导逻辑输出 (Output):
-v13∈Ω ∧ (All v1∈书 (All v3∈小孩 (All v5∈农夫 (Exist v7∈给 (Exist v10∈读
-    就_consequent(v13,v12) ∧ 就_antecedent(v13,v9) ∧
-    Not(主语(v10,v3) ∧ 宾语(v10,v1) ∧ 谓语(v12,v10)) ∧
-    Not(主语(v7,v5) ∧ 宾语(v7,v3) ∧ 传递物(v7,v1) ∧ 谓语(v9,v7))))))) v13
-```
-
-### 6. 原位词法派生
-> *“老人”*
-
-```text
-输入 (Input):
-"老$" 人:S
-
-推导状态输出 (Smap):
-Smap (Sets): [("v2", "老人")]
-```
+*   **名谓词本体平权（Noun-Verb Parity）**：  
+    动词不再拥有特殊的固定语法位点，而是作为普通的集合词（`:S`）进入成分栈。在遇到执行触发时，通过全局字典 `Map` 动态解构出二元题元格框与主事件 `Ω`，使动词天然能像名词一样接受定语从句修饰。
+*   **WT 栈柯里化延续闭包（Currying Continuation）**：  
+    将关系修饰与延迟装配抽象为驻留在 `WT` 栈上的高阶 `λ` 闭包，当宿主实体就位时自动触发代换求值，消除了串接式语言逆波兰序与人类前置修饰语习惯的冲突。
+*   **广义量词双轨切分（`Imap` 与 `Omap` 对偶）**：  
+    严格划分限制域与核域，配合模式翻转，原生支持蒙太格广义量词理论（GQ Theory，如“多于一半”等比例量词）。
+*   **标量焦点寄存器 `⟨F⟩` 与宿主原位复位**：  
+    通过 `释放宏`（探测 `Fmap` 并按需引渡）与原子复位机制，彻底废除了旧版的专用从句栈，且对称统一了嵌套从句与并列从句。
+*   **排列栈流水线与皮亚诺列表递归**：  
+    引入置换群生成元思想与列表剥离递归（Church-Peano 计数），消除了传统固定元数量化宏的阶乘爆炸问题。
 
 ---
 
-## 💻 交互式环境 (REPL)
+## 🌐 语言学哲学：开放的“关系批注模型”
 
-*   `:r` — 重置自动机状态、栈与映射（保留已加载的宏）。
-*   `:q` — 退出推导引擎。
-*   `// <expr>` — 单步跟踪模式（逐步打印全系统 8 栈 5 映射的状态流转）。
-*   `define <名称> := <表达式>` — 注册全局宏定义。
+SML 在语言哲学上**放弃了在语法底层硬编码特定形而上学或物理学模型的做法**（不预设特定的绝对时空观，也不在语法中硬编码固定的克里普克可能世界集合）：
+
+*   **语法作为不可知论拓扑画布**：  
+    底层抽象机仅保障拓扑守恒（`ΔR = ΔS`）与广义受限量词闭包的严密性，把世界观的解释权彻底交还给说话者。
+*   **语言即批注（Annotative Model）**：  
+    浩瀚的语言学范畴被统一为向核心实体或事件追加的二元修饰边（`R`）：
+    *   *时态与体貌*：作为事件变元的二元时空坐标挂载（如 `发生于(e, t)`、`参考系(e, 地表)`）；
+    *   *情态与可能性*：作为渐进的程度与证据批注（如 `可能性(e, 0.5)`、`证据源(e, 亲眼所见)`）；
+    *   *标度语义学*：形容词与副词被视作在规范化度量区间（如 `0 ~ 1`）上的二元测度关系与量化变换；
+    *   *疑问句*：视为保留未封闭占位符变元（Named Holes）的开放模板查询。
+*   **从树状修饰到有向无环图（DAG）**：  
+    串接操作能够通过 `S S R S S R R R` 构造出任意复杂的嵌套修饰树；配合代词照应机制（`Upload` / `Download`），各分支节点可跨作用域建立有向边，使语言表达力自然覆盖任意有向无环图（DAG）。
+
+*(注：关于“关系批注模型”的详细理论探讨与语言学构想，请参见 `中文/其他说明.txt` / `English/OtherNotes.txt`。)*
 
 ---
 
-## 📝 关于设计与实现
+## 📂 仓库目录结构
 
-SML 的理论基石、形式语义规则体系、“八栈五映射一计数器”自动机架构、事件实体化代数以及关系消解演算均由**作者本人**独立构思并完成严格的数学化定义。
+```text
+.
+├── English/
+│   ├── OriginalDraft.txt    # v1.0 英文版完整形式规约规则、核心宏库与 8 个测试例句运行追踪
+│   └── OtherNotes.txt       # 英文版理论构想、语言学功能分析与扩展说明
+├── 中文/
+│   ├── 原始草稿.txt          # v1.0 中文版形式规约规则集、核心宏模板与 8 个测试例句状态输出
+│   └── 其他说明.txt          # 中文版架构设计哲学、关系批注模型与后续扩展规划
+├── src/
+│   └── Main.hs              # 规约状态机参考实现代码（Haskell 原型）
+└── README.md                # 双语项目主文档
+```
 
-参考代码由作者提供精确的状态转移规范并借助 AI 辅助生成，作为可执行的语义虚拟机，验证了所有规约规则的自洽性与无泄漏修饰的工程可行性。
+> **具体规则集与推导例句查阅说明**：  
+> 本 README 旨在阐述系统架构模型与设计思想，不罗列具体推导过程。关于完整的 29 条规约规则定义、全套核心宏模板代码，以及 8 个基准测试例句的完整机器状态追踪（Machine State Trace），请直接查阅：
+> *   `中文/原始草稿.txt`（中文完整规约）
+> *   `English/OriginalDraft.txt`（英文完整规约）
