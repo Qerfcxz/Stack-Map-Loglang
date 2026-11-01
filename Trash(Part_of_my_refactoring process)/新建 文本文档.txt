@@ -1,0 +1,375 @@
+IP: []
+=>
+IP:
+操作：
+
+IP: [...,A]
+OP:
+=>
+IP: [...]
+OP: A
+操作：
+
+IP: A
+OP:
+=>
+IP:
+OP: A
+操作：
+
+
+
+
+
+
+VR: a
+OP: A:S !
+=>
+VR: a
+OP:
+操作：
+insert a A Smap
+
+VR: c b a
+CM:
+QN:
+OP: New !
+=>
+VR:
+CM: b
+QN: c
+OP:
+操作：
+insert a c Amap
+insert b c Amap
+
+
+
+QN: a
+OP: Throw !
+=>
+QN:
+OP:
+
+
+
+
+CC:
+OP: A Cache !
+=>
+CC: A
+OP:
+操作：
+
+
+CC: Stop
+OP: Take !
+=>
+CC:
+OP:
+操作：
+
+
+IP:
+CC: A
+OP: Take !
+=>
+IP: Take A
+CC:
+OP:
+操作：
+
+
+
+CM: a
+OP: Use !
+=>
+CM:
+OP: (lookup a Cmap) a
+操作：
+
+
+IP:
+OP: A Thaw !
+=>
+IP: A
+OP:
+操作：
+
+
+
+OP: Add !
+=>
+OP:
+操作：
+Count++
+
+
+CC:
+OP: Stop !
+=>
+CC: (If Count==0 then Stop)
+OP:
+操作：
+if Count>0 then Count--
+
+
+IP: 
+CC: Block
+OP: Get !
+=>
+IP: Take
+CC:
+OP:
+
+OP: Get !
+=>
+OP:
+
+OP: B b A a Exchange !
+=>
+OP: A a B b
+
+OP: C b B a A:R !
+=>
+OP: (lookup a Cmap)∧B∧C∧D b
+操作：
+let c=lookup a Amap
+let d=lookup b Amap
+Let D=if (lookup a Nmap) then A(d,c) else ¬A(d,c)
+
+
+
+
+集合宏:=[!,Stop,!,Cache,[!,New,!,集合词:S]]
+
+
+关系宏:=[!,Add,!,Cache,[!,关系词:S]]]
+
+
+
+
+
+
+
+二元谓词宏:=[!,Stop,!,谓语:R,!,Exchange,!,Get,!,Throw,!,New,!,Ω:S,!,宾语:R,!,Take,!,主语:R,!,Take,!,Take,!,Cache,[!,New,!,谓词:S]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
