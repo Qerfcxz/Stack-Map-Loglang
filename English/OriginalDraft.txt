@@ -1,1467 +1,662 @@
-This data structure consists of eight stacks, five mappings, and one counter.
+The data structure consists of six stacks, one number stream, one scalar register, and eight associative maps.
 
-The eight stacks from top to bottom are as follows (all with the right end as the top of the stack):
-1. Input Stack (IP)
-2. Variable Stack (VR)
-3. Component Stack (CM)
-4. Quantification Stack (QN)
-5. Modifier Stack (MD)
-6. Relation Stack (RL)
-7. Clause Stack (CL)
-8. Output Stack (OP)
-Among them, the Variable Stack is pre-populated with infinitely many mutually distinct variables, the Quantification Stack is pre-populated with one "None", the Modifier Stack is pre-populated with one "Stop", the Relation Stack is pre-populated with one "Deter", and the counter is initialized to 0.
+The six stacks and one number stream are defined as follows (all operate as LIFO stacks where the right end is the top):
+1. Input Stack (IP): Instruction queue holding tokens, code blocks, and unpacked macros awaiting reduction.
+2. Number Stream (NM): Infinite generator stream of monotonically increasing natural numbers: 1 2 3 ...
+3. Quantifier Queue (QN): Entity argument queue awaiting generalized quantifier closure.
+4. Wait Stack (WT): Staging area for higher-order continuation closures, intermediate entities, and modifier polarities.
+5. Component Stack (CM): Storage for active argument entities and their truth polarity cursors (formatted as Polarity Entity).
+6. Permutation Stack (PR): Pipeline stack for permutation group operations and dynamic combinator adjustments.
+7. Output Stack (OP): Immediate evaluation and reduction workspace for atomic operations, boolean logic, and relational links.
 
-The five mappings are:
-1. Environment Map (Emap)
-2. Quantifier Map (Qmap)
-3. Set Map (Smap)
-4. Formula Map (Fmap)
-5. Associated Variable Map (Amap)
-All mapping keys are variable names.
+One scalar register:
+- Focus Register (<F>): Scalar integer (initially 0), recording the ID of the core host entity currently undergoing relative clause closure.
 
-Symbol Conventions:
-Lowercase letters represent variables.
-Uppercase letters represent arbitrary elements.
-"A:S" denotes that A is a set word.
-"A:R" denotes that A is a relation word.
-"A:Q" denotes that A is a quantifier word.
-"A:C" denotes that A is a connective word.
-"A:F" denotes that A is a transform word.
-"Ω" denotes the event set.
-"#" denotes the empty formula (# ∧ A = A, A ∧ # = A).
-"IP/VR/CM/QN/MD/RL/CL/OP: A" indicates that the top element of the corresponding stack is A, regardless of the remaining elements.
-"[...,A]" indicates that the head element of the List is A.
+The eight associative maps:
+1. Restrictor Map (Imap): Accumulates nominal restrictions and relative clause formulas inside {α_i ∈ S_i | Imap[i]}.
+2. Nuclear Scope Map (Omap): Accumulates external matrix predicate assertions.
+3. Quantifier Map (Qmap): Maps an entity to its quantifier force (default: Exist).
+4. Set Map (Smap): Maps an entity ID to its base set category name (e.g., "Cat", "Ω").
+5. Mode Map (Mmap): Boolean routing mode (True = Inner mode, writes to Imap; False = Outer mode, writes to Omap).
+6. Focus Flag Map (Fmap): Boolean flag (True = protected relative clause host, False = regular argument).
+7. Environment Map (Emap): Dynamic variable alias mapping for cross-clause pronoun coreference.
+8. Lexical Macro Map (Map): Global dictionary mapping set name strings to their corresponding predicate frame macro tokens.
 
-Operational Conventions:
-build A a b B C D := A a∈{b∈B|C} D. For example: build ∃ n z Z (z>=0) (n*n=n) := ∃n∈{z∈Z|z>=0}(n*n=n)
-Emap lookup failure throws an error; Qmap lookup failure returns ∃ (Exist); Smap lookup failure throws an error; Fmap lookup failure throws an error; Amap lookup failure throws an error.
+The keys for all entity-related maps are entity integer IDs.
 
-Execution Flow:
-1. Input
-2. Match Start Rules once (matched from top to bottom)
-3. Repeatedly match Loop Rules in a loop until no rule matches (matched from top to bottom)
-4. Execute step 2 again
+Notational Conventions:
+- Lowercase letters represent variables or arbitrary elements.
+- Uppercase letters represent arbitrary elements or specific syntactic categories.
+- "A:N" denotes an entity integer ID.
+- "A:S" denotes a set word.
+- "A:R" denotes a binary relation word.
+- "A:QQ" denotes a quantifier functor word.
+- "A:SS" denotes a base set transformation word.
+- "A:B" denotes a boolean value (True or False).
+- "Ω" denotes the event domain universe.
+- "#" denotes the identity empty expression (# ∧ A = A, A ∧ # = A, # ∧ # = #).
+- "!" denotes the execution trigger operator.
+- "[..., A]" denotes that the top (rightmost) element of the list is A.
+- "??" denotes any matching stack or map identifier.
+- "∇" denotes state-machine side-effect operations during transition.
+- "-" denotes nothing / no-op (the target stack or map remains unchanged).
+- Stacks and maps not explicitly mentioned in a rule remain unchanged by default.
+
+Execution Lifecycle:
+1. User input tokens are pushed to IP.
+2. Match Start Rules once (matching top to bottom).
+3. Loop match Loop Rules repeatedly until reaching a fixed point (matching top to bottom).
+4. Repeat from Step 2 until IP is empty.
 
 <Start Rules>
 
 1.
 IP: []
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
 =>
 IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
-Operation:
 
 2.
-IP: [...,A]
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
+IP: [..., A]
 OP:
 =>
 IP: [...]
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
 OP: A
-Operation:
 
 3.
 IP: A
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
 OP:
 =>
 IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
 OP: A
-Operation:
 
 <Loop Rules>
 
 1.
-IP:
-VR:
-CM:
+NM: A:N
 QN:
-MD:
-RL:
-CL:
-OP: Not
+WT:
+OP: B:S !
 =>
-IP:
-VR:
-CM: False
-QN:
-MD:
-RL:
-CL:
+NM:
+QN: A
+WT: A
 OP:
-Operation:
+∇
+insert A # Imap
+insert A # Omap
+insert A Exist Qmap
+insert A B Smap
+insert A True Mmap
+insert A False Fmap
 
 2a.
 IP:
-VR:
-CM: False
-QN:
-MD:
-RL:
-CL:
-OP: a Judge
+WT: λa.B A:N
+OP: Combine !
 =>
-IP:
-VR:
-CM: False a
-QN:
-MD:
-RL:
-CL:
+IP: B[a:=A]
+WT:
 OP:
-Operation:
 
 2b.
-IP:
-VR:
 CM:
-QN:
-MD:
-RL:
-CL:
-OP: a Judge
+WT: A:N
+OP: Combine !
 =>
-IP:
-VR:
-CM: True a
-QN:
-MD:
-RL:
-CL:
+CM: True A
+WT:
 OP:
-Operation:
 
-3a.
-IP:
-VR:
-CM: False
-QN:
-MD:
-RL:
-CL:
-OP: Pop
+3.
+OP: E:B D:B C:N B:N A:R !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: False
-Operation:
-
-3b.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: Pop
-=>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: True
-Operation:
+OP: C
+∇
+let F = if E then R(α_C, α_B) else ¬R(α_C, α_B) in
+if D then insert C (lookup C Imap ∧ F) Imap else insert C (lookup C Omap ∧ F) Omap
 
 4.
 IP:
-VR: a
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: New
+OP: A Thaw !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: a
-Operation:
-insert a # Fmap
+IP: A
+OP:
 
 5.
 IP:
-VR: a
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: Get
-=>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: # a
-Operation:
-
-6.
-IP:
-VR:
-CM: A a
-QN:
-MD:
-RL:
-CL:
-OP: Use
-=>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A # a
-Operation:
-
-7.
-IP:
-VR: a
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: b Bubble
-=>
-IP:
-VR: b a
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
-Operation:
-
-8.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A a Formula
-=>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
-Operation:
-insert a A Fmap
-
-9.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A a Insert
-=>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
-Operation:
-insert a (lookup a Fmap ∧ A) Fmap
-
-10.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: B λa.A Apply
+OP: B λa.A Apply !
 =>
 IP: A[a:=B]
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
 OP:
-Operation:
+
+6.
+OP: A:B Not !
+=>
+OP: (not A)
+
+7.
+OP: B:B A:B And !
+=>
+OP: A&&B
+
+8.
+OP: B:B A:B Or !
+=>
+OP: A||B
+
+9.
+OP: B A Equal !
+=>
+OP: A==B
+
+10.
+OP: B:N A ?? Insert !
+=>
+OP: B
+∇
+insert B A ??
 
 11.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: B A a Substitute
+OP: A:N ?? Lookup !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A[a:=B]
-Operation:
+OP: (lookup A ??)
 
 12.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: B A Conjunction
+??: A
+OP: ?? Get !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A ∧ B
-Operation:
+??:
+OP: A
 
 13.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A a Negation
+??:
+OP: A ?? Back !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: ¬A a
-Operation:
+??: A
+OP:
 
 14.
-IP:
-VR: a
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A:Q
+OP: Use !
 =>
-IP:
-VR: a
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
-Operation:
-insert a A Qmap
+OP: <F>
 
 15.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: D b C B a A:R
+OP: A:N Assign !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: B ∧ D ∧ E b
-Operation:
-let E = if C then A(b,a) else ¬A(b,a)
+OP:
+∇
+<F> := A
 
 16.
-IP:
-VR: a
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: C c B b A:C
+QN: B:N A:N
+OP: Build !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A_consequent(a,b) ∧ A_antecedent(a,c) ∧ B ∧ C a
-Operation:
+QN: A
+OP:
+∇
+if lookup A Mmap
+    then insert A (lookup B Qmap)(α_B, {α_B ∈ lookup B Smap | lookup B Imap})(lookup B Omap ∧ lookup A Imap) Imap
+    else insert A (lookup B Qmap)(α_B, {α_B ∈ lookup B Smap | lookup B Imap})(lookup B Omap ∧ lookup A Omap) Omap
+delete B Imap
+delete B Omap
+delete B Qmap
+delete B Smap
+delete B Mmap
+delete B Fmap
 
 17.
 IP:
-VR:
-CM: a
-QN:
-MD:
-RL:
-CL:
-OP: A:F
+CM: A:N
+OP: Mapping !
 =>
-IP:
-VR:
-CM: a
-QN:
-MD:
-RL:
-CL:
+IP: (lookup (lookup A Smap) Map)
+CM: A:N
 OP:
-Operation:
-let b = lookup a Amap
-let B = lookup b Smap
-insert b (A B) Smap
 
 18.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: Add
+OP: B:N A:QQ Quantify !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
-Operation:
-Count++
+OP: B
+∇
+insert B (A (lookup B Qmap)) Qmap
 
 19.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: Deter
+OP: B:N A:SS Transform !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL: (if Count==0 then Deter)
-CL:
-OP:
-Operation:
-if Count>0 then Count--
+OP: B
+∇
+insert B (A (lookup B Smap)) Smap
 
-20.
+20a.
 IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A Join
+PR: A
+OP: Traverse !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL: A
-CL:
+IP: ! Traverse A
+PR:
 OP:
-Operation:
 
-21a.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL: Deter
-CL:
-OP: Absorb
+20b.
+OP: Traverse !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
 OP:
-Operation:
 
-21b.
+21.
 IP:
-VR:
-CM:
-QN:
-MD:
-RL: A
-CL:
-OP: Absorb
+OP: C B A:B If !
 =>
-IP: Absorb A
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
+IP: (if A then B else C)
 OP:
-Operation:
 
 22.
-IP:
-VR:
-CM: a
-QN:
-MD:
-RL:
-CL:
-OP: Upload b
+CM: A:N
+OP: a Upload !
 =>
-IP:
-VR:
-CM: a
-QN:
-MD:
-RL:
-CL:
+CM: A
 OP:
-Operation:
-insert b a Emap
+∇
+insert a A Emap
 
 23.
-IP:
-VR:
 CM:
-QN:
-MD:
-RL:
-CL:
-OP: Download a
+OP: a Download !
 =>
-IP: Deter Judge (lookup a Emap)
-VR:
-CM:
-QN:
-MD:
-RL: [Use]
-CL:
+CM: (lookup a Emap)
 OP:
-Operation:
 
 24.
-IP:
-VR:
-CM:
-QN: an ... a3 a2 a1
-MD:
-RL:
-CL:
-OP: (in,...,i3,i2,i1)
+QN: An:N ... A3:N A2:N A1:N
+OP: (in,...,i3,i2,i1) Permute !
 =>
-IP:
-VR:
-CM:
-QN: ain ... ai3 ai2 ai1
-MD:
-RL:
-CL:
+QN: Ain ... Ai3 Ai2 Ai1
 OP:
-Operation:
 
 25.
-IP:
-VR:
-CM:
-QN: b a
-MD:
-RL:
-CL:
-OP: Swap
+OP: (in,...,i3,i2,i1) Swap !
 =>
-IP:
-VR:
-CM:
-QN: a b
-MD:
-RL:
-CL:
-OP:
-Operation:
+OP: (i1,...,i3,i2,in)
 
 26.
-IP:
-VR:
-CM:
-QN: a
-MD:
-RL:
-CL:
-OP: Go
+OP: (in,...,i3,i2,i1) Left !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: a
-Operation:
+OP: (...,i3,i2,i1,in)
 
 27.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: a Back
+OP: (in,...,i3,i2,i1) Right !
 =>
-IP:
-VR:
-CM:
-QN: a
-MD:
-RL:
-CL:
-OP:
-Operation:
+OP: (i1,in,...,i3,i2)
 
 28.
-IP:
-VR:
-CM:
-QN: a
-MD:
-RL:
-CL:
-OP: A b Build
+OP: (in,...,i3,i2,i1) Top !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: (build (lookup a Qmap) a c (lookup c Smap) (lookup c Fmap) A) b
-Operation:
-let c = lookup a Amap
+OP: (n+1,in,...,i3,i2,i1)
 
 29.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A a Event
+OP: (in,...,i3,i2,i1) Bottom !
 =>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: a∈Ω ∧ A a
-Operation:
+OP: (1+in,...,1+i3,1+i2,1+i1,1)
 
-30a.
-IP:
-VR:
-CM:
-QN: None
-MD:
-RL:
-CL:
-OP: End
-=>
-IP: Event
-VR:
-CM:
-QN: None
-MD:
-RL:
-CL:
-OP:
-Operation:
+<Macro Templates>
 
-30b.
-IP:
-VR:
-CM:
-QN: a
-MD:
-RL:
-CL:
-OP: End
-=>
-IP: End Build
-VR:
-CM:
-QN: a
-MD:
-RL:
-CL:
-OP:
-Operation:
+Conditional_Repeat_Macro := [!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,If,z,[!,Apply,!,Apply,!,Apply,x,x,y,!,Thaw,y],[]],λx.λy.λz.[!,If,z,[!,Apply,!,Apply,!,Apply,x,x,y,!,Thaw,y],[]]]
 
-31.
-IP:
-VR:
-CM:
-QN: a
-MD:
-RL:
-CL:
-OP: That
-=>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL: a
-OP:
-Operation:
+Count_Execute_Macro := [!,Apply,λy.[[!,Apply,λz.[!,If,!,Equal,z,[],False,[True,!,Thaw,z,!,Thaw,y]]],True]]
 
-32.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL: a
-OP: A b Clause
-=>
-IP: Insert c Substitute a b∈Ω∧A c Judge a
-VR:
-CM:
-QN: a
-MD:
-RL: [Use] Deter
-CL:
-OP:
-Operation:
-let c = lookup a Amap
+Count_Repeat_Macro := [!,Thaw,Conditional_Repeat_Macro,!,Thaw,Count_Execute_Macro]
 
-33a.
-IP:
-VR: b a
-CM:
-QN:
-MD: Stop
-RL:
-CL:
-OP: A:S
-=>
-IP: Judge a
-VR:
-CM:
-QN: a
-MD: Stop
-RL:
-CL:
-OP:
-Operation:
-insert a b Amap
-insert b A Smap
-insert b # Fmap
+Set_Macro := [!,Combine,!,Set_Word:S]
 
-33b.
-IP:
-VR: b a
-CM:
-QN:
-MD: A c
-RL:
-CL:
-OP: B:S
-=>
-IP: Formula b Apply λz.[] (apply (apply (apply A b) c) (lookup c Fmap)) Judge a
-VR:
-CM:
-QN: a
-MD:
-RL:
-CL:
-OP:
-Operation:
-insert a b Amap
-insert b B Smap
+Relation_Macro := [!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Relation_Word:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
 
-34a.
-IP:
-VR: a
-CM:
-QN:
-MD: B c A b
-RL:
-CL:
-OP: Combine
-=>
-IP:
-VR:
-CM:
-QN:
-MD: λx.λy.λz.[And:C,Apply,Apply,Apply,B,x,c,Conjunction,lookup c Fmap,Substitute,y,z,c,Apply,Apply,Apply,A,x,b,Conjunction,lookup b Fmap,Substitute,y,z,b] a
-RL:
-CL:
-OP:
-Operation:
-insert a # Fmap
+Discard_Macro := [!,Apply,λz.[]]
 
-34b.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: Combine
-=>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
-Operation:
+Duplicate_Macro := [!,Apply,λz.[z,z]]
 
-35.
-IP:
-VR: a
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: Empty
-=>
-IP:
-VR:
-CM:
-QN:
-MD: λx.λy.λz.[a,#] a
-RL:
-CL:
-OP:
-Operation:
-insert a # Fmap
+Intra_Clause_Negation_Macro := [!,Back,CM,!,Back,CM,!,Not,!,Get,CM,!,Get,CM]
 
-36.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: For
-=>
-IP:
-VR:
-CM:
-QN:
-MD: For
-RL:
-CL:
-OP:
-Operation:
+Local_Negation_Macro := [!,Back,WT,!,Back,WT,!,Not,!,Get,WT,!,Get,WT]
 
-37.
-IP:
-VR:
-CM:
-QN:
-MD: For
-RL:
-CL:
-OP: Cancel
-=>
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP:
-Operation:
+Matrix_Negation_Macro := [!,Back,QN,!,Apply,λz.[!,If,!,Lookup,Mmap,z,[!,Insert,Imap,!,Not,!,Lookup,Imap,z,z],[!,Insert,Omap,!,Not,!,Lookup,Omap,z,z]],!,Get,QN]
 
-38.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: B b A a Merge
-=>
-IP:
-VR:
-CM:
-QN:
-MD: B b
-RL:
-CL:
-OP:
-Operation:
-insert b (lookup b Fmap ∧ A) Fmap
+Upload_Macro := [!,Upload]
 
-39a.
-IP:
-VR:
-CM:
-QN:
-MD: A a For
-RL:
-CL:
-OP: B b Modify
-=>
-IP: Merge (apply (apply (apply A b) a) (lookup a Fmap))
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: B b
-Operation:
+Positive_Download_Macro := [!,Download,!,Back,CM,True]
 
-39b.
-IP:
-VR:
-CM:
-QN:
-MD:
-RL:
-CL:
-OP: A a Modify
-=>
-IP:
-VR:
-CM:
-QN:
-MD: A a
-RL:
-CL:
-OP:
-Operation:
+Negative_Download_Macro := [!,Download,!,Back,CM,False]
 
-40.
-IP:
-VR:
-CM:
-QN:
-MD: B b A a For
-RL:
-CL:
-OP: Exchange
-=>
-IP: Modify
-VR:
-CM:
-QN:
-MD: A a For
-RL:
-CL:
-OP: B b
-Operation:
+Relative_Clause_Macro := [!,Thaw,Discard_Macro,!,Insert,Fmap,True,!,Get,QN]
 
-41a.
-IP:
-VR: a
-CM:
-QN:
-MD: Stop
-RL:
-CL:
-OP: A b Noun
-=>
-IP: Judge b
-VR:
-CM:
-QN: b
-MD: Stop
-RL: [Use] Deter
-CL:
-OP:
-Operation:
-insert b a Amap
-insert a Ω Smap
-insert a A[b:=a] Fmap
+Inner_Mode_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Insert,Mmap,True,z]]
 
-41b.
-IP:
-VR: a
-CM:
-QN:
-MD: A b
-RL:
-CL:
-OP: B c Noun
-=>
-IP: Insert a Apply λz.[] (apply (apply (apply A a) b) (lookup b Fmap)) Judge c
-VR:
-CM:
-QN: c
-MD:
-RL: [Use] Deter
-CL:
-OP:
-Operation:
-insert c a Amap
-insert a Ω Smap
-insert a B[c:=a] Fmap
+Outer_Mode_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Insert,Mmap,False,z]]
 
-<Macro Definitions>
+Toggle_Macro := [!,Apply,λz.[!,Insert,z,!,Not,!,Lookup,z]]
 
-Ternary Nominalization Closing Macro := [Noun, Build, Build, Build, (i3,i2,i1)]
-(N-ary nominalization closing macros are defined analogously)
+Mode_Toggle_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Thaw,Toggle_Macro,Mmap,z,z]]
 
-Binary Clause Closing Macro := [Clause, Build, Build, (i2,i1)]
-(N-ary clause closing macros are defined analogously)
+Quantifier_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,Quantifier_Word:QQ,z],!,Thaw,Mode_Toggle_Macro]
 
-Binary Predicate Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Predicate_Name:S]
-(N-ary predicate macros are defined analogously)
+Focus_Macro := [!,Back,QN,!,Assign,!,Thaw,Duplicate_Macro,!,Get,QN]
 
-Noun Macro := [Deter, Join, [Use], Noun:S]
+Release_Macro := [!,Apply,λz.[!,Insert,Fmap,False,z,!,If,!,Lookup,Fmap,z,[!,Back,QN,z],[]]]
 
-Relation Macro := [Add, Join, [Relation:R]]
+Predicate_Relation_Macro := [!,Apply,!,Apply,!,Apply,!,Apply,λw.λx.λy.λz.[!,x,y,z,!,And,!,Equal,!,Use,z,!,Lookup,Mmap,z,w]]
 
-Adjective Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adjective_Predicate:S, Empty, Formula, y, z, Adjective_Set:S, Empty, Bubble, y]]
+Binary_Predicate_Macro := [!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λs.λt.λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Predicate:R,!,Thaw,Predicate_Relation_Macro,u,Subject:R,v,!,Thaw,Predicate_Relation_Macro,s,Object:R,t,x,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
 
-Adverb Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adverb_Predicate:S, Empty, Formula, y, z, Adverb_Set:S, Empty, Bubble, y]]
+Ternary_Quantification_Macro := [!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],(i3,i2,i1),[[[[]]]]]]
 
-Adverb Combine Macro := [For, Combine, Cancel]
+Ternary_Quantification_Mapping_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(i3,i2,i1),[[[[]]]],!,Mapping]
 
-Adverb Combine Cancel Macro := [Combine, Cancel]
+Forward_Connective_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(i2,i1),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Connective_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Connective_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
 
-Adverb Exchange Macro := [For, Exchange]
+Reverse_Connective_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(i1,i2),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Connective_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Connective_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
 
-<Examples>
+Bare_Connective_Macro := [!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Connective_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Connective_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
 
-1. "End Negation Eat_Macro Cat_Macro Fish_Macro"
+Adjective_Macro := [!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Scale_Set_Word:S,!,Back,WT,Scale_Relation_Word:R]
+
+Adverb_Macro := [!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,Adverb_Word:SS,!,Get,WT,!,Get,WT,!,Get,WT]
+
+Quantifying_Adverb_Macro := [!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,Quantifier_Word:QQ,!,Get,WT,!,Get,WT,!,Get,WT]
+
+Swap_Perm_Macro := [!,Back,PR,[!,Swap]]
+
+Left_Perm_Macro := [!,Back,PR,[!,Left]]
+
+Right_Perm_Macro := [!,Back,PR,[!,Right]]
+
+Top_Perm_Macro := [!,Back,PR,[!,Top]]
+
+Bottom_Perm_Macro := [!,Back,PR,[!,Bottom]]
+
+SideEffect_Top_Perm_Macro := [!,Back,PR,[!,Apply,!,Apply,λy.λz.[!,Top,y,[z]]]]
+
+SideEffect_Bottom_Perm_Macro := [!,Back,PR,[!,Apply,!,Apply,λy.λz.[!,Bottom,y,[z]]]]
+
+<Pre-Input Environment Setup>
+
+define Discard_Macro := [!,Apply,λz.[]]
+define Duplicate_Macro := [!,Apply,λz.[z,z]]
+define Intra_Clause_Negation_Macro := [!,Back,CM,!,Back,CM,!,Not,!,Get,CM,!,Get,CM]
+define Local_Negation_Macro := [!,Back,WT,!,Back,WT,!,Not,!,Get,WT,!,Get,WT]
+define Matrix_Negation_Macro := [!,Back,QN,!,Apply,λz.[!,If,!,Lookup,Mmap,z,[!,Insert,Imap,!,Not,!,Lookup,Imap,z,z],[!,Insert,Omap,!,Not,!,Lookup,Omap,z,z]],!,Get,QN]
+define Upload_Macro := [!,Upload]
+define Positive_Download_Macro := [!,Download,!,Back,CM,True]
+define Negative_Download_Macro := [!,Download,!,Back,CM,False]
+define Relative_Clause_Macro := [!,Thaw,Discard_Macro,!,Insert,Fmap,True,!,Get,QN]
+define Inner_Mode_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Insert,Mmap,True,z]]
+define Outer_Mode_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Insert,Mmap,False,z]]
+define Toggle_Macro := [!,Apply,λm.[!,Insert,m,!,Not,!,Lookup,m]]
+define Mode_Toggle_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Thaw,Toggle_Macro,Mmap,z,z]]
+define Focus_Macro := [!,Back,QN,!,Assign,!,Thaw,Duplicate_Macro,!,Get,QN]
+define Release_Macro := [!,Apply,λz.[!,Insert,Fmap,False,z,!,If,!,Lookup,Fmap,z,[!,Back,QN,z],[]]]
+define Exist_Quantifier_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,Exist:QQ,z],!,Thaw,Mode_Toggle_Macro]
+define Forall_Quantifier_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,Forall:QQ,z],!,Thaw,Mode_Toggle_Macro]
+define More_Than_Half_Macro := [!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,λz.["MoreThanHalf",z],z],!,Thaw,Mode_Toggle_Macro]
+define Conditional_Repeat_Macro := [!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,If,z,[!,Apply,!,Apply,!,Apply,x,x,y,!,Thaw,y],[]],λx.λy.λz.[!,If,z,[!,Apply,!,Apply,!,Apply,x,x,y,!,Thaw,y],[]]]
+define Count_Execute_Macro := [!,Apply,λy.[[!,Apply,λz.[!,If,!,Equal,z,[],False,[True,!,Thaw,z,!,Thaw,y]]],True]]
+define Count_Repeat_Macro := [!,Thaw,Conditional_Repeat_Macro,!,Thaw,Count_Execute_Macro]
+define Predicate_Relation_Macro := [!,Apply,!,Apply,!,Apply,!,Apply,λw.λx.λy.λz.[!,x,y,z,!,And,!,Equal,!,Use,z,!,Lookup,Mmap,z,w]]
+define Binary_Predicate_Macro := [!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λs.λt.λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Predicate:R,!,Thaw,Predicate_Relation_Macro,u,Subject:R,v,!,Thaw,Predicate_Relation_Macro,s,Object:R,t,x,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Unary_Quantification_Macro := [!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],(1),[[]]]]
+define Binary_Quantification_Macro := [!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],(2,1),[[[]]]]]
+define Ternary_Quantification_Macro := [!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],(3,2,1),[[[[]]]]]]
+define Nullary_Quantification_Mapping_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(),[],!,Mapping]
+define Unary_Quantification_Mapping_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(1),[[]],!,Mapping]
+define Ternary_Quantification_Mapping_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(3,2,1),[[[[]]]],!,Mapping]
+define Quaternary_Quantification_Mapping_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(4,3,2,1),[[[[[]]]]],!,Mapping]
+define Senary_Quantification_Mapping_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(6,5,4,3,2,1),[[[[[[[]]]]]]],!,Mapping]
+define Swap_Perm_Macro := [!,Back,PR,[!,Swap]]
+define Left_Perm_Macro := [!,Back,PR,[!,Left]]
+define Right_Perm_Macro := [!,Back,PR,[!,Right]]
+define Top_Perm_Macro := [!,Back,PR,[!,Top]]
+define Bottom_Perm_Macro := [!,Back,PR,[!,Bottom]]
+define SideEffect_Top_Perm_Macro := [!,Back,PR,[!,Apply,!,Apply,λy.λz.[!,Top,y,[z]]]]
+define SideEffect_Bottom_Perm_Macro := [!,Back,PR,[!,Apply,!,Apply,λy.λz.[!,Bottom,y,[z]]]]
+define Forward_Connective_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(2,1),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Connective_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Connective_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Reverse_Connective_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(1,2),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Connective_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Connective_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Bare_Connective_Macro := [!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Connective_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Connective_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Forward_Causal_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(2,1),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Causal_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Causal_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Reverse_Causal_Macro := [!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(1,2),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Causal_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Causal_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Bare_Causal_Macro := [!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Predicate_Relation_Macro,w,Causal_Antecedent:R,x,!,Thaw,Predicate_Relation_Macro,u,Causal_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define R_Relation_Macro := [!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R1_Relation_Macro := [!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R1:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R2_Relation_Macro := [!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R2:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R3_Relation_Macro := [!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R3:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R4_Relation_Macro := [!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R4:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R5_Relation_Macro := [!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R5:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define S_Macro := [!,Combine,!,S:S]
+define S1_Macro := [!,Combine,!,S1:S]
+define S2_Macro := [!,Combine,!,S2:S]
+define S3_Macro := [!,Combine,!,S3:S]
+define S4_Macro := [!,Combine,!,S4:S]
+define S5_Macro := [!,Combine,!,S5:S]
+define Predicate_Macro := [!,Combine,!,Predicate:S]
+define Subject_Macro := [!,Combine,!,Subject:S]
+define Object_Macro := [!,Combine,!,Object:S]
+define Predicate1_Macro := [!,Combine,!,Predicate1:S]
+define Predicate2_Macro := [!,Combine,!,Predicate2:S]
+define Subject1_Macro := [!,Combine,!,Subject1:S]
+define Object1_Macro := [!,Combine,!,Object1:S]
+define Subject2_Macro := [!,Combine,!,Subject2:S]
+define Object2_Macro := [!,Combine,!,Object2:S]
+define Subject3_Macro := [!,Combine,!,Subject3:S]
+define Object3_Macro := [!,Combine,!,Object3:S]
+define Subject4_Macro := [!,Combine,!,Subject4:S]
+define Object4_Macro := [!,Combine,!,Object4:S]
+define Donkey_Macro := [!,Combine,!,Donkey:S]
+define Farmer_Macro := [!,Combine,!,Farmer:S]
+define Own_Macro := [!,Combine,!,Own:S]
+define Beat_Macro := [!,Combine,!,Beat:S]
+define Heavy_Macro := [!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,0~1:S,!,Back,WT,Weight_Scale:R]
+define Tall_Macro := [!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,0~1:S,!,Back,WT,Height_Scale:R]
+define Exist_Adverb_Macro := [!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,Exist:QQ,!,Get,WT,!,Get,WT,!,Get,WT]
+define Forall_Adverb_Macro := [!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,Forall:QQ,!,Get,WT,!,Get,WT,!,Get,WT]
+map Predicate -> Binary_Predicate_Macro
+map Predicate1 -> Binary_Predicate_Macro
+map Predicate2 -> Binary_Predicate_Macro
+map Own -> Binary_Predicate_Macro
+map Beat -> Binary_Predicate_Macro
+
+<Benchmark Traces>
+
+1.
+Input:
+Ternary_Quantification_Mapping_Macro S5_Macro R5_Relation_Macro Unary_Quantification_Macro Predicate_Macro Subject_Macro S4_Macro S2_Macro R2_Relation_Macro Unary_Quantification_Macro S3_Macro R3_Relation_Macro Unary_Quantification_Macro R4_Relation_Macro Unary_Quantification_Macro Object_Macro S1_Macro R1_Relation_Macro Unary_Quantification_Macro
+
 Program Output:
 ==================== Machine State ====================
 Input Stack (IP):
-Var Stack (VR):         ... v13 v12 v11 v10 v9 v8
-Component Stack (CM):
-Quant Stack (QN):       None
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
-Output Stack (OP):      v7∈Ω∧(Exist v1∈Fish (Exist v3∈Cat (Exist v5∈Eat Not(Subject(v5,v3)∧Object(v5,v1)∧Predicate(v7,v5))))) v7
-Counter (Count):        0
-------------------------- Maps -------------------------
-Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v2", "Fish"), ("v4", "Cat"), ("v6", "Eat")]
-Fmap (Filters):         [("v2", "#"), ("v4", "#"), ("v6", "#")]
-Amap (Associations):    [("v1", "v2"), ("v3", "v4"), ("v5", "v6")]
-========================================================
-Semantics: The cat does not eat fish (under default quantification)
-
-2. "End Eat_Macro Not All Fast_Macro Cat_Macro Not All Old_Macro Fish_Macro Not All Heavy_Macro"
-Program Output:
-==================== Machine State ====================
-Input Stack (IP):
-Var Stack (VR):         ... v34 v33 v32 v31 v30 v29
-Component Stack (CM):
-Quant Stack (QN):       None
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
-Output Stack (OP):      v28∈Ω∧(All v2∈{v3∈Fish|v9∈Ω∧(Exist v1∈Large_Weight (Exist v7∈Weight_Is Subject(v7,v3)∧Object(v7,v1)∧Predicate(v9,v7)))} (All v11∈{v12∈Cat|v18∈Ω∧(Exist v10∈Large_Age (Exist v16∈Age_Is Subject(v16,v12)∧Object(v16,v10)∧Predicate(v18,v16)))} (All v20∈{v21∈Eat|v27∈Ω∧(Exist v19∈Large_Speed (Exist v25∈Speed_Is Subject(v25,v21)∧Object(v25,v19)∧Predicate(v27,v25)))} Not Subject(v20,v11)∧Not Object(v20,v2)∧Not Predicate(v28,v20)))) v28
-Counter (Count):        0
-------------------------- Maps -------------------------
-Emap (Environment):     []
-Qmap (Quantifiers):     [("v11", "All"), ("v2", "All"), ("v20", "All")]
-Smap (Sets):            [("v12", "Cat"), ("v14", "Large_Age"), ("v17", "Age_Is"), ("v21", "Eat"), ("v23", "Large_Speed"), ("v26", "Speed_Is"), ("v3", "Fish"), ("v5", "Large_Weight"), ("v8", "Weight_Is")]
-Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v12", "v18∈Ω∧(Exist v10∈Large_Age (Exist v16∈Age_Is Subject(v16,v12)∧Object(v16,v10)∧Predicate(v18,v16)))"), ("v13", "#"), ("v14", "#"), ("v15", "#"), ("v17", "#"), ("v19", "#"), ("v21", "v27∈Ω∧(Exist v19∈Large_Speed (Exist v25∈Speed_Is Subject(v25,v21)∧Object(v25,v19)∧Predicate(v27,v25)))"), ("v22", "#"), ("v23", "#"), ("v24", "#"), ("v26", "#"), ("v3", "v9∈Ω∧(Exist v1∈Large_Weight (Exist v7∈Weight_Is Subject(v7,v3)∧Object(v7,v1)∧Predicate(v9,v7)))"), ("v4", "#"), ("v5", "#"), ("v6", "#"), ("v8", "#")]
-Amap (Associations):    [("v1", "v5"), ("v10", "v14"), ("v11", "v12"), ("v16", "v17"), ("v19", "v23"), ("v2", "v3"), ("v20", "v21"), ("v25", "v26"), ("v7", "v8")]
-========================================================
-Semantics: There exists an event where fast eating is not the predicate, the old cat is not the subject, and the heavy fish is not the object (under default quantification)
-
-3. "Person:S Tall_Macro Very_Macro Heavy_Macro Old_Macro Very_Macro Very_Macro"
-Program Output:
-==================== Machine State ====================
-Input Stack (IP):
-Var Stack (VR):         ... v54 v53 v52 v51 v50 v49
-Component Stack (CM):   True v27
-Quant Stack (QN):       None v27
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
+Num Stack (NM):         ... 15 14 13 12 11 10
+Quant Stack (QN):       9
+Wait Stack (WT):
+Component Stack (CM):   True 9
+Perm Stack (PR):
 Output Stack (OP):
-Counter (Count):        0
+Focus Register (<F>):   9
 ------------------------- Maps -------------------------
+Imap (Restrictors):     [9 -> (Exist α_2∈{α_2∈Object | (Exist α_1∈S1 R1(α_2,α_1))} (Exist α_6∈{α_6∈Subject | (Exist α_5∈{α_5∈S4 | (Exist α_3∈S3 (Exist α_4∈S2 R2(α_5,α_4)) ∧ R3(α_5,α_3))} R4(α_6,α_5))} (Exist α_7∈Predicate Object(α_7,α_2) ∧ Subject(α_7,α_6) ∧ (Exist α_8∈S5 R5(α_9,α_8)) ∧ Predicate(α_9,α_7))))]
+Omap (Nuclear Scopes):  [9 -> #]
+Qmap (Quantifiers):     [9 -> Exist]
+Smap (Sets):            [9 -> Ω]
+Mmap (Modes):           [9 -> True]
+Fmap (Focus Flags):     [9 -> False]
 Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v11", "Large_Degree"), ("v14", "Degree_Is"), ("v21", "Large_Degree"), ("v24", "Degree_Is"), ("v28", "Person"), ("v30", "Large_Height"), ("v33", "Height_Is"), ("v36", "Large_Weight"), ("v39", "Weight_Is"), ("v4", "Large_Degree"), ("v42", "Large_Age"), ("v45", "Age_Is"), ("v7", "Degree_Is")]
-Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v17", "#"), ("v18", "#"), ("v19", "v25∈Ω∧(Exist v18∈Large_Degree (Exist v23∈Degree_Is Subject(v23,v19)∧Object(v23,v18)∧Predicate(v25,v23)))"), ("v2", "v8∈Ω∧(Exist v1∈Large_Degree (Exist v6∈Degree_Is Subject(v6,v2)∧Object(v6,v1)∧Predicate(v8,v6)))"), ("v20", "#"), ("v21", "#"), ("v22", "#"), ("v24", "#"), ("v26", "#"), ("v28", "And_consequent(v48,v47)∧And_antecedent(v48,v34)∧And_consequent(v47,v46)∧And_antecedent(v47,v40)∧v46∈Ω∧(Exist v9∈Large_Age (Exist v44∈Age_Is Subject(v44,v28)∧Object(v44,v9)∧Predicate(v46,v44)))∧v40∈Ω∧(Exist v16∈Large_Weight (Exist v38∈Weight_Is Subject(v38,v28)∧Object(v38,v16)∧Predicate(v40,v38)))∧v34∈Ω∧(Exist v19∈Large_Height (Exist v32∈Height_Is Subject(v32,v28)∧Object(v32,v19)∧Predicate(v34,v32)))"), ("v29", "#"), ("v3", "#"), ("v30", "#"), ("v31", "#"), ("v33", "#"), ("v35", "#"), ("v36", "#"), ("v37", "#"), ("v39", "#"), ("v4", "#"), ("v41", "#"), ("v42", "#"), ("v43", "#"), ("v45", "#"), ("v5", "#"), ("v7", "#"), ("v9", "v15∈Ω∧(Exist v2∈Large_Degree (Exist v13∈Degree_Is Subject(v13,v9)∧Object(v13,v2)∧Predicate(v15,v13)))")]
-Amap (Associations):    [("v1", "v4"), ("v13", "v14"), ("v16", "v36"), ("v18", "v21"), ("v19", "v30"), ("v2", "v11"), ("v23", "v24"), ("v27", "v28"), ("v32", "v33"), ("v38", "v39"), ("v44", "v45"), ("v6", "v7"), ("v9", "v42")]
 ========================================================
-Semantics: A very very old, heavy, very tall person
+Semantics: The complete proposition where the Subject (modified by S4, which in turn is modified by S2 and S3) acts via the Predicate (modified by S5) on the Object (modified by S1).
 
-4. "Person:S Tall_Macro Very_Macro Heavy_Macro Adv_C_Macro Adv_Combine_Macro Adv_B_Macro Cancel Adv_A_Macro Old_Macro Very_Macro Very_Macro"
+2.
+Input:
+Ternary_Quantification_Mapping_Macro Intra_Clause_Negation_Macro Predicate_Macro Intra_Clause_Negation_Macro Ternary_Quantification_Mapping_Macro Predicate_Macro Relative_Clause_Macro Subject2_Macro Object2_Macro Intra_Clause_Negation_Macro Ternary_Quantification_Mapping_Macro Predicate_Macro Subject1_Macro Relative_Clause_Macro Object1_Macro
+
 Program Output:
 ==================== Machine State ====================
 Input Stack (IP):
-Var Stack (VR):         ... v77 v76 v75 v74 v73 v72
-Component Stack (CM):   True v50
-Quant Stack (QN):       None v50
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
+Num Stack (NM):         ... 16 15 14 13 12 11
+Quant Stack (QN):       10
+Wait Stack (WT):
+Component Stack (CM):   True 10
+Perm Stack (PR):
 Output Stack (OP):
-Counter (Count):        0
+Focus Register (<F>):   10
 ------------------------- Maps -------------------------
+Imap (Restrictors):     [10 -> (Exist α_1∈{α_1∈Object1 | (Exist α_2∈Subject1 (Exist α_3∈Predicate Object(α_3,α_1) ∧ Subject(α_3,α_2) ∧ (Exist α_4∈Ω Predicate(α_4,α_3))))} (Exist α_6∈{α_6∈Subject2 | (Exist α_5∈Object2 (Exist α_7∈Predicate Object(α_7,α_5) ∧ Subject(α_7,α_6) ∧ (Exist α_8∈Ω Predicate(α_8,α_7))))} (Exist α_9∈Predicate not Object(α_9,α_1) ∧ not Subject(α_9,α_6) ∧ not Predicate(α_10,α_9))))]
+Omap (Nuclear Scopes):  [10 -> #]
+Qmap (Quantifiers):     [10 -> Exist]
+Smap (Sets):            [10 -> Ω]
+Mmap (Modes):           [10 -> True]
+Fmap (Focus Flags):     [10 -> False]
 Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v11", "Large_Degree"), ("v14", "Degree_Is"), ("v21", "Adv_B_Set"), ("v24", "Adv_B_Predicate"), ("v27", "Adv_A_Set"), ("v30", "Adv_A_Predicate"), ("v35", "Adv_C_Set"), ("v38", "Adv_C_Predicate"), ("v4", "Large_Degree"), ("v44", "Large_Degree"), ("v47", "Degree_Is"), ("v51", "Person"), ("v53", "Large_Height"), ("v56", "Height_Is"), ("v59", "Large_Weight"), ("v62", "Weight_Is"), ("v65", "Large_Age"), ("v68", "Age_Is"), ("v7", "Degree_Is")]
-Fmap (Filters):         [("v1", "#"), ("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v17", "#"), ("v18", "#"), ("v19", "And_consequent(v32,v31)∧And_antecedent(v32,v25)∧v31∈Ω∧(Exist v16∈Adv_A_Set (Exist v29∈Adv_A_Predicate Subject(v29,v19)∧Object(v29,v16)∧Predicate(v31,v29)))∧v25∈Ω∧(Exist v17∈Adv_B_Set (Exist v23∈Adv_B_Predicate Subject(v23,v19)∧Object(v23,v17)∧Predicate(v25,v23)))"), ("v2", "v8∈Ω∧(Exist v1∈Large_Degree (Exist v6∈Degree_Is Subject(v6,v2)∧Object(v6,v1)∧Predicate(v8,v6)))"), ("v20", "#"), ("v21", "#"), ("v22", "#"), ("v24", "#"), ("v26", "#"), ("v27", "#"), ("v28", "#"), ("v3", "#"), ("v30", "#"), ("v33", "v39∈Ω∧(Exist v19∈Adv_C_Set (Exist v37∈Adv_C_Predicate Subject(v37,v33)∧Object(v37,v19)∧Predicate(v39,v37)))"), ("v34", "#"), ("v35", "#"), ("v36", "#"), ("v38", "#"), ("v4", "#"), ("v40", "#"), ("v41", "#"), ("v42", "v48∈Ω∧(Exist v41∈Large_Degree (Exist v46∈Degree_Is Subject(v46,v42)∧Object(v46,v41)∧Predicate(v48,v46)))"), ("v43", "#"), ("v44", "#"), ("v45", "#"), ("v47", "#"), ("v49", "#"), ("v5", "#"), ("v51", "And_consequent(v71,v70)∧And_antecedent(v71,v57)∧And_consequent(v70,v69)∧And_antecedent(v70,v63)∧v69∈Ω∧(Exist v9∈Large_Age (Exist v67∈Age_Is Subject(v67,v51)∧Object(v67,v9)∧Predicate(v69,v67)))∧v63∈Ω∧(Exist v33∈Large_Weight (Exist v61∈Weight_Is Subject(v61,v51)∧Object(v61,v33)∧Predicate(v63,v61)))∧v57∈Ω∧(Exist v42∈Large_Height (Exist v55∈Height_Is Subject(v55,v51)∧Object(v55,v42)∧Predicate(v57,v55)))"), ("v52", "#"), ("v53", "#"), ("v54", "#"), ("v56", "#"), ("v58", "#"), ("v59", "#"), ("v60", "#"), ("v62", "#"), ("v64", "#"), ("v65", "#"), ("v66", "#"), ("v68", "#"), ("v7", "#"), ("v9", "v15∈Ω∧(Exist v2∈Large_Degree (Exist v13∈Degree_Is Subject(v13,v9)∧Object(v13,v2)∧Predicate(v15,v13)))")]
-Amap (Associations):    [("v1", "v4"), ("v13", "v14"), ("v16", "v27"), ("v17", "v21"), ("v19", "v35"), ("v2", "v11"), ("v23", "v24"), ("v29", "v30"), ("v33", "v59"), ("v37", "v38"), ("v41", "v44"), ("v42", "v53"), ("v46", "v47"), ("v50", "v51"), ("v55", "v56"), ("v6", "v7"), ("v61", "v62"), ("v67", "v68"), ("v9", "v65")]
 ========================================================
-Semantics: A very very old, A-and-B-ly C-ly heavy, very tall person
+Semantics: Subject2 and Object1 (each hosting relative clauses) in the matrix clause have their thematic roles independently negated (not Object, not Subject, not Predicate).
 
-5. "End Then:C Negation Read_Macro Exist Download child Download book Negation Give_Macro Exist Farmer_Macro All Upload child Child_Macro All Upload book Book_Macro All"
+3.
+Input:
+Ternary_Quantification_Mapping_Macro Ternary_Quantification_Mapping_Macro Relative_Clause_Macro Ternary_Quantification_Mapping_Macro Relative_Clause_Macro Predicate_Macro Ternary_Quantification_Mapping_Macro Predicate_Macro Relative_Clause_Macro Subject2_Macro Object2_Macro Ternary_Quantification_Mapping_Macro Predicate_Macro Subject1_Macro Relative_Clause_Macro Object1_Macro Subject3_Macro Object3_Macro Subject4_Macro Object4_Macro
+
 Program Output:
 ==================== Machine State ====================
 Input Stack (IP):
-Var Stack (VR):         ... v19 v18 v17 v16 v15 v14
-Component Stack (CM):
-Quant Stack (QN):       None
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
-Output Stack (OP):      v13∈Ω∧(All v1∈Book (All v3∈Child (All v5∈Farmer (Exist v7∈Give (Exist v10∈Read Then_consequent(v13,v12)∧Then_antecedent(v13,v9)∧Not(Subject(v10,v3)∧Object(v10,v1)∧Predicate(v12,v10))∧Not(Subject(v7,v5)∧Object(v7,v3)∧Theme(v7,v1)∧Predicate(v9,v7))))))) v13
-Counter (Count):        0
-------------------------- Maps -------------------------
-Emap (Environment):     [("book", "v1"), ("child", "v3")]
-Qmap (Quantifiers):     [("v1", "All"), ("v10", "Exist"), ("v3", "All"), ("v5", "All"), ("v7", "Exist")]
-Smap (Sets):            [("v11", "Read"), ("v2", "Book"), ("v4", "Child"), ("v6", "Farmer"), ("v8", "Give")]
-Fmap (Filters):         [("v11", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
-Amap (Associations):    [("v1", "v2"), ("v10", "v11"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8")]
-========================================================
-Semantics: If the farmer does not give the child the book, the child will not read it (under default quantification)
-
-6. "End Eat_Macro Noun_A_Macro Rel_A_Macro Noun_B_Macro Rel_B_Macro Cat_Macro Noun_C_Macro Rel_C_Macro Noun_D_Macro Rel_D_Macro Fish_Macro Noun_E_Macro Rel_E_Macro Noun_F_Macro Rel_F_Macro"
-Program Output:
-==================== Machine State ====================
-Input Stack (IP):
-Var Stack (VR):         ... v25 v24 v23 v22 v21 v20
-Component Stack (CM):
-Quant Stack (QN):       None
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
-Output Stack (OP):      v19∈Ω∧(Exist v1∈Noun_F (Exist v3∈Noun_E (Exist v5∈Fish (Exist v7∈Noun_D (Exist v9∈Noun_C (Exist v11∈Cat (Exist v13∈Noun_B (Exist v15∈Noun_A (Exist v17∈Eat Rel_E(v5,v3)∧Rel_F(v5,v1)∧Rel_C(v11,v9)∧Rel_D(v11,v7)∧Rel_A(v17,v15)∧Rel_B(v17,v13)∧Subject(v17,v11)∧Object(v17,v5)∧Predicate(v19,v17)))))))))) v19
-Counter (Count):        0
-------------------------- Maps -------------------------
-Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v10", "Noun_C"), ("v12", "Cat"), ("v14", "Noun_B"), ("v16", "Noun_A"), ("v18", "Eat"), ("v2", "Noun_F"), ("v4", "Noun_E"), ("v6", "Fish"), ("v8", "Noun_D")]
-Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v16", "#"), ("v18", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
-Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v15", "v16"), ("v17", "v18"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
-========================================================
-Semantics: The cat eats the fish (cat, eat, and fish are all modified)
-
-7. "End Eat_Macro Noun_A_Macro Noun_B_Macro Rel_A_Macro Noun_C_Macro Noun_D_Macro Rel_B_Macro Rel_C_Macro Rel_D_Macro Cat_Macro Fish_Macro"
-Program Output:
-==================== Machine State ====================
-Input Stack (IP):
-Var Stack (VR):         ... v21 v20 v19 v18 v17 v16
-Component Stack (CM):
-Quant Stack (QN):       None
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
-Output Stack (OP):      v15∈Ω∧(Exist v1∈Fish (Exist v3∈Cat (Exist v5∈Noun_D (Exist v7∈Noun_C (Exist v9∈Noun_B (Exist v11∈Noun_A (Exist v13∈Eat Rel_B(v7,v5)∧Rel_A(v11,v9)∧Rel_C(v11,v7)∧Rel_D(v13,v11)∧Subject(v13,v3)∧Object(v13,v1)∧Predicate(v15,v13)))))))) v15
-Counter (Count):        0
-------------------------- Maps -------------------------
-Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v10", "Noun_B"), ("v12", "Noun_A"), ("v14", "Eat"), ("v2", "Fish"), ("v4", "Cat"), ("v6", "Noun_D"), ("v8", "Noun_C")]
-Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
-Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
-========================================================
-Semantics: The cat eats the fish (eat is nestedly modified)
-
-8. "End Attack_Macro RedTeam_Macro Yesterday_Macro Not At_Macro West_Macro Not At_Macro BlueTeam_Macro Today_Macro Not At_Macro East_Macro Not At_Macro"
-Program Output:
-==================== Machine State ====================
-Input Stack (IP):
-Var Stack (VR):         ... v21 v20 v19 v18 v17 v16
-Component Stack (CM):
-Quant Stack (QN):       None
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
-Output Stack (OP):      v15∈Ω∧(Exist v1∈East (Exist v3∈Today (Exist v5∈BlueTeam (Exist v7∈West (Exist v9∈Yesterday (Exist v11∈RedTeam (Exist v13∈Attack Not At(v5,v3)∧Not At(v5,v1)∧Not At(v11,v9)∧Not At(v11,v7)∧Subject(v13,v11)∧Object(v13,v5)∧Predicate(v15,v13)))))))) v15
-Counter (Count):        0
-------------------------- Maps -------------------------
-Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v10", "Yesterday"), ("v12", "RedTeam"), ("v14", "Attack"), ("v2", "East"), ("v4", "Today"), ("v6", "BlueTeam"), ("v8", "West")]
-Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v14", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#")]
-Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v13", "v14"), ("v3", "v4"), ("v5", "v6"), ("v7", "v8"), ("v9", "v10")]
-========================================================
-Semantics: The red team that was not in the west yesterday attacks the blue team that is not in the east today
-
-9. "Person:S Exchange Very_Macro Tall_Macro Adv_B_Macro Heavy_Macro Adv_A_Macro"
-Program Output:
-==================== Machine State ====================
-Input Stack (IP):
-Var Stack (VR):         ... v45 v44 v43 v42 v41 v40
-Component Stack (CM):   True v25
-Quant Stack (QN):       None v25
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
+Num Stack (NM):         ... 22 21 20 19 18 17
+Quant Stack (QN):       16
+Wait Stack (WT):
+Component Stack (CM):   True 16
+Perm Stack (PR):
 Output Stack (OP):
-Counter (Count):        0
+Focus Register (<F>):   16
 ------------------------- Maps -------------------------
+Imap (Restrictors):     [16 -> (Exist α_1∈Object4 (Exist α_2∈Subject4 (Exist α_13∈{α_13∈Predicate | (Exist α_3∈Object3 (Exist α_4∈Subject3 (Exist α_15∈Ω Predicate(α_15,α_13) ∧ (Exist α_5∈{α_5∈Object1 | (Exist α_6∈Subject1 (Exist α_7∈Predicate Object(α_7,α_5) ∧ Subject(α_7,α_6) ∧ (Exist α_8∈Ω Predicate(α_8,α_7))))} (Exist α_10∈{α_10∈Subject2 | (Exist α_9∈Object2 (Exist α_11∈Predicate Object(α_11,α_9) ∧ Subject(α_11,α_10) ∧ (Exist α_12∈Ω Predicate(α_12,α_11))))} (Exist α_14∈Ω Predicate(α_14,α_13) ∧ Object(α_13,α_5) ∧ Subject(α_13,α_10)))) ∧ Object(α_13,α_3) ∧ Subject(α_13,α_4))))} Object(α_13,α_1) ∧ Subject(α_13,α_2) ∧ Predicate(α_16,α_13))))]
+Omap (Nuclear Scopes):  [16 -> #]
+Qmap (Quantifiers):     [16 -> Exist]
+Smap (Sets):            [16 -> Ω]
+Mmap (Modes):           [16 -> True]
+Fmap (Focus Flags):     [16 -> False]
 Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v12", "Adv_B_Set"), ("v15", "Adv_B_Predicate"), ("v20", "Large_Degree"), ("v23", "Degree_Is"), ("v26", "Person"), ("v28", "Large_Height"), ("v31", "Height_Is"), ("v34", "Large_Weight"), ("v37", "Weight_Is"), ("v4", "Adv_A_Set"), ("v7", "Adv_A_Predicate")]
-Fmap (Filters):         [("v1", "#"), ("v10", "v16∈Ω∧(Exist v9∈Adv_B_Set (Exist v14∈Adv_B_Predicate Subject(v14,v10)∧Object(v14,v9)∧Predicate(v16,v14)))∧v24∈Ω∧(Exist v18∈Large_Degree (Exist v22∈Degree_Is Subject(v22,v10)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v11", "#"), ("v12", "#"), ("v13", "#"), ("v15", "#"), ("v17", "v24∈Ω∧(Exist v18∈Large_Degree (Exist v22∈Degree_Is Subject(v22,v17)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v18", "#"), ("v19", "#"), ("v2", "v8∈Ω∧(Exist v1∈Adv_A_Set (Exist v6∈Adv_A_Predicate Subject(v6,v2)∧Object(v6,v1)∧Predicate(v8,v6)))∧v24∈Ω∧(Exist v18∈Large_Degree (Exist v22∈Degree_Is Subject(v22,v2)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v20", "#"), ("v21", "#"), ("v23", "#"), ("v26", "And_consequent(v39,v38)∧And_antecedent(v39,v32)∧v38∈Ω∧(Exist v2∈Large_Weight (Exist v36∈Weight_Is Subject(v36,v26)∧Object(v36,v2)∧Predicate(v38,v36)))∧v32∈Ω∧(Exist v10∈Large_Height (Exist v30∈Height_Is Subject(v30,v26)∧Object(v30,v10)∧Predicate(v32,v30)))"), ("v27", "#"), ("v28", "#"), ("v29", "#"), ("v3", "#"), ("v31", "#"), ("v33", "#"), ("v34", "#"), ("v35", "#"), ("v37", "#"), ("v4", "#"), ("v5", "#"), ("v7", "#"), ("v9", "#")]
-Amap (Associations):    [("v1", "v4"), ("v10", "v28"), ("v14", "v15"), ("v18", "v20"), ("v2", "v34"), ("v22", "v23"), ("v25", "v26"), ("v30", "v31"), ("v36", "v37"), ("v6", "v7"), ("v9", "v12")]
 ========================================================
-Semantics: An A-and-very-ly heavy, B-and-very-ly tall person
+Semantics: Four levels of deeply nested relative clauses (predicates as first-class sets directly hosting relative clause modification).
 
-10. "Person:S Heavy_Macro Adv_Exchange_Macro Adv_E_Macro Adv_Combine_Cancel_Macro Adv_D_Macro Adv_C_Macro Cancel Adv_B_Macro Adv_A_Macro"
+4.
+Input:
+S_Macro S1_Macro R1_Relation_Macro Unary_Quantification_Macro Forall_Quantifier_Macro S2_Macro R2_Relation_Macro S3_Macro R3_Relation_Macro Binary_Quantification_Macro More_Than_Half_Macro
+
 Program Output:
 ==================== Machine State ====================
 Input Stack (IP):
-Var Stack (VR):         ... v52 v51 v50 v49 v48 v47
-Component Stack (CM):   True v39
-Quant Stack (QN):       None v39
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
+Num Stack (NM):         ... 10 9 8 7 6 5
+Quant Stack (QN):       4
+Wait Stack (WT):
+Component Stack (CM):   True 4
+Perm Stack (PR):
 Output Stack (OP):
-Counter (Count):        0
+Focus Register (<F>):   0
 ------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_3∈S1 R1(α_4,α_3))]
+Omap (Nuclear Scopes):  [4 -> (Exist α_1∈S3 (Exist α_2∈S2 R2(α_4,α_2) ∧ R3(α_4,α_1)))]
+Qmap (Quantifiers):     [4 -> MoreThanHalfForall]
+Smap (Sets):            [4 -> S]
+Mmap (Modes):           [4 -> True]
+Fmap (Focus Flags):     [4 -> False]
 Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v12", "Adv_C_Set"), ("v15", "Adv_C_Predicate"), ("v20", "Adv_E_Set"), ("v23", "Adv_E_Predicate"), ("v27", "Adv_D_Set"), ("v30", "Adv_D_Predicate"), ("v33", "Adv_B_Set"), ("v36", "Adv_B_Predicate"), ("v4", "Adv_A_Set"), ("v40", "Person"), ("v42", "Large_Weight"), ("v45", "Weight_Is"), ("v7", "Adv_A_Predicate")]
-Fmap (Filters):         [("v1", "#"), ("v10", "v16∈Ω∧(Exist v9∈Adv_C_Set (Exist v14∈Adv_C_Predicate Subject(v14,v10)∧Object(v14,v9)∧Predicate(v16,v14)))∧v24∈Ω∧(Exist v18∈Adv_E_Set (Exist v22∈Adv_E_Predicate Subject(v22,v10)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v11", "#"), ("v12", "#"), ("v13", "#"), ("v15", "#"), ("v17", "v24∈Ω∧(Exist v18∈Adv_E_Set (Exist v22∈Adv_E_Predicate Subject(v22,v17)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v18", "#"), ("v19", "#"), ("v2", "v8∈Ω∧(Exist v1∈Adv_A_Set (Exist v6∈Adv_A_Predicate Subject(v6,v2)∧Object(v6,v1)∧Predicate(v8,v6)))∧v24∈Ω∧(Exist v18∈Adv_E_Set (Exist v22∈Adv_E_Predicate Subject(v22,v2)∧Object(v22,v18)∧Predicate(v24,v22)))"), ("v20", "#"), ("v21", "#"), ("v23", "#"), ("v25", "And_consequent(v38,v37)∧And_antecedent(v38,v31)∧v37∈Ω∧(Exist v2∈Adv_B_Set (Exist v35∈Adv_B_Predicate Subject(v35,v25)∧Object(v35,v2)∧Predicate(v37,v35)))∧v31∈Ω∧(Exist v10∈Adv_D_Set (Exist v29∈Adv_D_Predicate Subject(v29,v25)∧Object(v29,v10)∧Predicate(v31,v29)))"), ("v26", "#"), ("v27", "#"), ("v28", "#"), ("v3", "#"), ("v30", "#"), ("v32", "#"), ("v33", "#"), ("v34", "#"), ("v36", "#"), ("v4", "#"), ("v40", "v46∈Ω∧(Exist v25∈Large_Weight (Exist v44∈Weight_Is Subject(v44,v40)∧Object(v44,v25)∧Predicate(v46,v44)))"), ("v41", "#"), ("v42", "#"), ("v43", "#"), ("v45", "#"), ("v5", "#"), ("v7", "#"), ("v9", "#")]
-Amap (Associations):    [("v1", "v4"), ("v10", "v27"), ("v14", "v15"), ("v18", "v20"), ("v2", "v33"), ("v22", "v23"), ("v25", "v42"), ("v29", "v30"), ("v35", "v36"), ("v39", "v40"), ("v44", "v45"), ("v6", "v7"), ("v9", "v12")]
 ========================================================
-Semantics: An A-and-E-ly B-ly, C-and-E-ly D-ly heavy person
+Semantics: "More than half of the S that R1 S1 also R2 S2 and R3 S3" (Generalized Quantifier restrictor/nuclear scope split).
 
-11. "End Eat_Macro Binary_Identity_Perm_Clause_Closing_Macro Negation Like_Macro That Ternary_Identity_Perm_Clause_Closing_Macro Negation Give_Macro Farmer_Macro Child_Macro That Cat_Macro Old_Macro Catnip_Macro Fish_Macro"
+5.
+Input:
+Quaternary_Quantification_Mapping_Macro Bare_Causal_Macro Unary_Quantification_Mapping_Macro Own_Macro Positive_Download_Macro y Positive_Download_Macro z Unary_Quantification_Mapping_Macro Beat_Macro Upload_Macro y Farmer_Macro Forall_Quantifier_Macro Upload_Macro z Donkey_Macro Forall_Quantifier_Macro
+
 Program Output:
 ==================== Machine State ====================
 Input Stack (IP):
-Var Stack (VR):         ... v32 v31 v30 v29 v28 v27
-Component Stack (CM):
-Quant Stack (QN):       None
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
-Output Stack (OP):      v26∈Ω∧(Exist v1∈Fish (Exist v6∈{v7∈Cat|v13∈Ω∧(Exist v5∈Large_Age (Exist v11∈Age_Is Subject(v11,v7)∧Object(v11,v5)∧Predicate(v13,v11)))∧v20∈Ω∧(Exist v14∈Child (Exist v16∈Farmer (Exist v18∈Give Not(Subject(v18,v16)∧Object(v18,v14)∧Theme(v18,v7)∧Predicate(v20,v18)))))∧v23∈Ω∧(Exist v3∈Catnip (Exist v21∈Like Not(Subject(v21,v7)∧Object(v21,v3)∧Predicate(v23,v21))))} (Exist v24∈Eat Subject(v24,v6)∧Object(v24,v1)∧Predicate(v26,v24)))) v26
-Counter (Count):        0
-------------------------- Maps -------------------------
-Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v12", "Age_Is"), ("v15", "Child"), ("v17", "Farmer"), ("v19", "Give"), ("v2", "Fish"), ("v22", "Like"), ("v25", "Eat"), ("v4", "Catnip"), ("v7", "Cat"), ("v9", "Large_Age")]
-Fmap (Filters):         [("v10", "#"), ("v12", "#"), ("v15", "#"), ("v17", "#"), ("v19", "#"), ("v2", "#"), ("v22", "#"), ("v25", "#"), ("v4", "#"), ("v5", "#"), ("v7", "v13∈Ω∧(Exist v5∈Large_Age (Exist v11∈Age_Is Subject(v11,v7)∧Object(v11,v5)∧Predicate(v13,v11)))∧v20∈Ω∧(Exist v14∈Child (Exist v16∈Farmer (Exist v18∈Give Not(Subject(v18,v16)∧Object(v18,v14)∧Theme(v18,v7)∧Predicate(v20,v18)))))∧v23∈Ω∧(Exist v3∈Catnip (Exist v21∈Like Not(Subject(v21,v7)∧Object(v21,v3)∧Predicate(v23,v21))))"), ("v8", "#"), ("v9", "#")]
-Amap (Associations):    [("v1", "v2"), ("v11", "v12"), ("v14", "v15"), ("v16", "v17"), ("v18", "v19"), ("v21", "v22"), ("v24", "v25"), ("v3", "v4"), ("v5", "v9"), ("v6", "v7")]
-========================================================
-Semantics: The old cat that was not given to the child by the farmer and does not like catnip eats fish (under default quantification)
-
-12. "End Discover_Macro Not Child_Macro Not Ternary_Identity_Perm_Nominalization_Closing_Macro Not Interesting_Macro Negation Like_Macro Cat_Macro Catnip_Macro"
-Program Output:
-==================== Machine State ====================
-Input Stack (IP):
-Var Stack (VR):         ... v26 v25 v24 v23 v22 v21
-Component Stack (CM):
-Quant Stack (QN):       None
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
-Output Stack (OP):      v20∈Ω∧(Exist v7∈{v9∈Ω|(Exist v1∈Catnip (Exist v3∈Cat (Exist v5∈Like Not(Subject(v5,v3)∧Object(v5,v1)∧Predicate(v9,v5)))))∧v15∈Ω∧(Exist v8∈Large_Interest (Exist v13∈Interest_Is Subject(v13,v9)∧Object(v13,v8)∧Predicate(v15,v13)))} (Exist v16∈Child (Exist v18∈Discover Not Subject(v18,v16)∧Not Object(v18,v7)∧Not Predicate(v20,v18)))) v20
-Counter (Count):        0
-------------------------- Maps -------------------------
-Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v11", "Large_Interest"), ("v14", "Interest_Is"), ("v17", "Child"), ("v19", "Discover"), ("v2", "Catnip"), ("v4", "Cat"), ("v6", "Like"), ("v9", "Ω")]
-Fmap (Filters):         [("v10", "#"), ("v11", "#"), ("v12", "#"), ("v14", "#"), ("v17", "#"), ("v19", "#"), ("v2", "#"), ("v4", "#"), ("v6", "#"), ("v8", "#"), ("v9", "(Exist v1∈Catnip (Exist v3∈Cat (Exist v5∈Like Not(Subject(v5,v3)∧Object(v5,v1)∧Predicate(v9,v5)))))∧v15∈Ω∧(Exist v8∈Large_Interest (Exist v13∈Interest_Is Subject(v13,v9)∧Object(v13,v8)∧Predicate(v15,v13)))")]
-Amap (Associations):    [("v1", "v2"), ("v13", "v14"), ("v16", "v17"), ("v18", "v19"), ("v3", "v4"), ("v5", "v6"), ("v7", "v9"), ("v8", "v11")]
-========================================================
-Semantics: There exists an event where the predicate is not discover, the subject is not the child, and the object is not the interesting event of the cat not liking catnip
-
-13. "\"Old$\" Person:S"
-Program Output:
-==================== Machine State ====================
-Input Stack (IP):
-Var Stack (VR):         ... v8 v7 v6 v5 v4 v3
-Component Stack (CM):   True v1
-Quant Stack (QN):       None v1
-Modifier Stack (MD):    Stop
-Relation Stack (RL):    Deter
-Clause Stack (CL):
+Num Stack (NM):         ... 13 12 11 10 9 8
+Quant Stack (QN):       7
+Wait Stack (WT):
+Component Stack (CM):   True 7
+Perm Stack (PR):
 Output Stack (OP):
-Counter (Count):        0
+Focus Register (<F>):   7
 ------------------------- Maps -------------------------
-Emap (Environment):     []
-Qmap (Quantifiers):     []
-Smap (Sets):            [("v2", "Old_Person")]
-Fmap (Filters):         [("v2", "#")]
-Amap (Associations):    [("v1", "v2")]
+Imap (Restrictors):     [7 -> (Forall α_1∈Donkey (Forall α_2∈Farmer (Exist α_4∈{α_4∈Ω | (Exist α_3∈Beat Object(α_3,α_1) ∧ Subject(α_3,α_2) ∧ Predicate(α_4,α_3))} (Exist α_6∈{α_6∈Ω | (Exist α_5∈Own Object(α_5,α_1) ∧ Subject(α_5,α_2) ∧ Predicate(α_6,α_5))} Causal_Consequent(α_7,α_4) ∧ Causal_Antecedent(α_7,α_6)))))]
+Omap (Nuclear Scopes):  [7 -> #]
+Qmap (Quantifiers):     [7 -> Exist]
+Smap (Sets):            [7 -> Ω]
+Mmap (Modes):           [7 -> True]
+Fmap (Focus Flags):     [7 -> False]
+Emap (Environment):     [y -> 2, z -> 1]
 ========================================================
-Semantics: Old person
+Semantics: Classic Donkey Sentence coreference ("If a farmer owns a donkey, he beats it." Solved via Bare Causal Macro delayed closure and Upload/Download environment variables).
 
-<Macro Definition Examples>
+6.
+Input:
+Donkey_Macro Forall_Adverb_Macro Heavy_Macro Local_Negation_Macro Tall_Macro S_Macro Local_Negation_Macro R_Relation_Macro Unary_Quantification_Macro
 
-define Ternary_Identity_Perm_Nominalization_Closing_Macro := [Noun, Build, Build, Build]
-define Ternary_Identity_Perm_Clause_Closing_Macro := [Clause, Build, Build, Build]
-define Binary_Identity_Perm_Clause_Closing_Macro := [Clause, Build, Build]
-define Very_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Degree_Is:S, Empty, Formula, y, z, Large_Degree:S, Empty, Bubble, y]]
-define Heavy_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Weight_Is:S, Empty, Formula, y, z, Large_Weight:S, Empty, Bubble, y]]
-define Tall_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Height_Is:S, Empty, Formula, y, z, Large_Height:S, Empty, Bubble, y]]
-define Old_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Age_Is:S, Empty, Formula, y, z, Large_Age:S, Empty, Bubble, y]]
-define Fast_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Speed_Is:S, Empty, Formula, y, z, Large_Speed:S, Empty, Bubble, y]]
-define Interesting_Macro := [Combine, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Interest_Is:S, Empty, Formula, y, z, Large_Interest:S, Empty, Bubble, y]]
-define Adv_Combine_Macro := [For, Combine, Cancel]
-define Adv_Combine_Cancel_Macro := [Combine, Cancel]
-define Adv_Exchange_Macro := [For, Exchange]
-define Adv_A_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_A_Predicate:S, Empty, Formula, y, z, Adv_A_Set:S, Empty, Bubble, y]]
-define Adv_B_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_B_Predicate:S, Empty, Formula, y, z, Adv_B_Set:S, Empty, Bubble, y]]
-define Adv_C_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_C_Predicate:S, Empty, Formula, y, z, Adv_C_Set:S, Empty, Bubble, y]]
-define Adv_D_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_D_Predicate:S, Empty, Formula, y, z, Adv_D_Set:S, Empty, Bubble, y]]
-define Adv_E_Macro := [For, Modify, New, λx.λy.λz.[Event, Build, Build, Predicate:R, Object:R, Use, Subject:R, x, #, True, Use, Get, Adv_E_Predicate:S, Empty, Formula, y, z, Adv_E_Set:S, Empty, Bubble, y]]
-define Discover_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Discover:S]
-define Attack_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Attack:S]
-define Like_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Like:S]
-define Eat_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Eat:S]
-define Read_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Read:S]
-define Have_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Have:S]
-define Hit_Macro := [Deter, Predicate:R, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Hit:S]
-define Give_Macro := [Deter, Predicate:R, Theme:R, Absorb, Object:R, Absorb, Subject:R, Absorb, Absorb, Get, Join, [Use], Give:S]
-define Catnip_Macro := [Deter, Join, [Use], Catnip:S]
-define Cat_Macro := [Deter, Join, [Use], Cat:S]
-define Fish_Macro := [Deter, Join, [Use], Fish:S]
-define Book_Macro := [Deter, Join, [Use], Book:S]
-define Farmer_Macro := [Deter, Join, [Use], Farmer:S]
-define Child_Macro := [Deter, Join, [Use], Child:S]
-define RedTeam_Macro := [Deter, Join, [Use], RedTeam:S]
-define BlueTeam_Macro := [Deter, Join, [Use], BlueTeam:S]
-define East_Macro := [Deter, Join, [Use], East:S]
-define West_Macro := [Deter, Join, [Use], West:S]
-define Yesterday_Macro := [Deter, Join, [Use], Yesterday:S]
-define Today_Macro := [Deter, Join, [Use], Today:S]
-define Noun_A_Macro := [Deter, Join, [Use], Noun_A:S]
-define Noun_B_Macro := [Deter, Join, [Use], Noun_B:S]
-define Noun_C_Macro := [Deter, Join, [Use], Noun_C:S]
-define Noun_D_Macro := [Deter, Join, [Use], Noun_D:S]
-define Noun_E_Macro := [Deter, Join, [Use], Noun_E:S]
-define Noun_F_Macro := [Deter, Join, [Use], Noun_F:S]
-define Rel_A_Macro := [Add, Join, [Rel_A:R]]
-define Rel_B_Macro := [Add, Join, [Rel_B:R]]
-define Rel_C_Macro := [Add, Join, [Rel_C:R]]
-define Rel_D_Macro := [Add, Join, [Rel_D:R]]
-define Rel_E_Macro := [Add, Join, [Rel_E:R]]
-define Rel_F_Macro := [Add, Join, [Rel_F:R]]
-define At_Macro := [Add, Join, [At:R]]
+Program Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 10 9 8 7 6 5
+Quant Stack (QN):       4
+Wait Stack (WT):
+Component Stack (CM):   True 4
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   0
+------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_1∈S (Exist α_2∈0~1 (Forall α_3∈0~1 Weight_Scale(α_4,α_3)) ∧ not Height_Scale(α_4,α_2)) ∧ not R(α_4,α_1))]
+Omap (Nuclear Scopes):  [4 -> #]
+Qmap (Quantifiers):     [4 -> Exist]
+Smap (Sets):            [4 -> Donkey]
+Mmap (Modes):           [4 -> True]
+Fmap (Focus Flags):     [4 -> False]
+Emap (Environment):     []
+========================================================
+Semantics: Degree/Scale Semantics with Adverbial Quantification (A donkey that is maximally heavy, not tall, and does not R S).
+
+7.
+Input:
+Matrix_Negation_Macro Unary_Quantification_Mapping_Macro SideEffect_Top_Perm_Macro SideEffect_Top_Perm_Macro Forall_Quantifier_Macro S3_Macro R3_Relation_Macro Unary_Quantification_Macro Predicate_Macro Subject_Macro Object_Macro S1_Macro R1_Relation_Macro S2_Macro R2_Relation_Macro Unary_Quantification_Macro SideEffect_Top_Perm_Macro
+
+Program Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 13 12 11 10 9 8
+Quant Stack (QN):       7
+Wait Stack (WT):
+Component Stack (CM):   True 7
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   7
+------------------------- Maps -------------------------
+Imap (Restrictors):     [7 -> #]
+Omap (Nuclear Scopes):  [7 -> not (Exist α_1∈S2 (Exist α_3∈{α_3∈Object | (Exist α_2∈S1 R1(α_3,α_2) ∧ R2(α_3,α_1))} (Exist α_4∈Subject (Exist α_5∈Predicate Object(α_5,α_3) ∧ Subject(α_5,α_4) ∧ (Exist α_6∈S3 R3(α_7,α_6)) ∧ Predicate(α_7,α_5)))))]
+Qmap (Quantifiers):     [7 -> Forall]
+Smap (Sets):            [7 -> Ω]
+Mmap (Modes):           [7 -> False]
+Fmap (Focus Flags):     [7 -> False]
+Emap (Environment):     []
+========================================================
+Semantics: Propositional matrix-level negation (negating the closed formula in Omap) coupled with dynamic PR stack side-effect permutation adjustments.
+
+8.
+Input:
+Ternary_Quantification_Mapping_Macro S_Macro S1_Macro R1_Relation_Macro S2_Macro R2_Relation_Macro S3_Macro R3_Relation_Macro S_Macro S1_Macro R1_Relation_Macro S2_Macro R2_Relation_Macro S3_Macro R3_Relation_Macro Ternary_Quantification_Macro
+
+Program Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 14 13 12 11 10 9
+Quant Stack (QN):       4 8
+Wait Stack (WT):
+Component Stack (CM):   True 4 True 8
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   0
+------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_1∈S3 (Exist α_2∈S2 (Exist α_3∈S1 R1(α_4,α_3) ∧ R2(α_4,α_2) ∧ R3(α_4,α_1)))), 8 -> (Exist α_5∈S3 (Exist α_6∈S2 (Exist α_7∈S1 R1(α_8,α_7) ∧ R2(α_8,α_6) ∧ R3(α_8,α_5))))]
+Omap (Nuclear Scopes):  [4 -> #, 8 -> #]
+Qmap (Quantifiers):     [4 -> Exist, 8 -> Exist]
+Smap (Sets):            [4 -> S, 8 -> S]
+Mmap (Modes):           [4 -> True, 8 -> True]
+Fmap (Focus Flags):     [4 -> False, 8 -> False]
+Emap (Environment):     []
+========================================================
+Semantics: Independent closure of two coordinate, multiply-restricted noun phrases (QN and CM stack states preserved in symmetric alignment).
