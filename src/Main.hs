@@ -718,6 +718,6 @@ main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering
     putStrLn "==============================================================="
-    putStrLn " SML (Refactored v1.0) Concatenative Semantic Deduction Engine"
+    putStrLn " SML (Refactored v1.1) Concatenative Semantic Deduction Engine"
     putStrLn "==============================================================="
     repl [] initial_state
