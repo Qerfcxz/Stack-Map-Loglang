@@ -1,0 +1,381 @@
+<Macro Definitions>
+
+define Cond_Repeat_Macro:=[!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,If,z,[!,Apply,!,Apply,!,Apply,x,x,y,!,Thaw,y],[]],λx.λy.λz.[!,If,z,[!,Apply,!,Apply,!,Apply,x,x,y,!,Thaw,y],[]]]
+define Count_Exec_Macro:=[!,Apply,λy.[[!,Apply,λz.[!,If,!,Equal,z,[],False,[True,!,Thaw,z,!,Thaw,y]]],True]]
+define Count_Repeat_Macro:=[!,Thaw,Cond_Repeat_Macro,!,Thaw,Count_Exec_Macro]
+define Discard_Macro:=[!,Apply,λz.[]]
+define Copy_Macro:=[!,Apply,λz.[z,z]]
+define Constituent_Neg_Macro:=[!,Back,CM,!,Back,CM,!,Not,!,Get,CM,!,Get,CM]
+define Local_Neg_Macro:=[!,Back,WT,!,Back,WT,!,Not,!,Get,WT,!,Get,WT]
+define Global_Neg_Macro:=[!,Back,QN,!,Apply,λz.[!,If,!,Lookup,Mmap,z,[!,Insert,Imap,!,Not,!,Lookup,Imap,z,z],[!,Insert,Omap,!,Not,!,Lookup,Omap,z,z]],!,Get,QN]
+define Upload_Macro:=[!,Upload]
+define Pos_Download_Macro:=[!,Download,!,Back,CM,True]
+define Neg_Download_Macro:=[!,Download,!,Back,CM,False]
+define Rel_Clause_Macro:=[!,Thaw,Discard_Macro,!,Insert,Fmap,True,!,Get,QN]
+define Inner_Mode_Macro:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Insert,Mmap,True,z]]
+define Outer_Mode_Macro:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Insert,Mmap,False,z]]
+define Toggle_Macro:=[!,Apply,λz.[!,Insert,z,!,Not,!,Lookup,z]]
+define Mode_Toggle_Macro:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Thaw,Toggle_Macro,Mmap,z,z]]
+define Focus_Macro:=[!,Back,QN,!,Assign,!,Thaw,Copy_Macro,!,Get,QN]
+define Release_Macro:=[!,Apply,λz.[!,Insert,Fmap,False,z,!,If,!,Lookup,Fmap,z,[!,Back,QN,z],[]]]
+define Pred_Rel_Macro:=[!,Apply,!,Apply,!,Apply,!,Apply,λw.λx.λy.λz.[!,x,y,z,!,And,!,Equal,!,Use,z,!,Lookup,Mmap,z,w]]
+define Binary_Pred_Macro:=[!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λs.λt.λu.λv.λw.λx.λy.λz.[!,Thaw,Pred_Rel_Macro,w,Predicate:R,!,Thaw,Pred_Rel_Macro,u,Subject:R,v,!,Thaw,Pred_Rel_Macro,s,Object:R,t,x,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Swap_Perm_Macro:=[!,Back,PR,[!,Swap]]
+define Left_Perm_Macro:=[!,Back,PR,[!,Left]]
+define Right_Perm_Macro:=[!,Back,PR,[!,Right]]
+define Top_Perm_Macro:=[!,Back,PR,[!,Top]]
+define Bottom_Perm_Macro:=[!,Back,PR,[!,Bottom]]
+define SideEffect_Top_Perm_Macro:=[!,Back,PR,[!,Apply,!,Apply,λy.λz.[!,Top,y,[z]]]]
+define SideEffect_Bottom_Perm_Macro:=[!,Back,PR,[!,Apply,!,Apply,λy.λz.[!,Bottom,y,[z]]]]
+define Exist_Quant_Macro:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,Exist:QQ,z],!,Thaw,Mode_Toggle_Macro]
+define Forall_Quant_Macro:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,Forall:QQ,z],!,Thaw,Mode_Toggle_Macro]
+define MoreThanHalf_Quant_Macro:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,λz.["MoreThanHalf",z],z],!,Thaw,Mode_Toggle_Macro]
+define Quant_Macro_1:=[!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],(1),[[]]]]
+define Quant_Macro_21:=[!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],(2,1),[[[]]]]]
+define Quant_Macro_321:=[!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],(3,2,1),[[[[]]]]]]
+define Quant_Mapping_Macro_:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(),[],!,Mapping]
+define Quant_Mapping_Macro_1:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(1),[[]],!,Mapping]
+define Quant_Mapping_Macro_21:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(2,1),[[[]]],!,Mapping]
+define Quant_Mapping_Macro_321:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(3,2,1),[[[[]]]],!,Mapping]
+define Quant_Mapping_Macro_4321:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(4,3,2,1),[[[[[]]]]],!,Mapping]
+define Quant_Mapping_Macro_54321:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(5,4,3,2,1),[[[[[[]]]]]],!,Mapping]
+define Quant_Mapping_Macro_654321:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(6,5,4,3,2,1),[[[[[[[]]]]]]],!,Mapping]
+define Forward_Causal_Macro:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(2,1),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Pred_Rel_Macro,w,Causal_Antecedent:R,x,!,Thaw,Pred_Rel_Macro,u,Causal_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Reverse_Causal_Macro:=[!,Apply,!,Apply,λy.λz.[!,Thaw,Count_Repeat_Macro,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(1,2),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Pred_Rel_Macro,w,Causal_Antecedent:R,x,!,Thaw,Pred_Rel_Macro,u,Causal_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Bare_Causal_Macro:=[!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,Discard_Macro,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,Pred_Rel_Macro,w,Causal_Antecedent:R,x,!,Thaw,Pred_Rel_Macro,u,Causal_Consequent:R,v,z],!,Thaw,Focus_Macro,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Get,CM,!,Thaw,Release_Macro,!,Get,CM,!,Combine,!,Ω:S]
+define Adj_1_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S1:S,!,Back,WT,Adj_R1:R]
+define Adj_2_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S2:S,!,Back,WT,Adj_R2:R]
+define Adj_3_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S3:S,!,Back,WT,Adj_R3:R]
+define Adj_4_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S4:S,!,Back,WT,Adj_R4:R]
+define Adj_5_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S5:S,!,Back,WT,Adj_R5:R]
+define Adj_6_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S6:S,!,Back,WT,Adj_R6:R]
+define Adj_7_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S7:S,!,Back,WT,Adj_R7:R]
+define Adj_8_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S8:S,!,Back,WT,Adj_R8:R]
+define Adj_9_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,Adj_S9:S,!,Back,WT,Adj_R9:R]
+define Adv_1_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f1(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Adv_2_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f2(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Adv_3_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f3(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Adv_4_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f4(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Adv_5_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f5(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Adv_6_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f6(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Adv_7_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f7(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Adv_8_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f8(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Adv_9_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["Adv_f9(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define R_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R1_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R1:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R2_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R2:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R3_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R3:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R4_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R4:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R5_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R5:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R6_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R6:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R7_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R7:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R8_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R8:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R9_Rel_Macro:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R9:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define S_Set_Macro:=[!,Combine,!,S:S]
+define S1_Set_Macro:=[!,Combine,!,S1:S]
+define S2_Set_Macro:=[!,Combine,!,S2:S]
+define S3_Set_Macro:=[!,Combine,!,S3:S]
+define S4_Set_Macro:=[!,Combine,!,S4:S]
+define S5_Set_Macro:=[!,Combine,!,S5:S]
+define S6_Set_Macro:=[!,Combine,!,S6:S]
+define S7_Set_Macro:=[!,Combine,!,S7:S]
+define S8_Set_Macro:=[!,Combine,!,S8:S]
+define S9_Set_Macro:=[!,Combine,!,S9:S]
+define Predicate_Set_Macro:=[!,Combine,!,Predicate:S]
+define Predicate_1_Set_Macro:=[!,Combine,!,Predicate1:S]
+define Predicate_2_Set_Macro:=[!,Combine,!,Predicate2:S]
+define Predicate_3_Set_Macro:=[!,Combine,!,Predicate3:S]
+define Predicate_4_Set_Macro:=[!,Combine,!,Predicate4:S]
+define Predicate_5_Set_Macro:=[!,Combine,!,Predicate5:S]
+define Predicate_6_Set_Macro:=[!,Combine,!,Predicate6:S]
+define Predicate_7_Set_Macro:=[!,Combine,!,Predicate7:S]
+define Predicate_8_Set_Macro:=[!,Combine,!,Predicate8:S]
+define Predicate_9_Set_Macro:=[!,Combine,!,Predicate9:S]
+define Subject_Set_Macro:=[!,Combine,!,Subject:S]
+define Subject_1_Set_Macro:=[!,Combine,!,Subject1:S]
+define Subject_2_Set_Macro:=[!,Combine,!,Subject2:S]
+define Subject_3_Set_Macro:=[!,Combine,!,Subject3:S]
+define Subject_4_Set_Macro:=[!,Combine,!,Subject4:S]
+define Subject_5_Set_Macro:=[!,Combine,!,Subject5:S]
+define Subject_6_Set_Macro:=[!,Combine,!,Subject6:S]
+define Subject_7_Set_Macro:=[!,Combine,!,Subject7:S]
+define Subject_8_Set_Macro:=[!,Combine,!,Subject8:S]
+define Subject_9_Set_Macro:=[!,Combine,!,Subject9:S]
+define Object_Set_Macro:=[!,Combine,!,Object:S]
+define Object_1_Set_Macro:=[!,Combine,!,Object1:S]
+define Object_2_Set_Macro:=[!,Combine,!,Object2:S]
+define Object_3_Set_Macro:=[!,Combine,!,Object3:S]
+define Object_4_Set_Macro:=[!,Combine,!,Object4:S]
+define Object_5_Set_Macro:=[!,Combine,!,Object5:S]
+define Object_6_Set_Macro:=[!,Combine,!,Object6:S]
+define Object_7_Set_Macro:=[!,Combine,!,Object7:S]
+define Object_8_Set_Macro:=[!,Combine,!,Object8:S]
+define Object_9_Set_Macro:=[!,Combine,!,Object9:S]
+define Farmer_Set_Macro:=[!,Combine,!,Farmer:S]
+define Donkey_Set_Macro:=[!,Combine,!,Donkey:S]
+define Fish_Set_Macro:=[!,Combine,!,Fish:S]
+define Cat_Set_Macro:=[!,Combine,!,Cat:S]
+define Have_Set_Macro:=[!,Combine,!,Have:S]
+define Beat_Set_Macro:=[!,Combine,!,Beat:S]
+define Eat_Set_Macro:=[!,Combine,!,Eat:S]
+define Heavy_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,0~1:S,!,Back,WT,Weight_Measure:R]
+define Tall_Macro:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,0~1:S,!,Back,WT,Height_Measure:R]
+define Opposite_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["-(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define Exist_Adv_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,Exist:QQ,!,Get,WT,!,Get,WT,!,Get,WT]
+define Forall_Adv_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,Forall:QQ,!,Get,WT,!,Get,WT,!,Get,WT]
+define MoreThanHalf_Adv_Macro:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,λz.["MoreThanHalf",z],!,Get,WT,!,Get,WT,!,Get,WT]
+map Predicate->Binary_Pred_Macro
+map Predicate1->Binary_Pred_Macro
+map Predicate2->Binary_Pred_Macro
+map Predicate3->Binary_Pred_Macro
+map Predicate4->Binary_Pred_Macro
+map Predicate5->Binary_Pred_Macro
+map Predicate6->Binary_Pred_Macro
+map Predicate7->Binary_Pred_Macro
+map Predicate8->Binary_Pred_Macro
+map Predicate9->Binary_Pred_Macro
+map Have->Binary_Pred_Macro
+map Beat->Binary_Pred_Macro
+map Eat->Binary_Pred_Macro
+
+<Examples>
+
+1.
+Input:
+Quant_Mapping_Macro_321 S1_Set_Macro S2_Set_Macro R2_Rel_Macro R1_Rel_Macro Quant_Macro_21 Predicate_Set_Macro Subject_Set_Macro S3_Set_Macro S4_Set_Macro S5_Set_Macro R5_Rel_Macro R4_Rel_Macro R3_Rel_Macro Quant_Macro_1 Quant_Macro_21 Object_Set_Macro S6_Set_Macro R6_Rel_Macro Quant_Macro_1
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 16 15 14 13 12 11
+Quant Stack (QN):       10
+Wait Stack (WT):
+Component Stack (CM):   True 10
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   10
+------------------------- Maps -------------------------
+Imap (Restrictors):     [10 -> (Exist α_2∈{α_2∈Object | (Exist α_1∈S6 R6(α_2,α_1))} (Exist α_6∈{α_6∈Subject | (Exist α_3∈S5 (Exist α_4∈{α_4∈S4 | R5(α_4,α_3)} (Exist α_5∈{α_5∈S3 | R4(α_5,α_4)} R3(α_6,α_5))))} (Exist α_7∈Predicate (Object(α_7,α_2) ∧ Subject(α_7,α_6) ∧ (Exist α_8∈S2 (Exist α_9∈{α_9∈S1 | R2(α_9,α_8)} R1(α_10,α_9))) ∧ Predicate(α_10,α_7)))))]
+Omap (Nuclear Scopes):  [10 -> #]
+Qmap (Quantifiers):     [10 -> Exist]
+Smap (Sets):            [10 -> Ω]
+Mmap (Modes):           [10 -> True]
+Fmap (Focus Flags):     [10 -> False]
+Emap (Environment):     []
+========================================================
+
+2.
+Input:
+Quant_Mapping_Macro_321 Constituent_Neg_Macro Predicate_Set_Macro Constituent_Neg_Macro Quant_Mapping_Macro_321 Predicate_Set_Macro Rel_Clause_Macro Subject_2_Set_Macro Object_2_Set_Macro Constituent_Neg_Macro Quant_Mapping_Macro_321 Predicate_Set_Macro Subject_1_Set_Macro Rel_Clause_Macro Object_1_Set_Macro
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 16 15 14 13 12 11
+Quant Stack (QN):       10
+Wait Stack (WT):
+Component Stack (CM):   True 10
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   10
+------------------------- Maps -------------------------
+Imap (Restrictors):     [10 -> (Exist α_1∈{α_1∈Object1 | (Exist α_2∈Subject1 (Exist α_3∈Predicate (Object(α_3,α_1) ∧ Subject(α_3,α_2) ∧ (Exist α_4∈Ω Predicate(α_4,α_3)))))} (Exist α_6∈{α_6∈Subject2 | (Exist α_5∈Object2 (Exist α_7∈Predicate (Object(α_7,α_5) ∧ Subject(α_7,α_6) ∧ (Exist α_8∈Ω Predicate(α_8,α_7)))))} (Exist α_9∈Predicate (not Object(α_9,α_1) ∧ not Subject(α_9,α_6) ∧ not Predicate(α_10,α_9)))))]
+Omap (Nuclear Scopes):  [10 -> #]
+Qmap (Quantifiers):     [10 -> Exist]
+Smap (Sets):            [10 -> Ω]
+Mmap (Modes):           [10 -> True]
+Fmap (Focus Flags):     [10 -> False]
+Emap (Environment):     []
+========================================================
+
+3.
+Input:
+Quant_Mapping_Macro_321 Quant_Mapping_Macro_321 Rel_Clause_Macro Quant_Mapping_Macro_321 Rel_Clause_Macro Predicate_Set_Macro Quant_Mapping_Macro_321 Predicate_Set_Macro Rel_Clause_Macro Subject_2_Set_Macro Object_2_Set_Macro Quant_Mapping_Macro_321 Predicate_Set_Macro Subject_1_Set_Macro Rel_Clause_Macro Object_1_Set_Macro Subject_3_Set_Macro Object_3_Set_Macro Subject_4_Set_Macro Object_4_Set_Macro
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 22 21 20 19 18 17
+Quant Stack (QN):       16
+Wait Stack (WT):
+Component Stack (CM):   True 16
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   16
+------------------------- Maps -------------------------
+Imap (Restrictors):     [16 -> (Exist α_1∈Object4 (Exist α_2∈Subject4 (Exist α_13∈{α_13∈Predicate | (Exist α_3∈Object3 (Exist α_4∈Subject3 (Exist α_15∈Ω (Predicate(α_15,α_13) ∧ (Exist α_5∈{α_5∈Object1 | (Exist α_6∈Subject1 (Exist α_7∈Predicate (Object(α_7,α_5) ∧ Subject(α_7,α_6) ∧ (Exist α_8∈Ω Predicate(α_8,α_7)))))} (Exist α_10∈{α_10∈Subject2 | (Exist α_9∈Object2 (Exist α_11∈Predicate (Object(α_11,α_9) ∧ Subject(α_11,α_10) ∧ (Exist α_12∈Ω Predicate(α_12,α_11)))))} (Exist α_14∈Ω (Predicate(α_14,α_13) ∧ Object(α_13,α_5) ∧ Subject(α_13,α_10))))) ∧ Object(α_13,α_3) ∧ Subject(α_13,α_4)))))} (Object(α_13,α_1) ∧ Subject(α_13,α_2) ∧ Predicate(α_16,α_13)))))]
+Omap (Nuclear Scopes):  [16 -> #]
+Qmap (Quantifiers):     [16 -> Exist]
+Smap (Sets):            [16 -> Ω]
+Mmap (Modes):           [16 -> True]
+Fmap (Focus Flags):     [16 -> False]
+Emap (Environment):     []
+========================================================
+
+4.
+Input:
+S_Set_Macro S1_Set_Macro R1_Rel_Macro Quant_Macro_1 Forall_Quant_Macro S2_Set_Macro R2_Rel_Macro S3_Set_Macro R3_Rel_Macro Quant_Macro_21 MoreThanHalf_Quant_Macro
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 10 9 8 7 6 5
+Quant Stack (QN):       4
+Wait Stack (WT):
+Component Stack (CM):   True 4
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   0
+------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_3∈S1 R1(α_4,α_3))]
+Omap (Nuclear Scopes):  [4 -> (Exist α_1∈S3 (Exist α_2∈S2 (R2(α_4,α_2) ∧ R3(α_4,α_1))))]
+Qmap (Quantifiers):     [4 -> MoreThanHalfForall]
+Smap (Sets):            [4 -> S]
+Mmap (Modes):           [4 -> True]
+Fmap (Focus Flags):     [4 -> False]
+Emap (Environment):     []
+========================================================
+
+5.
+Input:
+Quant_Mapping_Macro_4321 Bare_Causal_Macro Quant_Mapping_Macro_1 Have_Set_Macro Pos_Download_Macro y Pos_Download_Macro z Quant_Mapping_Macro_1 Beat_Set_Macro Upload_Macro y Farmer_Set_Macro Forall_Quant_Macro Upload_Macro z Donkey_Set_Macro Forall_Quant_Macro
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 13 12 11 10 9 8
+Quant Stack (QN):       7
+Wait Stack (WT):
+Component Stack (CM):   True 7
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   7
+------------------------- Maps -------------------------
+Imap (Restrictors):     [7 -> (Forall α_1∈Donkey (Forall α_2∈Farmer (Exist α_4∈{α_4∈Ω | (Exist α_3∈Beat (Object(α_3,α_1) ∧ Subject(α_3,α_2) ∧ Predicate(α_4,α_3)))} (Exist α_6∈{α_6∈Ω | (Exist α_5∈Have (Object(α_5,α_1) ∧ Subject(α_5,α_2) ∧ Predicate(α_6,α_5)))} (Causal_Consequent(α_7,α_4) ∧ Causal_Antecedent(α_7,α_6))))))]
+Omap (Nuclear Scopes):  [7 -> #]
+Qmap (Quantifiers):     [7 -> Exist]
+Smap (Sets):            [7 -> Ω]
+Mmap (Modes):           [7 -> True]
+Fmap (Focus Flags):     [7 -> False]
+Emap (Environment):     [y -> 2, z -> 1]
+========================================================
+
+6.
+Input:
+Forward_Causal_Macro Quant_Mapping_Macro_321 Beat_Set_Macro Farmer_Set_Macro Donkey_Set_Macro Quant_Mapping_Macro_321 Eat_Set_Macro Cat_Set_Macro Fish_Set_Macro
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 15 14 13 12 11 10
+Quant Stack (QN):       9
+Wait Stack (WT):
+Component Stack (CM):   True 9
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   9
+------------------------- Maps -------------------------
+Imap (Restrictors):     [9 -> (Exist α_4∈{α_4∈Ω | (Exist α_1∈Fish (Exist α_2∈Cat (Exist α_3∈Eat (Object(α_3,α_1) ∧ Subject(α_3,α_2) ∧ Predicate(α_4,α_3)))))} (Exist α_8∈{α_8∈Ω | (Exist α_5∈Donkey (Exist α_6∈Farmer (Exist α_7∈Beat (Object(α_7,α_5) ∧ Subject(α_7,α_6) ∧ Predicate(α_8,α_7)))))} (Causal_Consequent(α_9,α_4) ∧ Causal_Antecedent(α_9,α_8))))]
+Omap (Nuclear Scopes):  [9 -> #]
+Qmap (Quantifiers):     [9 -> Exist]
+Smap (Sets):            [9 -> Ω]
+Mmap (Modes):           [9 -> True]
+Fmap (Focus Flags):     [9 -> False]
+Emap (Environment):     []
+========================================================
+
+7.
+Input:
+Donkey_Set_Macro Forall_Adv_Macro Heavy_Macro Local_Neg_Macro Tall_Macro S_Set_Macro Local_Neg_Macro R_Rel_Macro Quant_Macro_1
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 10 9 8 7 6 5
+Quant Stack (QN):       4
+Wait Stack (WT):
+Component Stack (CM):   True 4
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   0
+------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_1∈S ((Exist α_2∈0~1 ((Forall α_3∈0~1 Weight_Measure(α_4,α_3)) ∧ not Height_Measure(α_4,α_2))) ∧ not R(α_4,α_1)))]
+Omap (Nuclear Scopes):  [4 -> #]
+Qmap (Quantifiers):     [4 -> Exist]
+Smap (Sets):            [4 -> Donkey]
+Mmap (Modes):           [4 -> True]
+Fmap (Focus Flags):     [4 -> False]
+Emap (Environment):     []
+========================================================
+
+8.
+Input:
+Global_Neg_Macro Quant_Mapping_Macro_1 SideEffect_Top_Perm_Macro SideEffect_Top_Perm_Macro Forall_Quant_Macro S3_Set_Macro R3_Rel_Macro Quant_Macro_1 Predicate_Set_Macro Subject_Set_Macro Object_Set_Macro S1_Set_Macro R1_Rel_Macro S2_Set_Macro R2_Rel_Macro Quant_Macro_1 SideEffect_Top_Perm_Macro
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 13 12 11 10 9 8
+Quant Stack (QN):       7
+Wait Stack (WT):
+Component Stack (CM):   True 7
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   7
+------------------------- Maps -------------------------
+Imap (Restrictors):     [7 -> #]
+Omap (Nuclear Scopes):  [7 -> not (Exist α_1∈S2 (Exist α_3∈{α_3∈Object | (Exist α_2∈S1 (R1(α_3,α_2) ∧ R2(α_3,α_1)))} (Exist α_4∈Subject (Exist α_5∈Predicate (Object(α_5,α_3) ∧ Subject(α_5,α_4) ∧ (Exist α_6∈S3 R3(α_7,α_6)) ∧ Predicate(α_7,α_5))))))]
+Qmap (Quantifiers):     [7 -> Forall]
+Smap (Sets):            [7 -> Ω]
+Mmap (Modes):           [7 -> False]
+Fmap (Focus Flags):     [7 -> False]
+Emap (Environment):     []
+========================================================
+
+9.
+Input:
+Quant_Mapping_Macro_321 S_Set_Macro S1_Set_Macro R1_Rel_Macro S2_Set_Macro R2_Rel_Macro S3_Set_Macro R3_Rel_Macro S_Set_Macro S1_Set_Macro R1_Rel_Macro S2_Set_Macro R2_Rel_Macro S3_Set_Macro R3_Rel_Macro Quant_Macro_321
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 14 13 12 11 10 9
+Quant Stack (QN):       4 8
+Wait Stack (WT):
+Component Stack (CM):   True 4 True 8
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   0
+------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_1∈S3 (Exist α_2∈S2 (Exist α_3∈S1 (R1(α_4,α_3) ∧ R2(α_4,α_2) ∧ R3(α_4,α_1))))), 8 -> (Exist α_5∈S3 (Exist α_6∈S2 (Exist α_7∈S1 (R1(α_8,α_7) ∧ R2(α_8,α_6) ∧ R3(α_8,α_5)))))]
+Omap (Nuclear Scopes):  [4 -> #, 8 -> #]
+Qmap (Quantifiers):     [4 -> Exist, 8 -> Exist]
+Smap (Sets):            [4 -> S, 8 -> S]
+Mmap (Modes):           [4 -> True, 8 -> True]
+Fmap (Focus Flags):     [4 -> False, 8 -> False]
+Emap (Environment):     []
+========================================================
+
+10.
+Input:
+Quant_Mapping_Macro_21 SideEffect_Bottom_Perm_Macro Swap_Perm_Macro Swap_Perm_Macro Predicate_4_Set_Macro Quant_Mapping_Macro_1 SideEffect_Bottom_Perm_Macro SideEffect_Bottom_Perm_Macro Swap_Perm_Macro Swap_Perm_Macro Forall_Adv_Macro Adj_2_Macro Adv_2_Macro Adv_1_Macro Forall_Adv_Macro Adj_1_Macro Forall_Quant_Macro Local_Neg_Macro MoreThanHalf_Adv_Macro Forall_Adv_Macro Adv_3_Macro Adj_3_Macro S1_Set_Macro Forall_Quant_Macro S2_Set_Macro Forall_Quant_Macro R2_Rel_Macro R1_Rel_Macro Quant_Macro_21 Constituent_Neg_Macro Global_Neg_Macro Quant_Mapping_Macro_321 S9_Set_Macro Forall_Quant_Macro R9_Rel_Macro Quant_Macro_1 Forall_Quant_Macro Rel_Clause_Macro Quant_Mapping_Macro_321 Forall_Quant_Macro S8_Set_Macro Forall_Quant_Macro R8_Rel_Macro Quant_Macro_1 Rel_Clause_Macro Predicate_3_Set_Macro Forall_Quant_Macro S7_Set_Macro Forall_Quant_Macro R7_Rel_Macro Quant_Macro_1 Subject_3_Set_Macro Forall_Quant_Macro Object_3_Set_Macro Forall_Quant_Macro Subject_4_Set_Macro Forall_Quant_Macro Object_4_Set_Macro Forall_Quant_Macro Constituent_Neg_Macro Quant_Mapping_Macro_321 Forall_Quant_Macro Predicate_2_Set_Macro Forall_Quant_Macro Rel_Clause_Macro Subject_2_Set_Macro Forall_Quant_Macro Object_2_Set_Macro Forall_Quant_Macro S3_Set_Macro Forall_Quant_Macro S4_Set_Macro Forall_Quant_Macro S5_Set_Macro Forall_Quant_Macro R5_Rel_Macro R4_Rel_Macro R3_Rel_Macro Quant_Macro_1 Quant_Macro_21 Constituent_Neg_Macro Quant_Mapping_Macro_321 Forall_Quant_Macro Constituent_Neg_Macro Predicate_1_Set_Macro Forall_Quant_Macro Constituent_Neg_Macro Subject_1_Set_Macro Forall_Quant_Macro Rel_Clause_Macro Constituent_Neg_Macro Object_1_Set_Macro Forall_Quant_Macro S6_Set_Macro Forall_Quant_Macro R6_Rel_Macro Quant_Macro_1 Object_4_Set_Macro
+
+Output:
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 37 36 35 34 33 32
+Quant Stack (QN):       31
+Wait Stack (WT):
+Component Stack (CM):   True 31
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   31
+------------------------- Maps -------------------------
+Imap (Restrictors):     [31 -> (Exist α_1∈Object4 (Forall α_29∈{α_29∈Ω | (Forall α_27∈Adv_f2(Adv_f1(Adj_S1)) ((Forall α_28∈Adj_S2 Adj_R2(α_29,α_28)) ∧ Adj_R1(α_29,α_27)))} ((Forall α_3∈Object1 ((Forall α_4∈Subject1 (Forall α_5∈Predicate1 (not Object(α_5,α_3) ∧ not Subject(α_5,α_4) ∧ (Forall α_6∈Ω (not Predicate(α_6,α_5) ∧ (Forall α_2∈S6 R6(α_3,α_2))))))) ∧ (Forall α_11∈Subject2 ((Forall α_10∈Object2 ((Forall α_7∈S5 (Forall α_8∈S4 (R5(α_8,α_7) ∧ (Forall α_9∈S3 (R4(α_9,α_8) ∧ R3(α_10,α_9)))))) ∧ (Forall α_12∈Predicate2 (Object(α_12,α_10) ∧ Subject(α_12,α_11) ∧ (Forall α_13∈Ω Predicate(α_13,α_12)))))) ∧ (Forall α_19∈Predicate3 (not (Forall α_14∈Object4 (Forall α_15∈Subject4 (Forall α_23∈{α_23∈Ω | (Forall α_22∈S9 R9(α_23,α_22))} (Predicate(α_23,α_19) ∧ (Forall α_16∈Object3 (Forall α_17∈Subject3 (Forall α_21∈Ω ((Forall α_20∈S8 R8(α_21,α_20)) ∧ Predicate(α_21,α_19) ∧ (Forall α_18∈S7 R7(α_19,α_18)) ∧ Object(α_19,α_16) ∧ Subject(α_19,α_17))))) ∧ Object(α_19,α_14) ∧ Subject(α_19,α_15))))) ∧ not Object(α_19,α_3) ∧ not Subject(α_19,α_11) ∧ (Forall α_24∈S2 (Forall α_25∈S1 (R2(α_25,α_24) ∧ (MoreThanHalfForall α_26∈Adv_f3(Adj_S3) not Adj_R3(α_29,α_26)) ∧ R1(α_29,α_25)))) ∧ not Predicate(α_29,α_19))))))) ∧ (Exist α_30∈Predicate4 (Object(α_30,α_1) ∧ Subject(α_30,α_29) ∧ Predicate(α_31,α_30))))))]
+Omap (Nuclear Scopes):  [31 -> #]
+Qmap (Quantifiers):     [31 -> Exist]
+Smap (Sets):            [31 -> Ω]
+Mmap (Modes):           [31 -> True]
+Fmap (Focus Flags):     [31 -> False]
+Emap (Environment):     []
+========================================================

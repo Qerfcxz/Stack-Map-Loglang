@@ -1,0 +1,294 @@
+该数据结构由六个栈、一个数字流、一个标量寄存器和八个映射组成。
+
+六个栈与一个数字流从上到下依次为（均以右端为栈顶）：
+1. 输入栈 IP（待执行的代码块、Token 流与解包后的宏指令）
+2. 数字流 NM（预置无限递增自然数流 1 2 3 ...）
+3. 量化栈 QN（论元实体排队栈，等待量词闭包）
+4. 等待栈 WT（高阶延续闭包、实体中间态及修饰极性暂存区）
+5. 成分栈 CM（活跃成分及其真值极性游标栈，格式为 Polarity Entity）
+6. 排列栈 PR（置换群操作与流水线暂存栈）
+7. 输出栈 OP（即时运算与规约工作台）
+
+一个标量寄存器：
+- 焦点寄存器 <F>（标量整数，初始为 0，记录当前执行闭包的核心宿主实体）
+
+八个映射分别为：
+1. 限制域映射 Imap（累积集合内涵限制式）
+2. 核域映射 Omap（累积外部主陈述谓词命题）
+3. 量化映射 Qmap（映射实体的量词类型，缺省为 Exist）
+4. 集合映射 Smap（实体所属的基底集合名称）
+5. 模式映射 Mmap（True=内模式/写入 Imap，False=外模式/写入 Omap）
+6. 焦点标记映射 Fmap（True=定语从句受保护宿主，False=普通论元）
+7. 环境映射 Emap（动态变量别名映射，用于跨子句代词照应）
+8. 全局宏映射 Map（从集合名称字符串到对应格框宏代码的映射表）
+
+所有实体相关映射的键均为实体数字标号。
+
+符号约定：
+小写字母表示变量或任意元素
+大写字母表示任意元素或特定类型
+"A:N" 表示实体数字标号
+"A:S" 表示集合词
+"A:R" 表示关系词
+"A:QQ" 表示量化词
+"A:SS" 表示变换词
+"A:B" 表示布尔值（True 或 False）
+"Ω" 表示事件集合
+"#" 表示空表达式（#∧A=A，A∧#=A，#∧#=#）
+"!" 表示运算执行触发符
+"[...,A]" 表示 List 的顶部（右端）元素为 A
+"??" 表示任意匹配的栈或映射
+"∇" 表示状态机转移时的副作用操作
+"-" 表示什么都没有（保持不变 / 空操作 / No-op）
+规则中未显式提及的栈与映射默认保持原状态不变。
+
+执行流程：
+1. 输入指令序列压入 IP
+2. 匹配一次起始规则（从上到下匹配）
+3. 循环匹配循环规则直至不动点（从上到下匹配）
+4. 重复直至 IP 为空
+
+<起始规则>
+
+1.
+IP: []
+=>
+IP:
+
+2.
+IP: [...,A]
+OP:
+=>
+IP: [...]
+OP: A
+
+3.
+IP: A
+OP:
+=>
+IP:
+OP: A
+
+<循环规则>
+
+1.
+NM: A:N
+QN:
+WT:
+OP: B:S !
+=>
+NM:
+QN: A
+WT: A
+OP:
+∇
+insert A # Imap
+insert A # Omap
+insert A Exist Qmap
+insert A B Smap
+insert A True Mmap
+insert A False Fmap
+
+2a.
+IP:
+WT: λa.B A:N
+OP: Combine !
+=>
+IP: B[a:=A]
+WT:
+OP:
+
+2b.
+CM:
+WT: A:N
+OP: Combine !
+=>
+CM: True A
+WT:
+OP:
+
+3.
+OP: E:B D:B C:N B:N A:R !
+=>
+OP: C
+∇
+let F=if E then R(α_C,α_B) else ¬R(α_C,α_B) in if D then insert C (lookup C Imap∧F) Imap else insert C (lookup C Omap∧F) Omap
+
+4.
+IP:
+OP: A Thaw !
+=>
+IP: A
+OP:
+
+5.
+IP:
+OP: B λa.A Apply !
+=>
+IP: A[a:=B]
+OP:
+
+6.
+OP: A:B Not !
+=>
+OP: (not A)
+
+7.
+OP: B:B A:B And !
+=>
+OP: A&&B
+
+8.
+OP: B:B A:B Or !
+=>
+OP: A||B
+
+9.
+OP: B A Equal !
+=>
+OP: A==B
+
+10.
+OP: B:N A ?? Insert !
+=>
+OP: B
+∇
+insert B A ??
+
+11.
+OP: A:N ?? Lookup !
+=>
+OP: (lookup A ??)
+
+12.
+??: A
+OP: ?? Get !
+=>
+??:
+OP: A
+
+13.
+??:
+OP: A ?? Back !
+=>
+??: A
+OP:
+
+14.
+OP: Use !
+=>
+OP: <F>
+
+15.
+OP: A:N Assign !
+=>
+OP:
+∇
+<F>:=A
+
+16.
+QN: B:N A:N
+OP: Build !
+=>
+QN: A
+OP:
+∇
+if lookup A Mmap then insert A (lookup B Qmap)(α_B,{α_B∈lookup B Smap|lookup B Imap})(lookup B Omap∧lookup A Imap) Imap else insert A (lookup B Qmap)(α_B,{α_B∈lookup B Smap|lookup B Imap})(lookup B Omap∧lookup A Omap) Omap
+delete B Imap
+delete B Omap
+delete B Qmap
+delete B Smap
+delete B Mmap
+delete B Fmap
+
+17.
+IP:
+CM: A:N
+OP: Mapping !
+=>
+IP: (lookup (lookup A Smap) Map)
+CM: A:N
+OP:
+
+18.
+OP: B:N A:QQ Quantify !
+=>
+OP: B
+∇
+insert B (A (lookup B Qmap)) Qmap
+
+19.
+OP: B:N A:SS Transform !
+=>
+OP: B
+∇
+insert B (A (lookup B Smap)) Smap
+
+20a.
+IP:
+PR: A
+OP: Traverse !
+=>
+IP: ! Traverse A
+PR:
+OP:
+
+20b.
+OP: Traverse !
+=>
+OP:
+
+21.
+IP:
+OP: C B A:B If !
+=>
+IP: (if A then B else C)
+OP:
+
+22.
+CM: A:N
+OP: a Upload !
+=>
+CM: A
+OP:
+∇
+insert a A Emap
+
+23.
+CM:
+OP: a Download !
+=>
+CM: (lookup a Emap)
+OP:
+
+24.
+QN: An:N ... A3:N A2:N A1:N
+OP: (in,...,i3,i2,i1) Permute !
+=>
+QN: Ain ... Ai3 Ai2 Ai1
+OP:
+
+25.
+OP: (in,...,i3,i2,i1) Swap !
+=>
+OP: (i1,...,i3,i2,in)
+
+26.
+OP: (in,...,i3,i2,i1) Left !
+=>
+OP: (...,i3,i2,i1,in)
+
+27.
+OP: (in,...,i3,i2,i1) Right !
+=>
+OP: (i1,in,...,i3,i2)
+
+28.
+OP: (in,...,i3,i2,i1) Top !
+=>
+OP: (n+1,in,...,i3,i2,i1)
+
+29.
+OP: (in,...,i3,i2,i1) Bottom !
+=>
+OP: (1+in,...,1+i3,1+i2,1+i1,1)

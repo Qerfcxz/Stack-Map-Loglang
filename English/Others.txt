@@ -1,0 +1,170 @@
+================================================================================
+SML (Stack-Map-Loglang) System Design Notes, Linguistic Philosophy, and Evolution Memorandum
+================================================================================
+
+This document serves as supplementary documentation to the SML specification, recording
+the underlying linguistic philosophy, design trade-offs, natural language evolution plans
+(toward a speakable constructed language), and future engineering layering models.
+
+--------------------------------------------------------------------------------
+Table of Contents
+--------------------------------------------------------------------------------
+1. Linguistic Philosophy: The Open Relational "Annotative Model"
+2. Word Formation and Concept Generation: Compound Template System
+3. Natural Language Conception: Phonology, Orthography, and Pure Isolating Typology
+4. Architecture Layering: The Two-Pass Pipeline Conception
+5. Conclusion: Balance Between Microkernel and Open Ecosystem
+
+================================================================================
+1. Linguistic Philosophy: The Open Relational "Annotative Model"
+================================================================================
+
+In mainstream formal semantics (e.g., Montague Grammar) and conventional loglang designs,
+there is a pervasive tendency to hardcode concrete metaphysical or physical models into
+the grammatical core—such as prescribing fixed Kripkean possible-world sets W, absolute
+Newtonian spatiotemporal coordinates, or elaborate higher-order type hierarchies. This
+practice inflates type systems and robs the language of flexibility across diverse
+physical frameworks or pragmatic contexts.
+
+SML adopts a "metaphysically agnostic", open topological approach, treating semantic
+generation as an iterative "progressive annotation process" over concepts and events:
+
+1.1 The Grammar Engine Only Guarantees Connectivity and Closure
+    The core abstract machine of SML enforces only two fundamental mathematical laws:
+    - The topological conservation law of binary modification: every relation R consumes
+      exactly one entity S (ΔR = ΔS);
+    - The structural rigor of generalized quantifier closure: the orthogonal partitioning
+      between restrictor (Imap) and nuclear scope (Omap).
+    Whatever worldviews, temporal topologies, or physical models a proposition conveys are
+    delegated to specific lexical relations; the grammar kernel remains strictly neutral.
+
+1.2 Relational Dimensionality Reduction of Linguistic Categories
+    By appending binary relational edges (S R) to core entities or events, diverse classical
+    linguistic categories are uniformly reduced to local annotations:
+    - Tense and Aspect: Rather than introducing specialized tense syntax, these are modeled
+      as spatiotemporal coordinates attached to the event variable e (e.g., Occurred_At(e, Yesterday),
+      Frame_Of_Reference(e, Earth_Clock)). This allows the language to express coarse everyday
+      temporality as easily as relativistic spacetime.
+    - Modality and Probability: Avoids hardcoding possible-world semantics by converting modality
+      into graded degrees and evidential annotations (e.g., Probability(e, 0.5), Evidential_Source(e, Direct_Sight)).
+    - Question Interface: Interrogatives are modeled as unclosed placeholder variables (Named Holes).
+      In dialogue, the respondent explicitly declares which named hole is instantiated, enabling
+      deterministic, ambiguity-free pragmatic exchange.
+    - Plurality and Mereology: Avoids complex individual algebras by utilizing unary set operations.
+      Transforming set S into a singleton or power set allows the set topology itself to accommodate
+      collective vs. distributive readings.
+
+1.3 From Tree Modifications to Directed Acyclic Graphs (DAG)
+    Concatenative syntax natively constructs nested modification trees of arbitrary depth
+    (in the form of "S S R S S R R R"). Combined with cross-clause environment mapping
+    (Upload / Download), cross-references can be established between distinct tree branches,
+    losslessly generating arbitrary Directed Acyclic Graphs (DAGs) and eliminating expressive
+    blind spots common in complex natural language structures.
+
+================================================================================
+2. Word Formation and Concept Generation: Compound Template System
+================================================================================
+
+As a constructed language, SML abandons traditional morphological derivation based on
+complex affixation or inflection, adopting "compound templates" (macros) to fulfill the
+role of hardcoded lexical roots.
+
+2.1 The Nature of Compound Templates
+    Compound templates are, at their core, SML macros. Existing adjective macros are basic
+    compound templates (e.g., Tall_Macro takes entity x and yields a restrictive formula over
+    a height scale). In vocabulary expansion, compound templates handle the full scope of
+    derivational morphology:
+    - For example, constructing "fisherman / one who processes fish": instead of introducing
+      specialized occupational affixes (-er, -ist), a compound template "x whose occupation is
+      processing y" is defined. Supplying "Person:S" and "Fish:S" automatically assembles the
+      composite concept via underlying relations.
+
+2.2 Coexistence of Precise and Fuzzy Relations
+    - Precise Composition: In academic or legal contexts requiring strict precision, templates
+      explicitly specify fine-grained relations (e.g., "Occupation_Is", "Processes").
+    - Fuzzy Relations (Generic Association): In everyday communication, excessive precision leads
+      to verbose utterances. The system permits a generic "Associated_With(A, B)" relation, stating
+      merely that concept A and B are related, leaving pragmatic disambiguation to context (akin
+      to natural noun-noun compounds, e.g., "fish knife" meaning either a knife for fish or a
+      knife shaped like a fish).
+    This mechanism allows the language to slide seamlessly between absolute logical rigor and
+    economical everyday communication.
+
+2.3 Application of Degree Semantics
+    For gradable adjectives and adverbs, compound templates converge on normalized scale intervals:
+    - Adjectives function as binary relations over measurement sets (e.g., normalized interval 0~1),
+      such as "Weight_Measure:R";
+    - Adverbs function as contraction operators or quantifiers directly targeting that measurement
+      interval (e.g., Forall_Adv_Macro maps to universal quantification over the interval, while
+      Local_Neg_Macro inverts polarity);
+    - This eliminates the need for deeply nested fictive events to express "very", "slightly", or
+      "heavy as an elephant", keeping formulas compact.
+
+================================================================================
+3. Natural Language Conception: Phonology, Orthography, and Pure Isolating Typology
+================================================================================
+
+To transition this abstract logic deduction engine into a speakable, readable, and writable
+human language, the surface linguistic structure incorporates the following designs:
+
+3.1 Minimal Phonology
+    - Minimal Distinction Burden: Confusing phonemic contrasts are eliminated, including
+      voiced/voiceless, aspirated/unaspirated, and pitch/stress oppositions. The phonemic
+      inventory resembles a minimal phonetic system akin to standard Hiragana.
+    - Strict Syllable Patterns and Pauseless Tokenization:
+      Words strictly follow an alternating vowel-consonant structure (e.g., standard VCVC...V).
+      Because word boundaries exhibit strict self-delimiting phonotactic properties, listeners
+      segment words in continuous speech without relying on inter-word pauses, eliminating
+      segmentation ambiguity.
+
+3.2 Orthography Combining Alphabetic and Abugida Characteristics
+    - A custom writing system blending linear alphabetic features with abugida aesthetics;
+    - Consonants serve as base glyphs, while vowels attach as dependent diacritics or ligatures,
+      ensuring high information density, aesthetic balance, and strict one-to-one logical phonetic rules.
+
+3.3 Pure Isolating / Analytic Typology
+    - Zero morphological inflection: no grammatical case, no verb conjugation, no tense forms;
+    - Functions traditionally borne by inflection are decomposed into independent syntactic
+      particles or compound templates;
+    - Word roots remain morphologically immutable; semantics is entirely dictated by topological
+      consumption order in the concatenative state machine.
+
+================================================================================
+4. Architecture Layering: The Two-Pass Pipeline Conception
+================================================================================
+
+In designing a pure stack-based abstract machine, stack-effect avalanches pose an engineering
+risk: minor rule adjustments can cascade unpredictably. To maintain tractability, the
+architecture adopts a decoupled "Two-Pass" pipeline:
+
+4.1 Pass 1: Surface & Pragmatics Preprocessor
+    Handles dimensions beyond core truth-conditional (at-issue) semantics:
+    - Speaker attitude and mood (epistemic particles, evidential tags);
+    - Non-restrictive modifications (parentheticals/appositives that do not affect the main
+      truth value, serving as background assertions);
+    - Desugaring of macros and syntactic sugar into compliant, raw SML instruction streams.
+
+4.2 Pass 2: SML Semantic Kernel
+    Focuses exclusively on first-order formal truth-conditional computation:
+    - Strictly executes state transitions across the 6 Stacks, 1 Stream, 1 Register, and 8 Maps;
+    - Manages thematic assembly, Generalized Quantifier (GQ) closures, donkey anaphora, and scope resolution.
+    This division prevents pragmatic complexities from turning the core engine into a "Turing Tar-Pit",
+    while maximizing the power of linear quantifier closures.
+
+================================================================================
+5. Conclusion: Balance Between Microkernel and Open Ecosystem
+================================================================================
+
+The transition of SML from empirical experimentation to formal specification marks a breakthrough:
+achieving a theoretical closed loop uniting "Noun-Verb Parity", "Relational Annotation", and
+"Generalized Quantifier Duality".
+
+For the formal kernel, the rule set should undergo a "Feature Freeze" upon completing the
+permutation pipeline (PR stack) and degree semantic specifications:
+- No domain-specific ad-hoc instructions should be injected into the core state machine;
+- The core microkernel must remain cold, pure, and deterministic;
+- Expressive power is left to the open vocabulary (S and R sets) and compound template ecosystem.
+
+This discipline curbs engineering complexity and establishes SML as a universal, unbiased,
+foundational semantic logic protocol.
+================================================================================

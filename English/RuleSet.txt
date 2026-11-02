@@ -1,0 +1,294 @@
+This data structure consists of six stacks, one number stream, one scalar register, and eight maps.
+
+The six stacks and one number stream are, from top to bottom (with the right end as the top of stack in all cases):
+1. Input Stack (IP): Queue of instruction blocks, token streams, and unpacked macros awaiting execution.
+2. Number Stream (NM): Pre-initialized infinite stream of monotonically increasing natural numbers: 1 2 3 ...
+3. Quantifier Queue / Stack (QN): Argument entity queue awaiting quantifier closure.
+4. Wait Stack (WT): Staging area for higher-order continuation closures, intermediate entities, and modifier polarities.
+5. Component Stack (CM): Storage for active components and their truth-polarity cursors, formatted as Polarity Entity.
+6. Permutation Stack (PR): Buffer and pipeline for permutation group operations.
+7. Output Stack (OP): Immediate evaluation, computation, and reduction workbench.
+
+One scalar register:
+- Focus Register (<F>): Scalar integer, initialized to 0, tracking the core host entity currently undergoing closure.
+
+The eight maps are:
+1. Restrictor Map (Imap): Accumulates nominal intensional restriction formulas.
+2. Nuclear Scope Map (Omap): Accumulates external main assertive predicate propositions.
+3. Quantifier Map (Qmap): Maps entity variables to generalized quantifier forces (default: Exist).
+4. Base Set Map (Smap): Records the base category name of an entity.
+5. Mode Map (Mmap): True = Inner mode / writes to Imap; False = Outer mode / writes to Omap.
+6. Focus Flag Map (Fmap): True = Protected host entity of an active relative clause; False = Ordinary argument.
+7. Environment Map (Emap): Dynamic variable alias map for cross-clause pronoun coreference.
+8. Global Lexical Macro Map (Map): Global dictionary mapping set name strings to their corresponding predicate frame macro code.
+
+All keys of entity-related maps are entity numerical IDs.
+
+Notational Conventions:
+- Lowercase letters denote variables or arbitrary elements.
+- Uppercase letters denote arbitrary elements or specific types.
+- "A:N" denotes an entity numerical ID.
+- "A:S" denotes a set word.
+- "A:R" denotes a relation word.
+- "A:QQ" denotes a quantifier word.
+- "A:SS" denotes a transform word.
+- "A:B" denotes a boolean value (True or False).
+- "Ω" denotes the event universe / event set.
+- "#" denotes the empty/dummy expression (# ∧ A = A, A ∧ # = A, # ∧ # = #).
+- "!" denotes the execution trigger symbol.
+- "[..., A]" denotes a list whose top (right-end) element is A.
+- "??" denotes any matched stack or map.
+- "∇" denotes side-effect operations during state transition.
+- "-" denotes nothing (remains unchanged / no-op / identity).
+Stacks and maps not explicitly mentioned in a rule remain unchanged by default.
+
+Execution Workflow:
+1. Push input instruction sequence into IP.
+2. Match start rules once (from top to bottom).
+3. Iteratively match loop rules until reaching a fixed point (from top to bottom).
+4. Repeat from step 2 until IP is empty.
+
+<Start Rules>
+
+1.
+IP: []
+=>
+IP:
+
+2.
+IP: [...,A]
+OP:
+=>
+IP: [...]
+OP: A
+
+3.
+IP: A
+OP:
+=>
+IP:
+OP: A
+
+<Loop Rules>
+
+1.
+NM: A:N
+QN:
+WT:
+OP: B:S !
+=>
+NM:
+QN: A
+WT: A
+OP:
+∇
+insert A # Imap
+insert A # Omap
+insert A Exist Qmap
+insert A B Smap
+insert A True Mmap
+insert A False Fmap
+
+2a.
+IP:
+WT: λa.B A:N
+OP: Combine !
+=>
+IP: B[a:=A]
+WT:
+OP:
+
+2b.
+CM:
+WT: A:N
+OP: Combine !
+=>
+CM: True A
+WT:
+OP:
+
+3.
+OP: E:B D:B C:N B:N A:R !
+=>
+OP: C
+∇
+let F=if E then R(α_C,α_B) else ¬R(α_C,α_B) in if D then insert C (lookup C Imap∧F) Imap else insert C (lookup C Omap∧F) Omap
+
+4.
+IP:
+OP: A Thaw !
+=>
+IP: A
+OP:
+
+5.
+IP:
+OP: B λa.A Apply !
+=>
+IP: A[a:=B]
+OP:
+
+6.
+OP: A:B Not !
+=>
+OP: (not A)
+
+7.
+OP: B:B A:B And !
+=>
+OP: A&&B
+
+8.
+OP: B:B A:B Or !
+=>
+OP: A||B
+
+9.
+OP: B A Equal !
+=>
+OP: A==B
+
+10.
+OP: B:N A ?? Insert !
+=>
+OP: B
+∇
+insert B A ??
+
+11.
+OP: A:N ?? Lookup !
+=>
+OP: (lookup A ??)
+
+12.
+??: A
+OP: ?? Get !
+=>
+??:
+OP: A
+
+13.
+??:
+OP: A ?? Back !
+=>
+??: A
+OP:
+
+14.
+OP: Use !
+=>
+OP: <F>
+
+15.
+OP: A:N Assign !
+=>
+OP:
+∇
+<F>:=A
+
+16.
+QN: B:N A:N
+OP: Build !
+=>
+QN: A
+OP:
+∇
+if lookup A Mmap then insert A (lookup B Qmap)(α_B,{α_B∈lookup B Smap|lookup B Imap})(lookup B Omap∧lookup A Imap) Imap else insert A (lookup B Qmap)(α_B,{α_B∈lookup B Smap|lookup B Imap})(lookup B Omap∧lookup A Omap) Omap
+delete B Imap
+delete B Omap
+delete B Qmap
+delete B Smap
+delete B Mmap
+delete B Fmap
+
+17.
+IP:
+CM: A:N
+OP: Mapping !
+=>
+IP: (lookup (lookup A Smap) Map)
+CM: A:N
+OP:
+
+18.
+OP: B:N A:QQ Quantify !
+=>
+OP: B
+∇
+insert B (A (lookup B Qmap)) Qmap
+
+19.
+OP: B:N A:SS Transform !
+=>
+OP: B
+∇
+insert B (A (lookup B Smap)) Smap
+
+20a.
+IP:
+PR: A
+OP: Traverse !
+=>
+IP: ! Traverse A
+PR:
+OP:
+
+20b.
+OP: Traverse !
+=>
+OP:
+
+21.
+IP:
+OP: C B A:B If !
+=>
+IP: (if A then B else C)
+OP:
+
+22.
+CM: A:N
+OP: a Upload !
+=>
+CM: A
+OP:
+∇
+insert a A Emap
+
+23.
+CM:
+OP: a Download !
+=>
+CM: (lookup a Emap)
+OP:
+
+24.
+QN: An:N ... A3:N A2:N A1:N
+OP: (in,...,i3,i2,i1) Permute !
+=>
+QN: Ain ... Ai3 Ai2 Ai1
+OP:
+
+25.
+OP: (in,...,i3,i2,i1) Swap !
+=>
+OP: (i1,...,i3,i2,in)
+
+26.
+OP: (in,...,i3,i2,i1) Left !
+=>
+OP: (...,i3,i2,i1,in)
+
+27.
+OP: (in,...,i3,i2,i1) Right !
+=>
+OP: (i1,in,...,i3,i2)
+
+28.
+OP: (in,...,i3,i2,i1) Top !
+=>
+OP: (n+1,in,...,i3,i2,i1)
+
+29.
+OP: (in,...,i3,i2,i1) Bottom !
+=>
+OP: (1+in,...,1+i3,1+i2,1+i1,1)

@@ -14,6 +14,7 @@ import Text.ParserCombinators.ReadP
     ( ReadP
     , char
     , eof
+    , munch
     , munch1
     , optional
     , pfail
@@ -143,6 +144,7 @@ eval_qq tok old_q = case tok of
     extract_q (TSym s)   = s
     extract_q (TQuant s) = s
     extract_q (TQQ s)    = s
+    extract_q (TNum n)   = show n
     extract_q _          = ""
 
 eval_ss :: Token -> String -> String
@@ -157,6 +159,7 @@ eval_ss tok old_s = case tok of
     extract_s (TSym s)   = s
     extract_s (TSet s)   = s
     extract_s (TSS s)    = s
+    extract_s (TNum n)   = show n
     extract_s _          = ""
 
 permute_qn :: [Int] -> [Int] -> [Int]
@@ -434,7 +437,16 @@ is_var_char :: Char -> Bool
 is_var_char c = c `elem` (['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ "_")
 
 token_parser :: MacroEnv -> ReadP Token
-token_parser env = skipSpaces *> (perm_p <|> list_p env <|> lambda_p env <|> atom_p env)
+token_parser env = skipSpaces *> (quoted_p <|> perm_p <|> list_p env <|> lambda_p env <|> atom_p env)
+
+quoted_p :: ReadP Token
+quoted_p = do
+    _ <- char '"'
+    content <- munch (/= '"')
+    _ <- char '"'
+    suffix <- munch (\c -> not (isSpace c || c `elem` "[],()"))
+    let raw = if null suffix then "\"" ++ content ++ "\"" else "\"" ++ content ++ "\"" ++ suffix
+    return (parse_atom raw)
 
 perm_p :: ReadP Token
 perm_p = do
@@ -497,7 +509,7 @@ parse_atom raw_s
     | ":Q"  `isSuffixOf` s = TQuant (strip_quotes (take (length s - 2) s))
     | s == "Exist"   = TQuant "Exist"
     | s == "Forall"  = TQuant "Forall"
-    | all isDigit s  = TNum (read s)
+    | not (null s) && all isDigit s = TNum (read s)
     | otherwise      = TSym s
   where
     s = strip_quotes raw_s
@@ -539,7 +551,9 @@ parse_map_cmd s = case break (=='-') s of
 show_token :: Token -> String
 show_token token = case token of
     TNum n             -> show n
-    TSym s             -> s
+    TSym s
+        | any (\c -> isSpace c || c `elem` "[],()") s -> "\"" ++ s ++ "\""
+        | otherwise -> s
     TBool b            -> show b
     TDummy             -> "#"
     TNot t@(TAnd _ _)  -> "not (" ++ show_token t ++ ")"
@@ -552,8 +566,9 @@ show_token token = case token of
                 _      -> "{" ++ b ++ "∈" ++ s ++ " | " ++ show_token f ++ "}"
             quant_str = q ++ " " ++ a ++ "∈" ++ set_str
         in case d of
-            TDummy -> "(" ++ quant_str ++ ")"
-            _      -> "(" ++ quant_str ++ " " ++ show_token d ++ ")"
+            TDummy   -> "(" ++ quant_str ++ ")"
+            TAnd _ _ -> "(" ++ quant_str ++ " (" ++ show_token d ++ "))"
+            _        -> "(" ++ quant_str ++ " " ++ show_token d ++ ")"
     TLam v b           -> "λ" ++ v ++ "." ++ show_token b
     TApp f x           -> "(" ++ show_token f ++ " " ++ show_token x ++ ")"
     TList ts           -> "[" ++ intercalate ", " (map show_token (reverse ts)) ++ "]"

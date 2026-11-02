@@ -1,0 +1,381 @@
+<预输入>
+
+define 条件重复宏:=[!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,If,z,[!,Apply,!,Apply,!,Apply,x,x,y,!,Thaw,y],[]],λx.λy.λz.[!,If,z,[!,Apply,!,Apply,!,Apply,x,x,y,!,Thaw,y],[]]]
+define 计数执行宏:=[!,Apply,λy.[[!,Apply,λz.[!,If,!,Equal,z,[],False,[True,!,Thaw,z,!,Thaw,y]]],True]]
+define 计数重复宏:=[!,Thaw,条件重复宏,!,Thaw,计数执行宏]
+define 丢弃宏:=[!,Apply,λz.[]]
+define 复制宏:=[!,Apply,λz.[z,z]]
+define 句内否定宏:=[!,Back,CM,!,Back,CM,!,Not,!,Get,CM,!,Get,CM]
+define 局部否定宏:=[!,Back,WT,!,Back,WT,!,Not,!,Get,WT,!,Get,WT]
+define 整体否定宏:=[!,Back,QN,!,Apply,λz.[!,If,!,Lookup,Mmap,z,[!,Insert,Imap,!,Not,!,Lookup,Imap,z,z],[!,Insert,Omap,!,Not,!,Lookup,Omap,z,z]],!,Get,QN]
+define 上传宏:=[!,Upload]
+define 肯定下载宏:=[!,Download,!,Back,CM,True]
+define 否定下载宏:=[!,Download,!,Back,CM,False]
+define 定语从句宏:=[!,Thaw,丢弃宏,!,Insert,Fmap,True,!,Get,QN]
+define 内模式宏:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Insert,Mmap,True,z]]
+define 外模式宏:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Insert,Mmap,False,z]]
+define 切换宏:=[!,Apply,λz.[!,Insert,z,!,Not,!,Lookup,z]]
+define 模式切换宏:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Thaw,切换宏,Mmap,z,z]]
+define 焦点宏:=[!,Back,QN,!,Assign,!,Thaw,复制宏,!,Get,QN]
+define 释放宏:=[!,Apply,λz.[!,Insert,Fmap,False,z,!,If,!,Lookup,Fmap,z,[!,Back,QN,z],[]]]
+define 谓词关系宏:=[!,Apply,!,Apply,!,Apply,!,Apply,λw.λx.λy.λz.[!,x,y,z,!,And,!,Equal,!,Use,z,!,Lookup,Mmap,z,w]]
+define 二元谓词宏:=[!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,丢弃宏,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λs.λt.λu.λv.λw.λx.λy.λz.[!,Thaw,谓词关系宏,w,谓语:R,!,Thaw,谓词关系宏,u,主语:R,v,!,Thaw,谓词关系宏,s,宾语:R,t,x,z],!,Thaw,焦点宏,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Combine,!,Ω:S]
+define 交换排列宏:=[!,Back,PR,[!,Swap]]
+define 左排列宏:=[!,Back,PR,[!,Left]]
+define 右排列宏:=[!,Back,PR,[!,Right]]
+define 顶排列宏:=[!,Back,PR,[!,Top]]
+define 底排列宏:=[!,Back,PR,[!,Bottom]]
+define 副作用顶排列宏:=[!,Back,PR,[!,Apply,!,Apply,λy.λz.[!,Top,y,[z]]]]
+define 副作用底排列宏:=[!,Back,PR,[!,Apply,!,Apply,λy.λz.[!,Bottom,y,[z]]]]
+define 存在量词宏:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,Exist:QQ,z],!,Thaw,模式切换宏]
+define 全称量词宏:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,Forall:QQ,z],!,Thaw,模式切换宏]
+define 多于一半量词宏:=[!,Back,WT,λz.[!,Combine,!,Back,WT,!,Quantify,λz.["MoreThanHalf",z],z],!,Thaw,模式切换宏]
+define 量化宏_1:=[!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],(1),[[]]]]
+define 量化宏_21:=[!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],(2,1),[[[]]]]]
+define 量化宏_321:=[!,Back,WT,λw.[!,Combine,!,Back,WT,w,!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],(3,2,1),[[[[]]]]]]
+define 量化映射宏_:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(),[],!,Mapping]
+define 量化映射宏_1:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(1),[[]],!,Mapping]
+define 量化映射宏_21:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(2,1),[[[]]],!,Mapping]
+define 量化映射宏_321:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(3,2,1),[[[[]]]],!,Mapping]
+define 量化映射宏_4321:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(4,3,2,1),[[[[[]]]]],!,Mapping]
+define 量化映射宏_54321:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(5,4,3,2,1),[[[[[[]]]]]],!,Mapping]
+define 量化映射宏_654321:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(6,5,4,3,2,1),[[[[[[[]]]]]]],!,Mapping]
+define 顺因果宏:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(2,1),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,丢弃宏,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,谓词关系宏,w,因果前件:R,x,!,Thaw,谓词关系宏,u,因果后件:R,v,z],!,Thaw,焦点宏,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Combine,!,Ω:S]
+define 逆因果宏:=[!,Apply,!,Apply,λy.λz.[!,Thaw,计数重复宏,[!,Build],z,!,Permute,!,Bottom,y],!,Traverse,(1,2),[[[]]],!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,丢弃宏,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,谓词关系宏,w,因果前件:R,x,!,Thaw,谓词关系宏,u,因果后件:R,v,z],!,Thaw,焦点宏,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Combine,!,Ω:S]
+define 裸因果宏:=[!,Back,CM,!,Use,!,Back,CM,True,!,Thaw,丢弃宏,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,!,Apply,λu.λv.λw.λx.λy.λz.[!,Thaw,谓词关系宏,w,因果前件:R,x,!,Thaw,谓词关系宏,u,因果后件:R,v,z],!,Thaw,焦点宏,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Get,CM,!,Thaw,释放宏,!,Get,CM,!,Combine,!,Ω:S]
+define 形容词1宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S1:S,!,Back,WT,形容词R1:R]
+define 形容词2宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S2:S,!,Back,WT,形容词R2:R]
+define 形容词3宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S3:S,!,Back,WT,形容词R3:R]
+define 形容词4宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S4:S,!,Back,WT,形容词R4:R]
+define 形容词5宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S5:S,!,Back,WT,形容词R5:R]
+define 形容词6宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S6:S,!,Back,WT,形容词R6:R]
+define 形容词7宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S7:S,!,Back,WT,形容词R7:R]
+define 形容词8宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S8:S,!,Back,WT,形容词R8:R]
+define 形容词9宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,形容词S9:S,!,Back,WT,形容词R9:R]
+define 副词1宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f1(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 副词2宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f2(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 副词3宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f3(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 副词4宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f4(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 副词5宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f5(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 副词6宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f6(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 副词7宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f7(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 副词8宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f8(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 副词9宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["副词f9(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define R关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R1关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R1:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R2关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R2:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R3关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R3:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R4关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R4:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R5关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R5:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R6关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R6:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R7关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R7:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R8关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R8:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define R9关系宏:=[!,Back,WT,λy.[!,Back,WT,λz.[!,Combine,!,Back,WT,!,R9:R,y,z,!,Lookup,Mmap,z,!,Get,WT]],!,Back,WT,True]
+define S集合宏:=[!,Combine,!,S:S]
+define S1集合宏:=[!,Combine,!,S1:S]
+define S2集合宏:=[!,Combine,!,S2:S]
+define S3集合宏:=[!,Combine,!,S3:S]
+define S4集合宏:=[!,Combine,!,S4:S]
+define S5集合宏:=[!,Combine,!,S5:S]
+define S6集合宏:=[!,Combine,!,S6:S]
+define S7集合宏:=[!,Combine,!,S7:S]
+define S8集合宏:=[!,Combine,!,S8:S]
+define S9集合宏:=[!,Combine,!,S9:S]
+define 谓语集合宏:=[!,Combine,!,谓语:S]
+define 谓语1集合宏:=[!,Combine,!,谓语1:S]
+define 谓语2集合宏:=[!,Combine,!,谓语2:S]
+define 谓语3集合宏:=[!,Combine,!,谓语3:S]
+define 谓语4集合宏:=[!,Combine,!,谓语4:S]
+define 谓语5集合宏:=[!,Combine,!,谓语5:S]
+define 谓语6集合宏:=[!,Combine,!,谓语6:S]
+define 谓语7集合宏:=[!,Combine,!,谓语7:S]
+define 谓语8集合宏:=[!,Combine,!,谓语8:S]
+define 谓语9集合宏:=[!,Combine,!,谓语9:S]
+define 主语集合宏:=[!,Combine,!,主语:S]
+define 主语1集合宏:=[!,Combine,!,主语1:S]
+define 主语2集合宏:=[!,Combine,!,主语2:S]
+define 主语3集合宏:=[!,Combine,!,主语3:S]
+define 主语4集合宏:=[!,Combine,!,主语4:S]
+define 主语5集合宏:=[!,Combine,!,主语5:S]
+define 主语6集合宏:=[!,Combine,!,主语6:S]
+define 主语7集合宏:=[!,Combine,!,主语7:S]
+define 主语8集合宏:=[!,Combine,!,主语8:S]
+define 主语9集合宏:=[!,Combine,!,主语9:S]
+define 宾语集合宏:=[!,Combine,!,宾语:S]
+define 宾语1集合宏:=[!,Combine,!,宾语1:S]
+define 宾语2集合宏:=[!,Combine,!,宾语2:S]
+define 宾语3集合宏:=[!,Combine,!,宾语3:S]
+define 宾语4集合宏:=[!,Combine,!,宾语4:S]
+define 宾语5集合宏:=[!,Combine,!,宾语5:S]
+define 宾语6集合宏:=[!,Combine,!,宾语6:S]
+define 宾语7集合宏:=[!,Combine,!,宾语7:S]
+define 宾语8集合宏:=[!,Combine,!,宾语8:S]
+define 宾语9集合宏:=[!,Combine,!,宾语9:S]
+define 农民集合宏:=[!,Combine,!,农民:S]
+define 驴集合宏:=[!,Combine,!,驴:S]
+define 鱼集合宏:=[!,Combine,!,鱼:S]
+define 猫集合宏:=[!,Combine,!,猫:S]
+define 有集合宏:=[!,Combine,!,有:S]
+define 打集合宏:=[!,Combine,!,打:S]
+define 吃集合宏:=[!,Combine,!,吃:S]
+define 重的宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,0~1:S,!,Back,WT,重量度量:R]
+define 高的宏:=[!,Back,WT,λw.[!,Combine,!,Back,WT,!,Build,!,Apply,!,Apply,!,Apply,λx.λy.λz.[!,x,y,w,!,Lookup,Mmap,w,z],!,Get,WT,!,Get,WT,!,Get,WT],!,Back,WT,True,!,0~1:S,!,Back,WT,高度度量:R]
+define 相反宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Transform,λz.["-(",z,")"],!,Get,WT,!,Get,WT,!,Get,WT]
+define 存在副词宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,Exist:QQ,!,Get,WT,!,Get,WT,!,Get,WT]
+define 全称副词宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,Forall:QQ,!,Get,WT,!,Get,WT,!,Get,WT]
+define 多于一半副词宏:=[!,Back,WT,!,Back,WT,!,Back,WT,!,Quantify,λz.["MoreThanHalf",z],!,Get,WT,!,Get,WT,!,Get,WT]
+map 谓语->二元谓词宏
+map 谓语1->二元谓词宏
+map 谓语2->二元谓词宏
+map 谓语3->二元谓词宏
+map 谓语4->二元谓词宏
+map 谓语5->二元谓词宏
+map 谓语6->二元谓词宏
+map 谓语7->二元谓词宏
+map 谓语8->二元谓词宏
+map 谓语9->二元谓词宏
+map 有->二元谓词宏
+map 打->二元谓词宏
+map 吃->二元谓词宏
+
+<例句>
+
+1.
+输入：
+量化映射宏_321 S1集合宏 S2集合宏 R2关系宏 R1关系宏 量化宏_21 谓语集合宏 主语集合宏 S3集合宏 S4集合宏 S5集合宏 R5关系宏 R4关系宏 R3关系宏 量化宏_1 量化宏_21 宾语集合宏 S6集合宏 R6关系宏 量化宏_1
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 16 15 14 13 12 11
+Quant Stack (QN):       10
+Wait Stack (WT):
+Component Stack (CM):   True 10
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   10
+------------------------- Maps -------------------------
+Imap (Restrictors):     [10 -> (Exist α_2∈{α_2∈宾语 | (Exist α_1∈S6 R6(α_2,α_1))} (Exist α_6∈{α_6∈主语 | (Exist α_3∈S5 (Exist α_4∈{α_4∈S4 | R5(α_4,α_3)} (Exist α_5∈{α_5∈S3 | R4(α_5,α_4)} R3(α_6,α_5))))} (Exist α_7∈谓语 (宾语(α_7,α_2) ∧ 主语(α_7,α_6) ∧ (Exist α_8∈S2 (Exist α_9∈{α_9∈S1 | R2(α_9,α_8)} R1(α_10,α_9))) ∧ 谓语(α_10,α_7)))))]
+Omap (Nuclear Scopes):  [10 -> #]
+Qmap (Quantifiers):     [10 -> Exist]
+Smap (Sets):            [10 -> Ω]
+Mmap (Modes):           [10 -> True]
+Fmap (Focus Flags):     [10 -> False]
+Emap (Environment):     []
+========================================================
+
+2.
+输入：
+量化映射宏_321 句内否定宏 谓语集合宏 句内否定宏 量化映射宏_321 谓语集合宏 定语从句宏 主语2集合宏 宾语2集合宏 句内否定宏 量化映射宏_321 谓语集合宏 主语1集合宏 定语从句宏 宾语1集合宏
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 16 15 14 13 12 11
+Quant Stack (QN):       10
+Wait Stack (WT):
+Component Stack (CM):   True 10
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   10
+------------------------- Maps -------------------------
+Imap (Restrictors):     [10 -> (Exist α_1∈{α_1∈宾语1 | (Exist α_2∈主语1 (Exist α_3∈谓语 (宾语(α_3,α_1) ∧ 主语(α_3,α_2) ∧ (Exist α_4∈Ω 谓语(α_4,α_3)))))} (Exist α_6∈{α_6∈主语2 | (Exist α_5∈宾语2 (Exist α_7∈谓语 (宾语(α_7,α_5) ∧ 主语(α_7,α_6) ∧ (Exist α_8∈Ω 谓语(α_8,α_7)))))} (Exist α_9∈谓语 (not 宾语(α_9,α_1) ∧ not 主语(α_9,α_6) ∧ not 谓语(α_10,α_9)))))]
+Omap (Nuclear Scopes):  [10 -> #]
+Qmap (Quantifiers):     [10 -> Exist]
+Smap (Sets):            [10 -> Ω]
+Mmap (Modes):           [10 -> True]
+Fmap (Focus Flags):     [10 -> False]
+Emap (Environment):     []
+========================================================
+
+3.
+输入：
+量化映射宏_321 量化映射宏_321 定语从句宏 量化映射宏_321 定语从句宏 谓语集合宏 量化映射宏_321 谓语集合宏 定语从句宏 主语2集合宏 宾语2集合宏 量化映射宏_321 谓语集合宏 主语1集合宏 定语从句宏 宾语1集合宏 主语3集合宏 宾语3集合宏 主语4集合宏 宾语4集合宏
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 22 21 20 19 18 17
+Quant Stack (QN):       16
+Wait Stack (WT):
+Component Stack (CM):   True 16
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   16
+------------------------- Maps -------------------------
+Imap (Restrictors):     [16 -> (Exist α_1∈宾语4 (Exist α_2∈主语4 (Exist α_13∈{α_13∈谓语 | (Exist α_3∈宾语3 (Exist α_4∈主语3 (Exist α_15∈Ω (谓语(α_15,α_13) ∧ (Exist α_5∈{α_5∈宾语1 | (Exist α_6∈主语1 (Exist α_7∈谓语 (宾语(α_7,α_5) ∧ 主语(α_7,α_6) ∧ (Exist α_8∈Ω 谓语(α_8,α_7)))))} (Exist α_10∈{α_10∈主语2 | (Exist α_9∈宾语2 (Exist α_11∈谓语 (宾语(α_11,α_9) ∧ 主语(α_11,α_10) ∧ (Exist α_12∈Ω 谓语(α_12,α_11)))))} (Exist α_14∈Ω (谓语(α_14,α_13) ∧ 宾语(α_13,α_5) ∧ 主语(α_13,α_10))))) ∧ 宾语(α_13,α_3) ∧ 主语(α_13,α_4)))))} (宾语(α_13,α_1) ∧ 主语(α_13,α_2) ∧ 谓语(α_16,α_13)))))]
+Omap (Nuclear Scopes):  [16 -> #]
+Qmap (Quantifiers):     [16 -> Exist]
+Smap (Sets):            [16 -> Ω]
+Mmap (Modes):           [16 -> True]
+Fmap (Focus Flags):     [16 -> False]
+Emap (Environment):     []
+========================================================
+
+4.
+输入：
+S集合宏 S1集合宏 R1关系宏 量化宏_1 全称量词宏 S2集合宏 R2关系宏 S3集合宏 R3关系宏 量化宏_21 多于一半量词宏
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 10 9 8 7 6 5
+Quant Stack (QN):       4
+Wait Stack (WT):
+Component Stack (CM):   True 4
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   0
+------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_3∈S1 R1(α_4,α_3))]
+Omap (Nuclear Scopes):  [4 -> (Exist α_1∈S3 (Exist α_2∈S2 (R2(α_4,α_2) ∧ R3(α_4,α_1))))]
+Qmap (Quantifiers):     [4 -> MoreThanHalfForall]
+Smap (Sets):            [4 -> S]
+Mmap (Modes):           [4 -> True]
+Fmap (Focus Flags):     [4 -> False]
+Emap (Environment):     []
+========================================================
+
+5.
+输入：
+量化映射宏_4321 裸因果宏 量化映射宏_1 有集合宏 肯定下载宏 y 肯定下载宏 z 量化映射宏_1 打集合宏 上传宏 y 农民集合宏 全称量词宏 上传宏 z 驴集合宏 全称量词宏
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 13 12 11 10 9 8
+Quant Stack (QN):       7
+Wait Stack (WT):
+Component Stack (CM):   True 7
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   7
+------------------------- Maps -------------------------
+Imap (Restrictors):     [7 -> (Forall α_1∈驴 (Forall α_2∈农民 (Exist α_4∈{α_4∈Ω | (Exist α_3∈打 (宾语(α_3,α_1) ∧ 主语(α_3,α_2) ∧ 谓语(α_4,α_3)))} (Exist α_6∈{α_6∈Ω | (Exist α_5∈有 (宾语(α_5,α_1) ∧ 主语(α_5,α_2) ∧ 谓语(α_6,α_5)))} (因果后件(α_7,α_4) ∧ 因果前件(α_7,α_6))))))]
+Omap (Nuclear Scopes):  [7 -> #]
+Qmap (Quantifiers):     [7 -> Exist]
+Smap (Sets):            [7 -> Ω]
+Mmap (Modes):           [7 -> True]
+Fmap (Focus Flags):     [7 -> False]
+Emap (Environment):     [y -> 2, z -> 1]
+========================================================
+
+6.
+输入：
+顺因果宏 量化映射宏_321 打集合宏 农民集合宏 驴集合宏 量化映射宏_321 吃集合宏 猫集合宏 鱼集合宏
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 15 14 13 12 11 10
+Quant Stack (QN):       9
+Wait Stack (WT):
+Component Stack (CM):   True 9
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   9
+------------------------- Maps -------------------------
+Imap (Restrictors):     [9 -> (Exist α_4∈{α_4∈Ω | (Exist α_1∈鱼 (Exist α_2∈猫 (Exist α_3∈吃 (宾语(α_3,α_1) ∧ 主语(α_3,α_2) ∧ 谓语(α_4,α_3)))))} (Exist α_8∈{α_8∈Ω | (Exist α_5∈驴 (Exist α_6∈农民 (Exist α_7∈打 (宾语(α_7,α_5) ∧ 主语(α_7,α_6) ∧ 谓语(α_8,α_7)))))} (因果后件(α_9,α_4) ∧ 因果前件(α_9,α_8))))]
+Omap (Nuclear Scopes):  [9 -> #]
+Qmap (Quantifiers):     [9 -> Exist]
+Smap (Sets):            [9 -> Ω]
+Mmap (Modes):           [9 -> True]
+Fmap (Focus Flags):     [9 -> False]
+Emap (Environment):     []
+========================================================
+
+7.
+输入：
+驴集合宏 全称副词宏 重的宏 局部否定宏 高的宏 S集合宏 局部否定宏 R关系宏 量化宏_1
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 10 9 8 7 6 5
+Quant Stack (QN):       4
+Wait Stack (WT):
+Component Stack (CM):   True 4
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   0
+------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_1∈S ((Exist α_2∈0~1 ((Forall α_3∈0~1 重量度量(α_4,α_3)) ∧ not 高度度量(α_4,α_2))) ∧ not R(α_4,α_1)))]
+Omap (Nuclear Scopes):  [4 -> #]
+Qmap (Quantifiers):     [4 -> Exist]
+Smap (Sets):            [4 -> 驴]
+Mmap (Modes):           [4 -> True]
+Fmap (Focus Flags):     [4 -> False]
+Emap (Environment):     []
+========================================================
+
+8.
+输入：
+整体否定宏 量化映射宏_1 副作用顶排列宏 副作用顶排列宏 全称量词宏 S3集合宏 R3关系宏 量化宏_1 谓语集合宏 主语集合宏 宾语集合宏 S1集合宏 R1关系宏 S2集合宏 R2关系宏 量化宏_1 副作用顶排列宏
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 13 12 11 10 9 8
+Quant Stack (QN):       7
+Wait Stack (WT):
+Component Stack (CM):   True 7
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   7
+------------------------- Maps -------------------------
+Imap (Restrictors):     [7 -> #]
+Omap (Nuclear Scopes):  [7 -> not (Exist α_1∈S2 (Exist α_3∈{α_3∈宾语 | (Exist α_2∈S1 (R1(α_3,α_2) ∧ R2(α_3,α_1)))} (Exist α_4∈主语 (Exist α_5∈谓语 (宾语(α_5,α_3) ∧ 主语(α_5,α_4) ∧ (Exist α_6∈S3 R3(α_7,α_6)) ∧ 谓语(α_7,α_5))))))]
+Qmap (Quantifiers):     [7 -> Forall]
+Smap (Sets):            [7 -> Ω]
+Mmap (Modes):           [7 -> False]
+Fmap (Focus Flags):     [7 -> False]
+Emap (Environment):     []
+========================================================
+
+9.
+输入：
+量化映射宏_321 S集合宏 S1集合宏 R1关系宏 S2集合宏 R2关系宏 S3集合宏 R3关系宏 S集合宏 S1集合宏 R1关系宏 S2集合宏 R2关系宏 S3集合宏 R3关系宏 量化宏_321
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 14 13 12 11 10 9
+Quant Stack (QN):       4 8
+Wait Stack (WT):
+Component Stack (CM):   True 4 True 8
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   0
+------------------------- Maps -------------------------
+Imap (Restrictors):     [4 -> (Exist α_1∈S3 (Exist α_2∈S2 (Exist α_3∈S1 (R1(α_4,α_3) ∧ R2(α_4,α_2) ∧ R3(α_4,α_1))))), 8 -> (Exist α_5∈S3 (Exist α_6∈S2 (Exist α_7∈S1 (R1(α_8,α_7) ∧ R2(α_8,α_6) ∧ R3(α_8,α_5)))))]
+Omap (Nuclear Scopes):  [4 -> #, 8 -> #]
+Qmap (Quantifiers):     [4 -> Exist, 8 -> Exist]
+Smap (Sets):            [4 -> S, 8 -> S]
+Mmap (Modes):           [4 -> True, 8 -> True]
+Fmap (Focus Flags):     [4 -> False, 8 -> False]
+Emap (Environment):     []
+========================================================
+
+10.
+输入：
+量化映射宏_21 副作用底排列宏 交换排列宏 交换排列宏 谓语4集合宏 量化映射宏_1 副作用底排列宏 副作用底排列宏 交换排列宏 交换排列宏 全称副词宏 形容词2宏 副词2宏 副词1宏 全称副词宏 形容词1宏 全称量词宏 局部否定宏 多于一半副词宏 全称副词宏 副词3宏 形容词3宏 S1集合宏 全称量词宏 S2集合宏 全称量词宏 R2关系宏 R1关系宏 量化宏_21 句内否定宏 整体否定宏 量化映射宏_321 S9集合宏 全称量词宏 R9关系宏 量化宏_1 全称量词宏 定语从句宏 量化映射宏_321 全称量词宏 S8集合宏 全称量词宏 R8关系宏 量化宏_1 定语从句宏 谓语3集合宏 全称量词宏 S7集合宏 全称量词宏 R7关系宏 量化宏_1 主语3集合宏 全称量词宏 宾语3集合宏 全称量词宏 主语4集合宏 全称量词宏 宾语4集合宏 全称量词宏 句内否定宏 量化映射宏_321 全称量词宏 谓语2集合宏 全称量词宏 定语从句宏 主语2集合宏 全称量词宏 宾语2集合宏 全称量词宏 S3集合宏 全称量词宏 S4集合宏 全称量词宏 S5集合宏 全称量词宏 R5关系宏 R4关系宏 R3关系宏 量化宏_1 量化宏_21 句内否定宏 量化映射宏_321 全称量词宏 句内否定宏 谓语1集合宏 全称量词宏 句内否定宏 主语1集合宏 全称量词宏 定语从句宏 句内否定宏 宾语1集合宏 全称量词宏 S6集合宏 全称量词宏 R6关系宏 量化宏_1 宾语4集合宏
+
+程序输出：
+==================== Machine State ====================
+Input Stack (IP):
+Num Stack (NM):         ... 37 36 35 34 33 32
+Quant Stack (QN):       31
+Wait Stack (WT):
+Component Stack (CM):   True 31
+Perm Stack (PR):
+Output Stack (OP):
+Focus Register (<F>):   31
+------------------------- Maps -------------------------
+Imap (Restrictors):     [31 -> (Exist α_1∈宾语4 (Forall α_29∈{α_29∈Ω | (Forall α_27∈副词f2(副词f1(形容词S1)) ((Forall α_28∈形容词S2 形容词R2(α_29,α_28)) ∧ 形容词R1(α_29,α_27)))} ((Forall α_3∈宾语1 ((Forall α_4∈主语1 (Forall α_5∈谓语1 (not 宾语(α_5,α_3) ∧ not 主语(α_5,α_4) ∧ (Forall α_6∈Ω (not 谓语(α_6,α_5) ∧ (Forall α_2∈S6 R6(α_3,α_2))))))) ∧ (Forall α_11∈主语2 ((Forall α_10∈宾语2 ((Forall α_7∈S5 (Forall α_8∈S4 (R5(α_8,α_7) ∧ (Forall α_9∈S3 (R4(α_9,α_8) ∧ R3(α_10,α_9)))))) ∧ (Forall α_12∈谓语2 (宾语(α_12,α_10) ∧ 主语(α_12,α_11) ∧ (Forall α_13∈Ω 谓语(α_13,α_12)))))) ∧ (Forall α_19∈谓语3 (not (Forall α_14∈宾语4 (Forall α_15∈主语4 (Forall α_23∈{α_23∈Ω | (Forall α_22∈S9 R9(α_23,α_22))} (谓语(α_23,α_19) ∧ (Forall α_16∈宾语3 (Forall α_17∈主语3 (Forall α_21∈Ω ((Forall α_20∈S8 R8(α_21,α_20)) ∧ 谓语(α_21,α_19) ∧ (Forall α_18∈S7 R7(α_19,α_18)) ∧ 宾语(α_19,α_16) ∧ 主语(α_19,α_17))))) ∧ 宾语(α_19,α_14) ∧ 主语(α_19,α_15))))) ∧ not 宾语(α_19,α_3) ∧ not 主语(α_19,α_11) ∧ (Forall α_24∈S2 (Forall α_25∈S1 (R2(α_25,α_24) ∧ (MoreThanHalfForall α_26∈副词f3(形容词S3) not 形容词R3(α_29,α_26)) ∧ R1(α_29,α_25)))) ∧ not 谓语(α_29,α_19))))))) ∧ (Exist α_30∈谓语4 (宾语(α_30,α_1) ∧ 主语(α_30,α_29) ∧ 谓语(α_31,α_30))))))]
+Omap (Nuclear Scopes):  [31 -> #]
+Qmap (Quantifiers):     [31 -> Exist]
+Smap (Sets):            [31 -> Ω]
+Mmap (Modes):           [31 -> True]
+Fmap (Focus Flags):     [31 -> False]
+Emap (Environment):     []
+========================================================
