@@ -10,7 +10,7 @@
 > An experimental formal semantic deduction engine and logical language (Loglang) architecture based on a 6-Stack, 1-Stream, 1-Register, and 8-Map concatenative state machine.
 
 > [!NOTE]
-> **STATUS: EXPERIMENTAL SPECIFICATION & PROTOTYPE (v1.1)**  
+> **STATUS: EXPERIMENTAL SPECIFICATION & PROTOTYPE (v1.2)**  
 > This project is currently an experimental formal specification and prototype. The core reduction engine has been validated against a comprehensive suite of **10 representative benchmark cases** (covering a 31-variable full-scale stress test, deeply nested and coordinate relative clauses, generalized quantifiers, donkey sentences, scale semantics, dynamic permutation pipelines, and tri-level negation).
 
 ---
@@ -19,13 +19,13 @@
 
 Traditional formal semantics (e.g., Montague Grammar) typically relies on compositional syntactic trees, type-driven functional application, and Quantifier Raising (QR). Conversely, classical logical languages (such as Lojban) encode predicates as rigid, predetermined tuple slots (`x₁, ..., xₙ`), which often introduces substantial lexical memorization burdens and necessitates elidable terminators (`ku`, `vau`, `kei`, etc.) to resolve structural ambiguities.
 
-**SML (Stack-Map-Loglang) v1.1** explores an alternative, tree-free operational model: **a linear concatenative abstract machine with relational graph construction and quantifier closure**.
+**SML (Stack-Map-Loglang) v1.2** explores an alternative, tree-free operational model: **a linear concatenative abstract machine with relational graph construction and quantifier closure**.
 
 By treating all lexical content as unary base sets (`:S`), dynamic event reification (`Ω`), and binary relations (`:R`), SML establishes an incremental state-transition system. Coupled with higher-order continuation closures on a Wait Stack (`WT`), a dual-track restrictor/nuclear scope mapping (`Imap` / `Omap`), a single scalar focus register (`⟨F⟩`), and a permutation pipeline (`PR`), SML resolves complex quantifier scopings, nested/coordinate relative clauses, and tri-level negations without syntax trees or structural closing delimiters.
 
 ---
 
-## 🏗️ Abstract Machine Model (v1.1)
+## 🏗️ Abstract Machine Model (v1.2)
 
 ```text
 State = ⟨ IP, NM, QN, WT, CM, PR, OP, ⟨F⟩, Imap, Omap, Qmap, Smap, Mmap, Fmap, Emap, Map ⟩
@@ -59,7 +59,7 @@ State = ⟨ IP, NM, QN, WT, CM, PR, OP, ⟨F⟩, Imap, Omap, Qmap, Smap, Mmap, F
 
 ---
 
-## 💡 Key Architectural Evolutions (v1.1 vs v0.99)
+## 💡 Key Architectural Features (v1.2)
 
 *   **Noun-Verb Parity**:  
     Verbs and nouns are unified as unary sets (`:S`). Verbal predicate frames are dynamically unpacked via `Map`, allowing verbs to natively host relative clauses and higher-order adjuncts just like nouns.
@@ -68,7 +68,7 @@ State = ⟨ IP, NM, QN, WT, CM, PR, OP, ⟨F⟩, Imap, Omap, Qmap, Smap, Mmap, F
 *   **Generalized Quantifier Duality (`Imap` vs `Omap`)**:  
     Quantification cleanly separates restrictors from nuclear scopes, naturally accommodating Generalized Quantifiers (such as proportional quantifiers, e.g., *More Than Half*).
 *   **Single Scalar Focus Register with Invariant Restoration**:  
-    Replacing the dedicated clause stack with `⟨F⟩` and atomic `Release` macros allows both nested and coordinate relative clauses to evaluate with automatic host reset.
+    Replacing dedicated clause stacks with `⟨F⟩` and atomic `Release` macros allows both nested and coordinate relative clauses to evaluate with automatic host reset.
 *   **Permutation Pipeline (`PR`) and Church-Peano Recursion**:  
     High-arity quantifiers and permutation adjustments are driven by a dynamic permutation stack and list-peeling recursion, preventing fixed-arity macro combinatorial explosion.
 *   **Tri-Level Orthogonal Negation System**:  
@@ -101,12 +101,12 @@ Rather than hardcoding rigid metaphysical assumptions into the grammar (e.g., pr
 │   ├── Examples.txt         # Complete execution traces for 10 benchmark test sentences
 │   ├── Others.txt           # Linguistic philosophy, annotative model, and Two-Pass pipeline
 │   ├── RuleSet.txt          # Formal 29 reduction rules and abstract machine specification
-│   └── SurfaceSyntax.txt    # Surface syntax guide and macro quick-reference (AI-assisted draft)
+│   └── SurfaceSyntax.md     # Surface syntax guide and macro behavior specification
 ├── 中文/
 │   ├── 例句.txt              # 10 个完整基准测试例句推导与机器状态输出记录
-│   ├── 其他.txt              # 语言哲学、关系批注模型与双阶段架构备忘录
+│   ├── 其他.txt              # 语言哲学、关系批注模型与自然语言化演进备忘录
 │   ├── 规则集.txt            # 29 条形式规约规则与状态机底层规范
-│   └── 表层语法.txt          # 表层语法结构、句型规范与核心宏模板速查（AI辅助生成草案）
+│   └── 表层语法.md          # 表层语法结构、宏观栈语义与核心宏模板速查
 ├── src/
 │   └── Main.hs              # Reference implementation (Haskell prototype)
 └── README.md                # Project documentation (Bilingual)
@@ -119,7 +119,7 @@ Rather than hardcoding rigid metaphysical assumptions into the grammar (e.g., pr
 *   **Theoretical Foundations & System Design**:  
     The formal logical framework, the 6-Stack 1-Stream 1-Register 8-Map abstract machine, the relational annotation model, the 29 reduction rules, and the macro calculus were **conceived, formulated, and designed entirely and independently by the author**.
 *   **Surface Syntax Document Notice**:  
-    The surface syntax reference files (`中文/表层语法.txt` and `English/SurfaceSyntax.txt`) were **temporarily drafted with AI assistance** based on the author's benchmark inputs and actual execution traces. As an automated summary, it may contain subtle descriptive inaccuracies; **in case of any discrepancy, please treat `例句.txt` / `Examples.txt` as the definitive ground truth**. The author will thoroughly revise and standardize the surface syntax documentation in future iterations.
+    The surface syntax specifications (`English/SurfaceSyntax.md` and `中文/表层语法.md`) were compiled with AI assistance. The author explained the specific functionality of each macro bullet-by-bullet in conversational terms. The AI was then instructed to organize and structure these notes into the formal specification. Because AI synthesis may introduce subtle descriptive discrepancies, **in case of any inconsistency between the surface syntax document and actual engine behavior, please treat `Examples.txt` / `例句.txt` as the definitive ground truth**.
 
 ---
 
@@ -129,7 +129,7 @@ Rather than hardcoding rigid metaphysical assumptions into the grammar (e.g., pr
 > 基于“六栈一流水一标量寄存器八映射”（6-Stack 1-Stream 1-Register 8-Map）串接式状态机的形式语义推导引擎与逻辑语言（Loglang）架构。
 
 > [!NOTE]
-> **当前状态：试验性形式规范与原型系统 (v1.1)**  
+> **当前状态：试验性形式规范与原型系统 (v1.2)**  
 > 本项目目前处于试验性形式规范与原型机探索阶段。核心状态机规约引擎已在 **10 个具有代表性的典型基准用例**（涵盖包含 31 个变量的超长长难句极限压力测试、多层嵌套动词定语从句、广义受限量词、经典驴子句、标度语义学、置换栈动态流水线以及三轨否定）上完成了推导自洽性验证。
 
 ---
@@ -138,13 +138,13 @@ Rather than hardcoding rigid metaphysical assumptions into the grammar (e.g., pr
 
 经典形式语义学（如蒙太格语法）高度依赖句法树递归、类型驱动的应用与量词提升（QR）；而传统人造逻辑语（如 Lojban）则普遍将谓词固定为刚性的位点结构（`x₁, ..., xₙ`），这不仅带来了沉重的词汇位点记忆负担，还需要依靠庞杂的括号终止符（`ku`, `vau`, `kei` 等）来消除句法歧义。
 
-**SML (Stack-Map-Loglang) v1.1** 探索了一种**去语法树化的串接式线性状态机**路径。
+**SML (Stack-Map-Loglang) v1.2** 探索了一种**去语法树化的串接式线性状态机**路径。
 
 系统将语言中的实词统一抽象为单目基底集合（`:S`），动作统一本体化为一阶事件个体（`Ω`），多元关系统一分解为二元谓词（`:R`）。通过等待栈（`WT`）上的高阶延续闭包、限制域与核域的双轨映射（`Imap` / `Omap`）、焦点单值寄存器（`⟨F⟩`）与排列流水线栈（`PR`），SML 旨在不构建显式句法树、不书写闭合括号的前提下，线性求解复杂量词辖域、深层嵌套与并列定语从句，以及细粒度题元否定。
 
 ---
 
-## 🏗️ 抽象机模型 (v1.1)
+## 🏗️ 抽象机模型 (v1.2)
 
 ```text
 State = ⟨ IP, NM, QN, WT, CM, PR, OP, ⟨F⟩, Imap, Omap, Qmap, Smap, Mmap, Fmap, Emap, Map ⟩
@@ -178,7 +178,7 @@ State = ⟨ IP, NM, QN, WT, CM, PR, OP, ⟨F⟩, Imap, Omap, Qmap, Smap, Mmap, F
 
 ---
 
-## 💡 v1.1 核心设计演进
+## 💡 v1.2 核心设计特征
 
 *   **名谓词本体平权（Noun-Verb Parity）**：  
     动词不再拥有特殊的固定语法位点，而是作为普通的集合词（`:S`）进入成分栈。在遇到执行触发时，通过全局字典 `Map` 动态解构出二元题元格框与主事件 `Ω`，使动词天然能像名词一样接受定语从句修饰。
@@ -187,7 +187,7 @@ State = ⟨ IP, NM, QN, WT, CM, PR, OP, ⟨F⟩, Imap, Omap, Qmap, Smap, Mmap, F
 *   **广义量词双轨切分（`Imap` 与 `Omap` 对偶）**：  
     严格划分限制域与核域，配合模式翻转，原生支持蒙太格广义量词理论（GQ Theory，如“多于一半”等比例量词）。
 *   **标量焦点寄存器 `⟨F⟩` 与宿主原位复位**：  
-    通过 `释放宏`（探测 `Fmap` 并按需引渡）与原子复位机制，彻底废除了旧版的专用从句栈，且对称统一了嵌套从句与并列从句。
+    通过 `释放宏`（探测 `Fmap` 并按需引渡）与原子复位机制，废除冗余的专用从句栈，且对称统一了嵌套从句与并列从句。
 *   **排列栈流水线与皮亚诺列表递归**：  
     引入置换群生成元思想与列表剥离递归（Church-Peano 计数），消除了传统固定元数量化宏的阶乘爆炸问题。
 *   **完备的三轨正交否定系统**：  
@@ -220,12 +220,12 @@ SML 在语言哲学上**放弃了在语法底层硬编码特定形而上学或�
 │   ├── Examples.txt         # 10 个基准测试例句运行追踪完整记录 (英文版)
 │   ├── Others.txt           # 架构设计思想、关系批注模型与双阶段解析备忘录 (英文版)
 │   ├── RuleSet.txt          # 29 条形式规约规则与状态机底层规范 (英文版)
-│   └── SurfaceSyntax.txt    # 表层语法规范与核心宏速查 (AI 辅助生成草案)
+│   └── SurfaceSyntax.md     # 表层语法规范与宏观栈语义速查 (英文版)
 ├── 中文/
 │   ├── 例句.txt              # 10 个完整基准测试例句推导与机器状态输出记录
 │   ├── 其他.txt              # 语言哲学、关系批注模型与自然语言化演进备忘录
 │   ├── 规则集.txt            # 29 条形式规约规则与状态机底层规范
-│   └── 表层语法.txt          # 表层语法结构、句型规范与核心宏模板速查（AI辅助生成草案）
+│   └── 表层语法.md          # 表层语法结构、宏观栈语义与核心宏模板速查
 ├── src/
 │   └── Main.hs              # 规约状态机参考实现代码（Haskell 原型）
 └── README.md                # 双语项目主文档
@@ -238,4 +238,5 @@ SML 在语言哲学上**放弃了在语法底层硬编码特定形而上学或�
 *   **系统理论与内核设计**：  
     SML 的理论基石、“六栈一流水一标量寄存器八映射”抽象机模型、关系批注模型、29 条状态转移规约规则体系以及量化消解代数，**完全由作者本人独立构思、数学化定义并实现**。
 *   **表层语法文档说明**：  
-    文档中的表层语法说明文件（`中文/表层语法.txt` 与 `English/SurfaceSyntax.txt`）目前是**由 AI 辅助总结生成的临时草案**（具体方式为作者提供测试输入序列与引擎输出状态，提示 AI 归纳句型规律与宏位置）。由于 AI 归纳可能存在局部的理解偏差或描述疏漏，**当前阶段若发现表层语法说明与推导行为存在不一致，请一律以 `例句.txt` / `Examples.txt` 的实际推导结果为准**。作者会在后续版本中对表层语法的正规文法进行人工审校与严密规范。
+    表层语法规范文件（`中文/表层语法.md` 与 `English/SurfaceSyntax.md`）是由作者以逐条列点、口语化的方式详细说明每个宏的具体功能，由 AI 协助整理归纳而成。由于 AI 在整理转化过程中可能存在局部的理解偏差或疏漏，**当前阶段若发现表层语法描述与实际推导行为存在不一致，请一律以 `例句.txt` / `Examples.txt` 的实际推导结果为准**。作者会在后续版本中对表层语法的正规文法进行人工审校与严密规范。
+```
